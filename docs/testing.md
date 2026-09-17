@@ -23,7 +23,11 @@ packing. This directory is ignored and does not alter global PATH or publish the
 
 This workflow has been authored locally but not run on GitHub because pushing has not
 been authorized. Current local verification is Windows x64. macOS/Linux native keyring
-validation, Arm64 runtime validation, and live API smoke tests remain outstanding.
+validation and Arm64 runtime validation remain outstanding. The user reported successful
+live Core project listing/retrieval and pipeline listing/run-history checks on 2026-09-17.
+Live individual pipeline/run retrieval and submission remain unverified; the development
+agent has not accessed the live service. Run submission tests use synthetic credentials
+and mocked HTTP, including no-dispatch safety checks and uncertain-write outcomes.
 
 Native macOS calls use a deprecated generic-password API and cannot safely abort an
 active OS approval dialog. This is documented rather than claiming universal cancellation

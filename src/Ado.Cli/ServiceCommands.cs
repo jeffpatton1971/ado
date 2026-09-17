@@ -7,7 +7,8 @@ using Ado.Platform;
 namespace Ado.Cli;
 
 public sealed record ServiceOptions(string Command, bool Json, bool NonInteractive, bool ReadOnly, bool DryRun,
-    int? Top, bool All, string? Continuation, bool RequireComplete, string? Search, int? PipelineId = null, int? RunId = null);
+    int? Top, bool All, string? Continuation, bool RequireComplete, string? Search, int? PipelineId = null, int? RunId = null,
+    string? Confirmation = null, string? RefName = null, string? ParametersFile = null, string? VariablesFile = null);
 
 internal static class ServiceCommands
 {
@@ -54,6 +55,35 @@ internal static class ServiceCommands
         deadline.CancelAfter(TimeSpan.FromSeconds(profile.Timeouts.OperationSeconds));
         try
         {
+            PipelineRunRequest? runRequest = null;
+            if (options.Command == "pipeline run start")
+            {
+                if (!options.DryRun) SafetyPolicy.BeforeDispatch(Operations.PipelineRunStart, options.ReadOnly, false);
+                runRequest = await PipelineRunRequest.LoadAsync(options.ParametersFile, options.VariablesFile, options.RefName, deadline.Token);
+                string confirmation = MutationConfirmation.PipelineStartTarget(organization, profile.Project!, options.PipelineId!.Value);
+                if (options.DryRun)
+                {
+                    await OutputWriter.SuccessAsync(output, new
+                    {
+                        action = "pipeline run start",
+                        dryRun = true,
+                        submitted = false,
+                        organization,
+                        project = profile.Project,
+                        pipelineId = options.PipelineId,
+                        method = "POST",
+                        apiVersion = Operations.PipelineRunStart.ApiVersion,
+                        refName = runRequest.RefName,
+                        parameterCount = runRequest.ParameterCount,
+                        variableCount = runRequest.VariableCount,
+                        inputValues = "omitted",
+                        requiredConfirmation = confirmation,
+                        note = "Local preview only; does not validate pipeline existence, permissions or YAML. No credential lookup or HTTP request."
+                    }, options.Json, new(Organization: organization, Project: profile.Project));
+                    return 0;
+                }
+                MutationConfirmation.Require(confirmation, options.Confirmation);
+            }
             var reference = selection.Reference;
             bool nonInteractive = options.NonInteractive || options.Json || Console.IsInputRedirected;
             ICredentialProvider provider = reference.Provider is "environment" or "stdin" or "prompt"
@@ -63,6 +93,13 @@ internal static class ServiceCommands
             using var authentication = new TokenAuthentication(reference.Type, secret);
             using var client = testHandler is null ? ServiceTransport.CreateClient() : new HttpClient(testHandler, disposeHandler: false) { Timeout = Timeout.InfiniteTimeSpan };
             var transport = new ServiceTransport(client, authentication, organization, profile.Timeouts.RequestSeconds, options.ReadOnly, options.DryRun);
+            if (runRequest is not null)
+            {
+                int runId = await new PipelinesClient(transport, organization, profile.Project!).StartAsync(options.PipelineId!.Value, runRequest, options.Confirmation, deadline.Token);
+                await OutputWriter.SuccessAsync(output, new { id = runId, pipelineId = options.PipelineId, submitted = true }, options.Json,
+                    new(Organization: organization, Project: profile.Project));
+                return 0;
+            }
             if (pipelineCommand)
                 return await PipelineCommands.ReadAsync(new PipelinesClient(transport, organization, profile.Project!), options, top, limit, output, error, deadline.Token);
             var projects = new ProjectsClient(transport, organization);

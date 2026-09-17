@@ -91,4 +91,44 @@ public sealed class PipelineSubmissionTests
         await Assert.ThrowsAsync<OperationCanceledException>(() => transport.StartPipelineAsync("Backend Project", 12, "{}", Confirmation, new CancellationToken(true)));
         Assert.AreEqual(0, handler.Calls);
     }
+
+    [TestMethod]
+    public async Task OversizedSuccessResponseIsUncertain()
+    {
+        using var handler = new TransportTests.FakeHandler(_ =>
+        {
+            var response = TransportTests.Json("{}");
+            response.Content.Headers.ContentLength = 5 * 1024 * 1024;
+            return response;
+        });
+        using var http = new HttpClient(handler);
+        using var auth = new TokenAuthentication("pat", new("synthetic"));
+        var transport = new ServiceTransport(http, auth, "example", readOnly: false);
+        var error = await Assert.ThrowsExactlyAsync<AdoException>(() => transport.StartPipelineAsync("Backend Project", 12, "{}", Confirmation, CancellationToken.None));
+        Assert.AreEqual(ExitCode.UncertainWrite, error.ExitCode);
+        Assert.AreEqual(1, handler.Calls);
+    }
+
+    [TestMethod]
+    public async Task ActualRequestDeadlineAfterDispatchIsUncertain()
+    {
+        using var handler = new WaitingHandler();
+        using var http = new HttpClient(handler);
+        using var auth = new TokenAuthentication("pat", new("synthetic"));
+        var transport = new ServiceTransport(http, auth, "example", requestSeconds: 1, readOnly: false);
+        var error = await Assert.ThrowsExactlyAsync<AdoException>(() => transport.StartPipelineAsync("Backend Project", 12, "{}", Confirmation, CancellationToken.None));
+        Assert.AreEqual(ExitCode.UncertainWrite, error.ExitCode);
+        Assert.AreEqual(1, handler.Calls);
+    }
+
+    private sealed class WaitingHandler : HttpMessageHandler
+    {
+        public int Calls { get; private set; }
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Calls++;
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            throw new AssertFailedException("Request deadline must cancel dispatch.");
+        }
+    }
 }

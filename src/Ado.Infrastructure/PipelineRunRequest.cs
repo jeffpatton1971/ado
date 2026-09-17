@@ -45,6 +45,9 @@ public sealed class PipelineRunRequest
             request.VariableCount = variables.EnumerateObject().Count();
             request.body["variables"] = variables;
         }
+        // Enforce the serialized bound during local planning too: JSON escaping can expand input.
+        if (System.Text.Encoding.UTF8.GetByteCount(request.Serialize()) > 1024 * 1024)
+            throw new AdoException("request_limit_exceeded", "The run request exceeds the 1 MiB safety limit.", ExitCode.Usage);
         return request;
     }
 

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add pipeline run start with a credential-free local dry-run, exact target confirmation,
+  optional self-repository ref, typed parameter/variable files, read-only dispatch guards,
+  single-attempt POST and non-retryable uncertain-write reporting. No live run was submitted.
+- Record user-reported live pipeline listing and run-history verification.
+
 - Add pipeline list/get/runs and pipeline run get using the documented 7.1 Pipelines
   endpoints, project-bound routing, opaque definition continuation and honest run-history
   completeness metadata. Run output omits variables, parameter values and expanded YAML.

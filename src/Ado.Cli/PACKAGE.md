@@ -4,10 +4,12 @@ Development build of `PattonTech.Ado.Cli`; the executable is `ado`.
 Azure DevOps Server/on-premises is not supported. The .NET tool requires .NET 10.
 
 Currently implements configuration inspection, isolated named profiles, project
-list/get/search, pipeline definition/run inspection, endpoint access checks, and local diagnostics. Authentication accepts
+list/get/search, pipeline definition/run inspection, guarded run submission, endpoint access
+checks, and local diagnostics. Run start supports local --dry-run and requires exact
+--confirm before submission; uncertain delivery returns exit 8 without automatic retry. Authentication accepts
 PATs or externally supplied Entra tokens through stdin, environment, masked prompt,
 or native credential stores. Native macOS/Linux execution remains pending validation.
-Pipeline execution and build/release/feed commands are not implemented in this development build.
+Server-side pipeline preview and build/release/feed commands are not implemented in this development build.
 
 ```text
 ado --help

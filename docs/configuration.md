@@ -95,12 +95,15 @@ Unix permission commands do not apply to Windows.
 | --credential-service | Native service/target | Selected reference | No prompt | Stable key | Explicit provider requires complete reference |
 | --credential-account | Native account key | Selected reference | No prompt | Stable key | Not necessarily email |
 | --non-interactive | Suppress all prompts | Off; implicit with JSON | Never prompts when set | Set explicitly | Includes keyring unlock/access prompts |
-| --read-only | Block remote writes centrally | Off | No prompt | Use for discovery | All current commands are reads |
-| --dry-run | Prevent mutation dispatch | Off | No current mutations | Reads may still execute | Mutation previews not implemented yet |
+| --read-only | Block remote writes centrally | Off | No prompt | Use for discovery | Blocks run submission; permits local dry-run |
+| --dry-run | Prevent mutation dispatch | Off | Local preview for run start | Reads may still execute | Run start retrieves no credentials and sends no HTTP |
 
 Project list/search also support --top, --all, --continuation-token and
 --require-complete. Search requires --name. See [project command contracts](projects.md).
+Pipeline run start requires exact --confirm for submission and optionally accepts --ref,
+--parameters-file and --variables-file. See [pipeline contracts](pipelines.md).
 
 `--version` always prints only the semantic version, even with --json. Config text
 output uses indented JSON for readability. Schema errors exit 3; command syntax errors
-exit 2; cancellation exits 130. Successful local inspection exits 0.
+exit 2; cancellation exits 130 unless a write may have been delivered (uncertain_write,
+exit 8). Successful local inspection exits 0.

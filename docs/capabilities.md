@@ -2,8 +2,8 @@
 
 Only implemented commands appear in this table. The approved design contains the
 planned service commands. Automated tests use mocked HTTP. The user reported successful
-live Core project listing/retrieval; the development agent has not accessed the live
-organization. Pipeline commands still await live verification.
+live Core project listing/retrieval and pipeline listing/run history; the development
+agent has not accessed the live organization or submitted runs.
 
 | Command | Service host | API | Read/write | Pagination | Dry-run | Confirmation | Auth | Status |
 |---|---|---|---|---|---|---|---|---|
@@ -20,10 +20,10 @@ organization. Pipeline commands still await live verification.
 | pipeline get | dev.azure.com | Pipelines 7.1 | Read | None | N/A | None | vso.build | Mock HTTP verified |
 | pipeline runs | dev.azure.com | Pipelines Runs 7.1 | Read | No paging; server caps at 10,000 | N/A | None | vso.build | Mock HTTP verified |
 | pipeline run get | dev.azure.com | Pipelines Runs 7.1 | Read | None | N/A | None | vso.build | Mock HTTP verified |
+| pipeline run start | dev.azure.com | Pipelines Runs 7.1 | Write | None | Local; no credentials/HTTP | Exact action/org/project/ID via --confirm | vso.build_execute | Mock HTTP verified; no live submission |
 
 Output schema starts at version 1. Azure DevOps Services only.
 
-No remote mutations exist yet. Read-only and dry-run dispatch guards are present;
-mutation previews, exact confirmation and uncertain-write behavior await mutation
-implementation. Scope labels above are endpoint documentation identifiers, not Entra
+Run start supports local previews, exact confirmation, single-attempt POST and uncertain-write
+reporting. Server-side YAML preview remains unimplemented. Scope labels above are endpoint documentation identifiers, not Entra
 application permissions; Azure DevOps resource authorization is independently required.
