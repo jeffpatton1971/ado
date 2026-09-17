@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Ignore personal repository-root config.json and document explicit local-config selection.
+
 - Pin development and CI to .NET SDK 10.0.400 without automatic roll-forward.
 
 - Harden redaction of encoded credentials and reject malformed continuation headers;

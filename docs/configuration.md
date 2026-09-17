@@ -11,6 +11,12 @@ retrieving credentials. `ado config show` validates and prints configuration;
 | Linux | `${XDG_CONFIG_HOME:-$HOME/.config}/ado/config.json` |
 
 Relative XDG_CONFIG_HOME values are ignored. Explicit --config and ADO_CONFIG paths
+may point to a repository-local `config.json`, which Git ignores. This file is not
+auto-discovered: use `ado config show --config ./config.json --effective` or explicitly
+set ADO_CONFIG. Keep the token in a credential provider; an environment reference uses
+ADO_TOKEN. Ignoring a file does not encrypt its contents or enable plaintext-token support.
+
+Explicit --config and ADO_CONFIG paths
 may be relative to the invocation directory. An absent default file uses defaults;
 an absent explicit file is an error. Files are limited to 1 MiB and JSON depth 32.
 Comments, trailing commas, duplicate properties, unknown properties and invalid values
