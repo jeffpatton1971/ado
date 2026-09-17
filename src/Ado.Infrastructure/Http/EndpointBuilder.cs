@@ -44,12 +44,51 @@ public static partial class EndpointBuilder
         return new UriBuilder("https", Host(operation.Service)) { Path = path, Query = string.Join('&', parameters) }.Uri;
     }
 
-    public static void ValidateDestination(Uri uri, ServiceHost service, string organization)
+    public static string ProjectSegment(string? project)
+    {
+        if (string.IsNullOrWhiteSpace(project) || project is "." or ".." || project.Any(c => char.IsControl(c) || c is '/' or '\\'))
+            throw new AdoException("invalid_project", "Supply a valid project name or ID.", ExitCode.Usage);
+        return Uri.EscapeDataString(project);
+    }
+
+    public static Uri Pipeline(OperationDescriptor operation, string organization, string project, int? pipelineId = null,
+        int? runId = null, int? top = null, string? continuation = null)
+    {
+        ValidateOrganization(organization);
+        string path = $"/{organization}/{ProjectSegment(project)}/_apis/pipelines";
+        if (operation != Operations.PipelineList)
+        {
+            if (operation != Operations.PipelineGet && operation != Operations.PipelineRuns && operation != Operations.PipelineRunGet)
+                throw new AdoException("unsupported_operation", "This endpoint is not registered.", ExitCode.Usage);
+            if (pipelineId is null or <= 0) throw new AdoException("pipeline_required", "Supply a positive --pipeline-id.", ExitCode.Usage);
+            path += "/" + pipelineId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+        if (operation == Operations.PipelineRuns || operation == Operations.PipelineRunGet) path += "/runs";
+        if (operation == Operations.PipelineRunGet)
+        {
+            if (runId is null or <= 0) throw new AdoException("run_required", "Supply a positive --run-id.", ExitCode.Usage);
+            path += "/" + runId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+        string query = "api-version=" + operation.ApiVersion;
+        if (top is not null || continuation is not null)
+        {
+            if (operation != Operations.PipelineList)
+                throw new AdoException("unsupported_pagination", "This Pipelines operation has no documented paging parameters.", ExitCode.Usage);
+            if (top is <= 0) throw new AdoException("invalid_pagination", "Page size must be positive.", ExitCode.Usage);
+            if (continuation is { Length: 0 or > 2048 } || continuation?.Any(char.IsControl) == true)
+                throw new AdoException("invalid_pagination", "The continuation token exceeds its bounds or contains control characters.", ExitCode.Usage);
+            if (top is not null) query += "&%24top=" + top.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (continuation is not null) query += "&continuationToken=" + Uri.EscapeDataString(continuation);
+        }
+        return new UriBuilder("https", Host(operation.Service)) { Path = path, Query = query }.Uri;
+    }
+
+    public static void ValidateDestination(Uri uri, ServiceHost service, string organization, string? project = null)
     {
         ValidateOrganization(organization);
         if (uri.Scheme != "https" || !uri.IsDefaultPort || uri.UserInfo.Length != 0 || uri.Fragment.Length != 0
             || !uri.Host.Equals(Host(service), StringComparison.OrdinalIgnoreCase)
-            || !uri.AbsolutePath.StartsWith("/" + organization + "/_apis/", StringComparison.Ordinal))
+            || !uri.AbsolutePath.StartsWith("/" + organization + "/" + (project is null ? "" : ProjectSegment(project) + "/") + "_apis/", StringComparison.Ordinal))
             throw new AdoException("unsafe_destination", "The request destination is outside the selected service and organization.", ExitCode.Safety);
     }
 }

@@ -25,11 +25,11 @@ public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider 
 
     public string Redact(string text) => authentication.Redact(text);
 
-    public async Task<JsonResponse> GetAsync(OperationDescriptor operation, Uri uri, CancellationToken cancellationToken)
+    public async Task<JsonResponse> GetAsync(OperationDescriptor operation, Uri uri, CancellationToken cancellationToken, string? project = null)
     {
         SafetyPolicy.BeforeDispatch(operation, readOnly, dryRun);
         if (operation.IsWrite) throw new AdoException("unsupported_operation", "The read transport cannot send mutations.", ExitCode.Safety);
-        EndpointBuilder.ValidateDestination(uri, operation.Service, organization);
+        EndpointBuilder.ValidateDestination(uri, operation.Service, organization, project);
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(requestSeconds));
         try
@@ -65,10 +65,10 @@ public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider 
                         if (buffer.Length + read > maximum) throw Oversized();
                         await buffer.WriteAsync(chunk.AsMemory(0, read), deadline.Token);
                     }
-                    string? continuation = Header(response, "x-ms-continuationtoken");
+                    string? continuation = Header(response, "x-ms-continuationtoken", operation == Operations.PipelineList ? 2048 : 128);
                     if (response.Headers.Contains("x-ms-continuationtoken") && continuation is null)
-                        throw new AdoException("invalid_service_response", "The project continuation token is invalid.", ExitCode.Transient);
-                    if (continuation is not null && (!int.TryParse(continuation, out int offset) || offset < 0))
+                        throw new AdoException("invalid_service_response", "The continuation token is invalid.", ExitCode.Transient);
+                    if (operation == Operations.ProjectList && continuation is not null && (!int.TryParse(continuation, out int offset) || offset < 0))
                         throw new AdoException("invalid_service_response", "The project continuation token is invalid.", ExitCode.Transient);
                     string? requestId = Header(response, "x-vss-e2eid") ?? Header(response, "x-ms-request-id");
                     return new(JsonDocument.Parse(buffer.ToArray(), new JsonDocumentOptions { MaxDepth = 32 }), continuation,
@@ -89,11 +89,11 @@ public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider 
         catch (IOException) { throw Transient(); }
     }
 
-    private static string? Header(HttpResponseMessage response, string name)
+    private static string? Header(HttpResponseMessage response, string name, int maximum = 128)
     {
         if (!response.Headers.TryGetValues(name, out var values)) return null;
         string? value = values.FirstOrDefault();
-        return value is { Length: > 0 and <= 128 } && !value.Any(char.IsControl) ? value : null;
+        return value is { Length: > 0 } && value.Length <= maximum && !value.Any(char.IsControl) ? value : null;
     }
     private static bool IsTransient(HttpStatusCode code) => code is HttpStatusCode.TooManyRequests or HttpStatusCode.InternalServerError or HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout or HttpStatusCode.RequestTimeout;
     private static AdoException Transient() => new("transient_service_failure", "The service is temporarily unavailable or rate limited; the bounded read attempts did not succeed.", ExitCode.Transient, true);

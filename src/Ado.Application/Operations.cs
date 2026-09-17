@@ -15,7 +15,15 @@ public static class Operations
     public static readonly OperationDescriptor ProjectGet = new("project get", ServiceHost.Core, "7.1", false,
         true, "none", false, "none", "vso.project",
         "https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/get?view=azure-devops-rest-7.1");
-    public static IReadOnlyList<OperationDescriptor> All { get; } = [ProjectList, ProjectGet];
+    public static readonly OperationDescriptor PipelineList = Pipeline("pipeline list", "pipelines/list", "opaque header continuation");
+    public static readonly OperationDescriptor PipelineGet = Pipeline("pipeline get", "pipelines/get", "none");
+    public static readonly OperationDescriptor PipelineRuns = Pipeline("pipeline runs", "runs/list", "server cap 10000; no paging");
+    public static readonly OperationDescriptor PipelineRunGet = Pipeline("pipeline run get", "runs/get", "none");
+    public static IReadOnlyList<OperationDescriptor> All { get; } = [ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet];
+
+    private static OperationDescriptor Pipeline(string command, string endpoint, string pagination) => new(command,
+        ServiceHost.Core, "7.1", false, true, "none", false, pagination, "vso.build",
+        "https://learn.microsoft.com/en-us/rest/api/azure/devops/pipelines/" + endpoint + "?view=azure-devops-rest-7.1");
 }
 
 public static class SafetyPolicy
