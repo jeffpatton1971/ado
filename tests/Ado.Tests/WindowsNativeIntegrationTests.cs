@@ -26,7 +26,9 @@ public sealed class WindowsNativeIntegrationTests
             if (!created) Assert.Inconclusive("This Windows logon session does not allow disposable generic credentials.");
             using var secret = await NativeCredentialProvider.CreateDefault().GetAsync(new()
             {
-                Provider = "windows-credential-manager", Service = target, Account = account
+                Provider = "windows-credential-manager",
+                Service = target,
+                Account = account
             }, true, CancellationToken.None);
             using var auth = new TokenAuthentication("pat", secret);
             using var request = new HttpRequestMessage();

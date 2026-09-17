@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Harden redaction of encoded credentials and reject malformed continuation headers;
+  ensure every help alias works without configuration or credentials.
+
+- Add CI definitions for three-OS tests, dependency audit, formatting, version checks,
+  local package creation and six-RID cross-compilation; publication remains disabled.
+
 - Expose project list/get/search, auth check and local doctor, with explicit credential
   selection, JSON metadata, terminal-safe tables and strict completeness exit behavior.
 - Test a disposable synthetic Windows Credential Manager round-trip; no live Azure

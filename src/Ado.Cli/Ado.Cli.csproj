@@ -8,9 +8,11 @@
     <Authors>PattonTech</Authors>
     <Description>Azure DevOps Services CLI for interactive users and automation.</Description>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageReadmeFile>PACKAGE.md</PackageReadmeFile>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="PACKAGE.md" Pack="true" PackagePath="/" />
     <PackageReference Include="System.CommandLine" />
     <ProjectReference Include="../Ado.Infrastructure/Ado.Infrastructure.csproj" />
     <ProjectReference Include="../Ado.Platform/Ado.Platform.csproj" />

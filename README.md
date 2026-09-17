@@ -19,6 +19,9 @@ round-trip. macOS/Linux native keyring execution and live Azure DevOps validatio
 pending. Pipelines, builds, classic releases, feed metadata, completion and download
 commands remain planned; the initial release is not complete.
 
+The [CI definition](.github/workflows/ci.yml) covers three-OS tests and six-RID
+cross-compilation but has not yet run remotely. See [verification status](docs/testing.md).
+
 ## Development
 
 Install the [.NET 10 LTS SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0).
