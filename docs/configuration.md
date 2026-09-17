@@ -96,12 +96,13 @@ Unix permission commands do not apply to Windows.
 | --credential-account | Native account key | Selected reference | No prompt | Stable key | Not necessarily email |
 | --non-interactive | Suppress all prompts | Off; implicit with JSON | Never prompts when set | Set explicitly | Includes keyring unlock/access prompts |
 | --read-only | Block remote writes centrally | Off | No prompt | Use for discovery | Blocks run submission; permits local dry-run |
-| --dry-run | Prevent mutation dispatch | Off | Local preview for run start | Reads may still execute | Run start retrieves no credentials and sends no HTTP |
+| --dry-run | Prevent mutation dispatch | Off | Local plan for run start/preview | Reads may still execute | Start/preview retrieve no credentials and send no HTTP |
 
 Project list/search also support --top, --all, --continuation-token and
 --require-complete. Search requires --name. See [project command contracts](projects.md).
-Pipeline run start requires exact --confirm for submission and optionally accepts --ref,
---parameters-file and --variables-file. See [pipeline contracts](pipelines.md).
+Pipeline run start/preview require exact --confirm for server requests and optionally
+accept --ref, --parameters-file and --variables-file. Preview additionally accepts
+--show-yaml (expanded content can contain secrets). See [pipeline contracts](pipelines.md).
 
 `--version` always prints only the semantic version, even with --json. Config text
 output uses indented JSON for readability. Schema errors exit 3; command syntax errors

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add pipeline run preview with forced previewRun:true, separate exact confirmation,
+  local dry-run, read-only guards and optional expanded YAML with known-value redaction.
+  Server preview uses one bounded POST and never falls back to run creation.
+
 - Add pipeline run start with a credential-free local dry-run, exact target confirmation,
   optional self-repository ref, typed parameter/variable files, read-only dispatch guards,
   single-attempt POST and non-retryable uncertain-write reporting. No live run was submitted.

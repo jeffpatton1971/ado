@@ -71,19 +71,24 @@ public static class CliApp
         var pipelineRun = new Command("run", "Inspect or start a Pipelines API execution.");
         var pipelineRunGet = new Command("get", "Inspect a specific pipeline run.");
         var pipelineRunStart = new Command("start", "Submit one run after exact confirmation; --dry-run is local only.");
+        var pipelineRunPreview = new Command("preview", "Ask Azure DevOps to expand YAML with previewRun:true; no run is created.");
+        var showYaml = new Option<bool>("--show-yaml") { Description = "Include expanded YAML; it may expose repository secrets. Known input strings and authentication are redacted." };
+        pipelineRunPreview.Options.Add(showYaml);
         var confirm = new Option<string>("--confirm") { Description = "Exact target string shown by --dry-run. Required for submission." };
         var refName = new Option<string>("--ref") { Description = "Full refs/heads/... or refs/tags/... for the self repository." };
-        var parametersFile = new Option<string>("--parameters-file") { Description = "JSON object of typed templateParameters; values are never displayed." };
+        var parametersFile = new Option<string>("--parameters-file") { Description = "JSON object of typed templateParameters; values are omitted from local plans." };
         var variablesFile = new Option<string>("--variables-file") { Description = "JSON variable map: each entry has value and optional isSecret." };
-        foreach (var option in new Option[] { confirm, refName, parametersFile, variablesFile }) pipelineRunStart.Options.Add(option);
+        foreach (var command in new[] { pipelineRunStart, pipelineRunPreview })
+            foreach (var option in new Option[] { confirm, refName, parametersFile, variablesFile }) command.Options.Add(option);
         var pipelineId = new Option<int?>("--pipeline-id") { Description = "Positive pipeline definition ID." };
         var runId = new Option<int?>("--run-id") { Description = "Positive pipeline run ID." };
         foreach (var option in new Option[] { top, all, continuation, requireComplete }) pipelineList.Options.Add(option);
         foreach (var option in new Option[] { all, requireComplete }) pipelineRuns.Options.Add(option);
-        foreach (var command in new[] { pipelineGet, pipelineRuns, pipelineRunGet, pipelineRunStart }) command.Options.Add(pipelineId);
+        foreach (var command in new[] { pipelineGet, pipelineRuns, pipelineRunGet, pipelineRunStart, pipelineRunPreview }) command.Options.Add(pipelineId);
         pipelineRunGet.Options.Add(runId);
         pipelineRun.Subcommands.Add(pipelineRunGet);
         pipelineRun.Subcommands.Add(pipelineRunStart);
+        pipelineRun.Subcommands.Add(pipelineRunPreview);
         foreach (var command in new[] { pipelineList, pipelineGet, pipelineRuns, pipelineRun }) pipeline.Subcommands.Add(command);
         root.Subcommands.Add(pipeline);
         var auth = new Command("auth", "Check access using the selected credential.");
@@ -110,7 +115,7 @@ public static class CliApp
             if (args.Length == 0 || parsed.Action is System.CommandLine.Help.HelpAction)
             {
                 if (jsonOutput)
-                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start" } }, true);
+                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview" } }, true);
                 else
                 {
                     var helpArgs = args.Length == 0 ? new[] { "--help" } : args;
@@ -130,7 +135,7 @@ public static class CliApp
                 : selectedCommand == search ? "project search" : selectedCommand == check ? "auth check" : selectedCommand == doctor ? "doctor"
                 : selectedCommand == pipelineList ? "pipeline list" : selectedCommand == pipelineGet ? "pipeline get"
                 : selectedCommand == pipelineRuns ? "pipeline runs" : selectedCommand == pipelineRunGet ? "pipeline run get"
-                : selectedCommand == pipelineRunStart ? "pipeline run start" : null;
+                : selectedCommand == pipelineRunStart ? "pipeline run start" : selectedCommand == pipelineRunPreview ? "pipeline run preview" : null;
             if (selectedCommand != show && serviceCommand is null)
                 throw new AdoException("command_required", "Choose a command. Use ado --help for supported syntax.", ExitCode.Usage);
 
@@ -140,7 +145,7 @@ public static class CliApp
             var configuredAuth = profileName is not null && loaded.File.Profiles.TryGetValue(profileName, out var selectedProfile)
                 ? selectedProfile.Authentication : new CredentialReference();
             CredentialSelection? selection = null;
-            if (serviceCommand is not null && serviceCommand != "doctor" && !(serviceCommand == "pipeline run start" && parsed.GetValue(dryRun)))
+            if (serviceCommand is not null && serviceCommand != "doctor" && !(serviceCommand is "pipeline run start" or "pipeline run preview" && parsed.GetValue(dryRun)))
                 selection = CredentialSelection.Resolve(configuredAuth, parsed.GetValue(authType), parsed.GetValue(token) is not null,
                     parsed.GetValue(tokenStdin), parsed.GetValue(tokenPrompt), parsed.GetValue(credentialProvider),
                     parsed.GetValue(credentialService), parsed.GetValue(credentialAccount), environment);
@@ -156,7 +161,7 @@ public static class CliApp
                 return await ServiceCommands.RunAsync(resolved.Settings, selection ?? new(configuredAuth, false), argumentToken,
                     new(serviceCommand, jsonOutput, parsed.GetValue(nonInteractive), parsed.GetValue(readOnly), parsed.GetValue(dryRun),
                         parsed.GetValue(top), parsed.GetValue(all), parsed.GetValue(continuation), parsed.GetValue(requireComplete), parsed.GetValue(searchName), parsed.GetValue(pipelineId), parsed.GetValue(runId),
-                        parsed.GetValue(confirm), parsed.GetValue(refName), parsed.GetValue(parametersFile), parsed.GetValue(variablesFile)),
+                        parsed.GetValue(confirm), parsed.GetValue(refName), parsed.GetValue(parametersFile), parsed.GetValue(variablesFile), parsed.GetValue(showYaml)),
                     output, error, input ?? Console.In, environment, testHandler, testNativeProvider, cancellationToken);
             }
             if (parsed.GetValue(effective))

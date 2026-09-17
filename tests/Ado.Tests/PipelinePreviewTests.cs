@@ -105,6 +105,67 @@ public sealed class PipelinePreviewTests
         finally { File.Delete(path); }
     }
 
+    [TestMethod]
+    public async Task NetworkFailureDoesNotBecomeUncertainWriteOrRetry()
+    {
+        using var handler = new TransportTests.FakeHandler(_ => throw new HttpRequestException("secret-sentinel"));
+        using var http = new HttpClient(handler);
+        using var auth = new TokenAuthentication("pat", new("synthetic-token"));
+        var transport = new ServiceTransport(http, auth, "example", readOnly: false);
+        var request = await PipelineRunRequest.LoadAsync(null, null, null, CancellationToken.None);
+        var error = await Assert.ThrowsExactlyAsync<AdoException>(() => transport.PreviewPipelineAsync("Sandbox", 12, request, Confirmation, CancellationToken.None));
+        Assert.AreEqual("preview_failed", error.Code);
+        Assert.AreEqual(1, handler.Calls);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task PreviewCancellationUsesReadLikeSemantics(bool userCancellation)
+    {
+        using var cancellation = new CancellationTokenSource();
+        using var handler = new WaitingHandler(userCancellation ? cancellation : null);
+        using var http = new HttpClient(handler);
+        using var auth = new TokenAuthentication("pat", new("synthetic-token"));
+        var transport = new ServiceTransport(http, auth, "example", requestSeconds: 1, readOnly: false);
+        var request = await PipelineRunRequest.LoadAsync(null, null, null, CancellationToken.None);
+        if (userCancellation)
+            await Assert.ThrowsAsync<OperationCanceledException>(() => transport.PreviewPipelineAsync("Sandbox", 12, request, Confirmation, cancellation.Token));
+        else
+        {
+            var error = await Assert.ThrowsExactlyAsync<AdoException>(() => transport.PreviewPipelineAsync("Sandbox", 12, request, Confirmation, cancellation.Token));
+            Assert.AreEqual("request_timeout", error.Code);
+        }
+    }
+
+    [TestMethod]
+    public async Task OversizedPreviewResponseUsesBoundedReadError()
+    {
+        using var handler = new TransportTests.FakeHandler(_ =>
+        {
+            var response = TransportTests.Json("{}");
+            response.Content.Headers.ContentLength = 5 * 1024 * 1024;
+            return response;
+        });
+        using var http = new HttpClient(handler);
+        using var auth = new TokenAuthentication("pat", new("synthetic-token"));
+        var transport = new ServiceTransport(http, auth, "example", readOnly: false);
+        var request = await PipelineRunRequest.LoadAsync(null, null, null, CancellationToken.None);
+        var error = await Assert.ThrowsExactlyAsync<AdoException>(() => transport.PreviewPipelineAsync("Sandbox", 12, request, Confirmation, CancellationToken.None));
+        Assert.AreEqual("response_limit_exceeded", error.Code);
+        Assert.AreEqual(1, handler.Calls);
+    }
+
+    private sealed class WaitingHandler(CancellationTokenSource? cancellation) : HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            cancellation?.Cancel();
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            throw new AssertFailedException("Deadline or user cancellation must cancel the request.");
+        }
+    }
+
     private sealed class CaptureHandler : HttpMessageHandler
     {
         public List<string> Bodies { get; } = [];

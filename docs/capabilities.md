@@ -21,9 +21,11 @@ agent has not accessed the live organization or submitted runs.
 | pipeline runs | dev.azure.com | Pipelines Runs 7.1 | Read | No paging; server caps at 10,000 | N/A | None | vso.build | Mock HTTP verified |
 | pipeline run get | dev.azure.com | Pipelines Runs 7.1 | Read | None | N/A | None | vso.build | Mock HTTP verified |
 | pipeline run start | dev.azure.com | Pipelines Runs 7.1 | Write | None | Local; no credentials/HTTP | Exact action/org/project/ID via --confirm | vso.build_execute | Mock HTTP verified; no live submission |
+| pipeline run preview | dev.azure.com | Pipelines Runs 7.1 | POST preview; blocked read-only | None | Local; no credentials/HTTP | Preview-specific exact target | vso.build_execute | Mock HTTP verified; live preview pending |
 
 Output schema starts at version 1. Azure DevOps Services only.
 
 Run start supports local previews, exact confirmation, single-attempt POST and uncertain-write
-reporting. Server-side YAML preview remains unimplemented. Scope labels above are endpoint documentation identifiers, not Entra
+reporting. Server-side YAML preview is separate from local dry-run and requires explicit
+--show-yaml to include expanded content. Scope labels above are endpoint documentation identifiers, not Entra
 application permissions; Azure DevOps resource authorization is independently required.

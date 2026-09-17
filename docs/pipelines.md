@@ -74,7 +74,7 @@ ado pipeline run start --config ./config.json --pipeline-id 12 --dry-run --read-
 The output includes organization, project, pipeline ID, optional self-repository ref,
 parameter/variable counts and `requiredConfirmation`. It omits all input values and
 input names. It does not verify pipeline existence, permissions or YAML, and it is not
-the server's `previewRun` feature. Server preview remains unimplemented.
+the server's `previewRun` feature. Server preview is a separate command below.
 
 For an intended execution, repeat the command without --dry-run/--read-only and supply
 `--confirm` with the exact `requiredConfirmation` string. Confirmation is required in
@@ -119,6 +119,51 @@ uniquely identify a submission when other users are queueing runs. Cancellation 
 dispatch sends nothing. Authentication/authorization and other explicit refusals retain
 their normal error codes. Neither redirects nor raw error bodies are followed/displayed.
 
+## Server-side YAML preview
+
+`pipeline run preview` asks Azure DevOps to expand the pipeline's YAML templates, using
+the documented Run Pipeline endpoint with `previewRun:true`. Microsoft documents that
+this returns the final YAML without creating a new run. It requires credentials and
+service access (`vso.build_execute`); it does not prove a later run will succeed.
+
+Inspect its local plan first (no token lookup or HTTP):
+
+```text
+ado pipeline run preview --organization example --project Sandbox --pipeline-id 12 --dry-run --read-only --json
+```
+
+Then, when server access is intended, use the preview-specific confirmation value:
+
+```text
+ado pipeline run preview --organization example --project Sandbox --pipeline-id 12 --token-prompt --output table --confirm "pipeline run preview:example/Sandbox/12"
+```
+
+Actual server preview is conservatively blocked by --read-only because it sends a POST
+to the run endpoint. --dry-run is always local and can accompany --read-only. Preview
+confirmation cannot authorize start, nor can start confirmation authorize preview.
+The transport forces previewRun:true; parameters cannot override it. There is no
+fallback to actual execution if preview fails, and no automatic retry of the POST.
+
+Preview accepts the same --ref, --parameters-file and --variables-file inputs as start.
+It previews the repository's YAML; local YAML overrides are not yet supported. The
+existing request/file bounds apply, with a 4 MiB decompressed response limit.
+
+Default output contains pipelineId, previewRun:true, yamlCharacters (UTF-16 code units)
+and finalYaml:null. It validates that the response contains nonempty finalYaml and,
+when provided, a matching pipeline identity. Other response fields are omitted.
+Add `--show-yaml` to include finalYaml in the JSON data object (or indented JSON in
+human mode). Control characters remain JSON-escaped. The authentication token and
+literal/JSON-escaped string values from supplied parameter and variable files are
+redacted. This is not guaranteed secret removal: repository secrets and transformed
+input values may remain. A stderr warning accompanies --show-yaml; treat its output
+as sensitive. Redaction may change YAML, so this output is for inspection, not execution.
+
+Unverified server preview responses/network failures use preview_failed or
+invalid_service_response (exit 9). Oversized responses use exit 10. Cancellation uses
+exit 130 and deadlines use exit 9; preview does not report uncertain run creation.
+Normal authentication/authorization and redirect errors retain their existing codes.
+Server preview cannot validate future runtime behavior, deployment effects or permissions.
+
 ## Verification
 
 Mocked tests cover all four endpoint URLs, project routing, IDs, opaque pagination,
@@ -128,6 +173,10 @@ read-only/dry-run guards, typed requests, secret omission, input bounds, single-
 errors and uncertain delivery. On 2026-09-17 the user reported successful live pipeline
 listing and run-history retrieval for impldevmpc, in addition to Core project checks.
 Individual pipeline/run get and run submission remain unverified against the live service.
+The user also verified local run-start dry-run for pipeline 1128. Server preview is
+covered by mocked tests, including forced preview flags, policy guards, separate
+confirmations, cancellation, bounded responses and YAML omission/redaction. Live
+server preview remains unverified.
 The development agent has made no live Azure DevOps requests or pipeline submissions.
 
 Sources, verified before implementation:

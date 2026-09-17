@@ -28,6 +28,10 @@ live Core project listing/retrieval and pipeline listing/run-history checks on 2
 Live individual pipeline/run retrieval and submission remain unverified; the development
 agent has not accessed the live service. Run submission tests use synthetic credentials
 and mocked HTTP, including no-dispatch safety checks and uncertain-write outcomes.
+The user verified local run-start dry-run for pipeline 1128. Server YAML preview tests
+also use mocked HTTP: forced previewRun:true, exact preview confirmation, read-only
+blocking, no retry, bounded responses and opt-in YAML redaction. No live server preview
+has been performed by the development agent.
 
 Native macOS calls use a deprecated generic-password API and cannot safely abort an
 active OS approval dialog. This is documented rather than claiming universal cancellation

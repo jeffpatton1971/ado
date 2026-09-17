@@ -8,7 +8,7 @@ namespace Ado.Cli;
 
 public sealed record ServiceOptions(string Command, bool Json, bool NonInteractive, bool ReadOnly, bool DryRun,
     int? Top, bool All, string? Continuation, bool RequireComplete, string? Search, int? PipelineId = null, int? RunId = null,
-    string? Confirmation = null, string? RefName = null, string? ParametersFile = null, string? VariablesFile = null);
+    string? Confirmation = null, string? RefName = null, string? ParametersFile = null, string? VariablesFile = null, bool ShowYaml = false);
 
 internal static class ServiceCommands
 {
@@ -56,23 +56,28 @@ internal static class ServiceCommands
         try
         {
             PipelineRunRequest? runRequest = null;
-            if (options.Command == "pipeline run start")
+            bool serverPreview = options.Command == "pipeline run preview";
+            if (options.Command == "pipeline run start" || serverPreview)
             {
-                if (!options.DryRun) SafetyPolicy.BeforeDispatch(Operations.PipelineRunStart, options.ReadOnly, false);
+                var operation = serverPreview ? Operations.PipelineRunPreview : Operations.PipelineRunStart;
+                if (!options.DryRun) SafetyPolicy.BeforeDispatch(operation, options.ReadOnly, false);
                 runRequest = await PipelineRunRequest.LoadAsync(options.ParametersFile, options.VariablesFile, options.RefName, deadline.Token);
-                string confirmation = MutationConfirmation.PipelineStartTarget(organization, profile.Project!, options.PipelineId!.Value);
+                if (serverPreview) runRequest.ValidatePreview();
+                string confirmation = serverPreview ? MutationConfirmation.PipelinePreviewTarget(organization, profile.Project!, options.PipelineId!.Value)
+                    : MutationConfirmation.PipelineStartTarget(organization, profile.Project!, options.PipelineId!.Value);
                 if (options.DryRun)
                 {
                     await OutputWriter.SuccessAsync(output, new
                     {
-                        action = "pipeline run start",
+                        action = options.Command,
                         dryRun = true,
                         submitted = false,
+                        previewRun = serverPreview,
                         organization,
                         project = profile.Project,
                         pipelineId = options.PipelineId,
                         method = "POST",
-                        apiVersion = Operations.PipelineRunStart.ApiVersion,
+                        apiVersion = operation.ApiVersion,
                         refName = runRequest.RefName,
                         parameterCount = runRequest.ParameterCount,
                         variableCount = runRequest.VariableCount,
@@ -83,6 +88,8 @@ internal static class ServiceCommands
                     return 0;
                 }
                 MutationConfirmation.Require(confirmation, options.Confirmation);
+                if (serverPreview && options.ShowYaml)
+                    await error.WriteLineAsync("warning: Expanded YAML may contain repository secrets or transformed input values that cannot be reliably redacted. Treat --show-yaml output as sensitive.");
             }
             var reference = selection.Reference;
             bool nonInteractive = options.NonInteractive || options.Json || Console.IsInputRedirected;
@@ -95,6 +102,12 @@ internal static class ServiceCommands
             var transport = new ServiceTransport(client, authentication, organization, profile.Timeouts.RequestSeconds, options.ReadOnly, options.DryRun);
             if (runRequest is not null)
             {
+                if (serverPreview)
+                {
+                    var preview = await new PipelinesClient(transport, organization, profile.Project!).PreviewAsync(options.PipelineId!.Value, runRequest, options.Confirmation, options.ShowYaml, deadline.Token);
+                    await OutputWriter.SuccessAsync(output, preview, options.Json, new(Organization: organization, Project: profile.Project));
+                    return 0;
+                }
                 int runId = await new PipelinesClient(transport, organization, profile.Project!).StartAsync(options.PipelineId!.Value, runRequest, options.Confirmation, deadline.Token);
                 await OutputWriter.SuccessAsync(output, new { id = runId, pipelineId = options.PipelineId, submitted = true }, options.Json,
                     new(Organization: organization, Project: profile.Project));
