@@ -40,7 +40,7 @@ parser messages or sensitive input. Schema validation errors describe the constr
 }
 ```
 
-Credential references are parsed but native retrieval is not implemented yet. `type`
+Credential references use the [authentication providers](authentication.md). `type`
 selects pat or entra-token. `provider` names the backend; `service` names the credential
 service; `account` is its lookup key, not necessarily an email address. Providers:
 environment, stdin, prompt, windows-credential-manager, macos-keychain,

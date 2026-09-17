@@ -11,8 +11,13 @@ Directory.Packages.props; packages.lock.json records resolved transitive depende
 | Microsoft.NET.Test.Sdk 18.10.1 | MIT | Microsoft test platform | Development-only runner/object model/coverage dependencies |
 
 License and dependency metadata are checked from the restored official NuGet packages.
-No credentials or HTTP operations are delegated to a dependency. Native OS credential
-integration and its licensing review remain pending. No Native AOT claim is made.
+HTTP operations use the BCL. Native credential access uses Windows Advapi32 and macOS
+Security system frameworks; Linux dynamically loads libsecret/GLib/GIO/GObject from the
+OS. libsecret is LGPL-2.1-or-later, maintained by GNOME; system library updates remain
+the host administrator's responsibility. These libraries are not bundled in the tool.
+Native interop adds no NuGet dependency. macOS's generic-password API is deprecated;
+its replacement and target-OS execution are explicit hardening work. No Native AOT
+claim is made. Linux requires a desktop Secret Service/session bus for that provider.
 
 Security gate: `dotnet list Ado.slnx package --vulnerable --include-transitive`, NuGet
 audit for all dependencies on restore, and committed lock files. An advisory scan is

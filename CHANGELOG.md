@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add native credential adapters and setup guidance for Windows Credential Manager,
+  macOS Keychain and Linux Secret Service, with non-interactive prompt suppression.
+
 - Add opaque PAT/Entra authentication abstractions and bounded environment/stdin/masked-prompt providers (CLI wiring follows).
 
 - Record approved Azure DevOps Services CLI design and threat model.
