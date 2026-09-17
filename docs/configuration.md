@@ -81,6 +81,19 @@ Unix permission commands do not apply to Windows.
 | --json | JSON alias | Off | No prompt | Stable envelope | No token values |
 | --limit | Item result limit | 100 | No prompt | Set bounds | Cannot exceed profile ceiling |
 | --timeout | Request seconds | 60 | No prompt | Set bounds | Positive and <= operation timeout |
+| --auth-type | pat/entra-token | Profile/env, otherwise pat | No inference | Specify token type | Opaque token handling |
+| --token | Direct token | None | Warns on stderr | Avoid | Process/history exposure |
+| --token-stdin | Read one token to EOF | Off | Deliberate stdin read | Preferred secret injection | Bounded; one terminal newline removed |
+| --token-prompt | Masked token input | Off | Requires terminal | Never use unattended | Refused in JSON/non-interactive mode |
+| --credential-provider | Backend | Env/profile/environment | Backend-specific | Native store or env/stdin | No shell provider |
+| --credential-service | Native service/target | Selected reference | No prompt | Stable key | Explicit provider requires complete reference |
+| --credential-account | Native account key | Selected reference | No prompt | Stable key | Not necessarily email |
+| --non-interactive | Suppress all prompts | Off; implicit with JSON | Never prompts when set | Set explicitly | Includes keyring unlock/access prompts |
+| --read-only | Block remote writes centrally | Off | No prompt | Use for discovery | All current commands are reads |
+| --dry-run | Prevent mutation dispatch | Off | No current mutations | Reads may still execute | Mutation previews not implemented yet |
+
+Project list/search also support --top, --all, --continuation-token and
+--require-complete. Search requires --name. See [project command contracts](projects.md).
 
 `--version` always prints only the semantic version, even with --json. Config text
 output uses indented JSON for readability. Schema errors exit 3; command syntax errors

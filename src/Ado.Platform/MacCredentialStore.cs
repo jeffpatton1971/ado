@@ -46,7 +46,8 @@ internal sealed class MacCredentialStore : INativeCredentialStore
 
     [DllImport(Security)] private static extern int SecKeychainGetUserInteractionAllowed(out byte allowed);
     [DllImport(Security)] private static extern int SecKeychainSetUserInteractionAllowed(byte allowed);
-    [DllImport(Security)] private static extern int SecKeychainFindGenericPassword(IntPtr keychain, uint serviceLength,
+    [DllImport(Security)]
+    private static extern int SecKeychainFindGenericPassword(IntPtr keychain, uint serviceLength,
         byte[] service, uint accountLength, byte[] account, out uint length, out IntPtr data, IntPtr item);
     [DllImport(Security)] private static extern int SecKeychainItemFreeContent(IntPtr attributes, IntPtr data);
 }

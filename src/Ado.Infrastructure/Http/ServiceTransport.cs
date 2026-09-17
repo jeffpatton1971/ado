@@ -16,9 +16,12 @@ public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider 
 {
     public static HttpClient CreateClient() => new(new HttpClientHandler
     {
-        AllowAutoRedirect = false, UseCookies = false, UseDefaultCredentials = false,
+        AllowAutoRedirect = false,
+        UseCookies = false,
+        UseDefaultCredentials = false,
         AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-    }) { Timeout = Timeout.InfiniteTimeSpan };
+    })
+    { Timeout = Timeout.InfiniteTimeSpan };
 
     public string Redact(string text) => authentication.Redact(text);
 
@@ -71,7 +74,7 @@ public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider 
                 }
                 catch (HttpRequestException) when (attempt < 2)
                 {
-                    await (delay ?? Task.Delay)(TimeSpan.FromMilliseconds(200 * (1 << attempt)), deadline.Token);
+                    await (delay ?? Task.Delay)(TimeSpan.FromMilliseconds(200 * (1 << attempt) + Random.Shared.Next(100)), deadline.Token);
                 }
                 catch (HttpRequestException) { throw Transient(); }
             }
@@ -90,7 +93,7 @@ public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider 
         string? value = values.FirstOrDefault();
         return value is { Length: > 0 and <= 128 } && !value.Any(char.IsControl) ? value : null;
     }
-    private static bool IsTransient(HttpStatusCode code) => code is HttpStatusCode.TooManyRequests or HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout or HttpStatusCode.RequestTimeout;
+    private static bool IsTransient(HttpStatusCode code) => code is HttpStatusCode.TooManyRequests or HttpStatusCode.InternalServerError or HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout or HttpStatusCode.RequestTimeout;
     private static AdoException Transient() => new("transient_service_failure", "The service is temporarily unavailable or rate limited; the bounded read attempts did not succeed.", ExitCode.Transient, true);
     private static AdoException Oversized() => new("response_limit_exceeded", "The service response exceeds the 4 MiB safety limit.", ExitCode.Partial);
     private static AdoException Map(HttpStatusCode code) => code switch

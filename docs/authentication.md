@@ -72,7 +72,8 @@ use secret-injected environment or stdin. Native calls receive a GCancellable.
 ## Verification status and limits
 
 Adapter contracts and error mapping are tested with fake stores, without developer
-credentials. Native macOS/Linux calls have not been executed on this Windows development
+credentials. Windows additionally round-trips a uniquely named synthetic generic
+credential and deletes it in a finally block. Native macOS/Linux calls have not been executed on this Windows development
 host; those integrations need target-OS validation before a supported release claim.
 No credentials are stored by ado. Managed strings cannot guarantee secure memory erasure.
 Plaintext configuration remains unimplemented and is rejected.

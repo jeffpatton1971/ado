@@ -27,7 +27,7 @@ public static class ConfigurationResolver
         int timeout = Number(Pick("timeout", arguments.TimeoutSeconds?.ToString(System.Globalization.CultureInfo.InvariantCulture),
             profile.Timeouts.RequestSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture)));
         // Do not carry an organization-bound native reference to another organization.
-        if (!string.Equals(organization, profile.Organization, StringComparison.OrdinalIgnoreCase)
+        if (!arguments.ExplicitCredentialSelection && !string.Equals(organization, profile.Organization, StringComparison.OrdinalIgnoreCase)
             && profile.Authentication.Provider is "windows-credential-manager" or "macos-keychain" or "linux-secret-service")
             throw new AdoException("credential_organization_mismatch", "Changing organization requires an explicit credential selection; select an appropriate profile.", ExitCode.Configuration);
         var settings = profile with

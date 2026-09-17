@@ -46,7 +46,8 @@ public sealed record ConfigurationFile
 }
 
 public sealed record ConfigurationOverrides(string? Profile = null, string? Organization = null,
-    string? Project = null, string? Output = null, int? Limit = null, int? TimeoutSeconds = null);
+    string? Project = null, string? Output = null, int? Limit = null, int? TimeoutSeconds = null,
+    bool ExplicitCredentialSelection = false);
 
 public sealed record EffectiveConfiguration(string? ProfileName, Profile Settings,
     IReadOnlyDictionary<string, string> Sources);

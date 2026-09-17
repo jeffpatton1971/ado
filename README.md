@@ -6,10 +6,18 @@ Under development; Azure DevOps Server is not supported. See the
 
 ## Current implementation
 
-The initial foundation provides `--help`, clean semantic `--version`, safe JSON
-errors, and `config paths`/`config show --effective`. See
-[configuration and global parameters](docs/configuration.md). Service commands are not implemented yet. See the
-[capability matrix](docs/capabilities.md); planned commands are not advertised as working.
+Available commands: `--help`, clean semantic `--version`, `config paths`,
+`config show --effective`, `project list|get|search`, `auth check`, and local-only
+`doctor`. PAT and externally supplied Entra tokens are supported through stdin,
+environment, masked prompt, explicit argument, or native credential references.
+See [configuration and global parameters](docs/configuration.md),
+[credential setup](docs/authentication.md), [project examples](docs/projects.md), and
+the [capability matrix](docs/capabilities.md).
+
+Windows x64 tests pass locally, including a disposable synthetic Credential Manager
+round-trip. macOS/Linux native keyring execution and live Azure DevOps validation are
+pending. Pipelines, builds, classic releases, feed metadata, completion and download
+commands remain planned; the initial release is not complete.
 
 ## Development
 
@@ -29,7 +37,8 @@ dotnet test Ado.slnx --no-build
 dotnet run --project src/Ado.Cli -- --version
 ```
 
-No Azure DevOps credentials are required for development tests. Do not place credentials
+No Azure DevOps credentials are required for development tests. The Windows native
+test creates and deletes a uniquely named synthetic local credential. Do not place credentials
 in test files or commit configuration containing secrets. Local SDKs may be placed in
 the ignored `.tools` directory. Packaging and installation instructions will be completed
 with the corresponding capabilities; no package or binary has been published.

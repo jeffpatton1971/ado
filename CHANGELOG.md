@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Expose project list/get/search, auth check and local doctor, with explicit credential
+  selection, JSON metadata, terminal-safe tables and strict completeness exit behavior.
+- Test a disposable synthetic Windows Credential Manager round-trip; no live Azure
+  DevOps credentials or requests are used by tests.
+
 - Add registered project endpoints, organization/host validation, redirect refusal,
   bounded read retries and responses, typed project results and continuation handling.
 

@@ -41,7 +41,8 @@ public sealed class TransportTests
     {
         using var handler = new FakeHandler(_ => new(HttpStatusCode.Redirect)
         {
-            Headers = { Location = new("https://evil.example/secret-sentinel") }, Content = new StringContent("secret-sentinel")
+            Headers = { Location = new("https://evil.example/secret-sentinel") },
+            Content = new StringContent("secret-sentinel")
         });
         using var client = new HttpClient(handler);
         using var auth = new TokenAuthentication("pat", new("secret-sentinel"));
@@ -134,6 +135,41 @@ public sealed class TransportTests
     }
 
     internal static HttpResponseMessage Json(string content) => new(HttpStatusCode.OK) { Content = new StringContent(content, System.Text.Encoding.UTF8, "application/json") };
+
+    [TestMethod]
+    public async Task OversizedResponseFailsBeforeReadingContent()
+    {
+        using var handler = new FakeHandler(_ =>
+        {
+            var response = Json("{}");
+            response.Content.Headers.ContentLength = 5 * 1024 * 1024;
+            return response;
+        });
+        using var client = new HttpClient(handler);
+        using var auth = new TokenAuthentication("pat", new("token"));
+        var transport = new ServiceTransport(client, auth, "example");
+        var error = await Assert.ThrowsExactlyAsync<AdoException>(() => transport.GetAsync(Operations.ProjectList, EndpointBuilder.Project(Operations.ProjectList, "example"), CancellationToken.None));
+        Assert.AreEqual("response_limit_exceeded", error.Code);
+    }
+
+    [TestMethod]
+    public async Task RequestDeadlineCancelsHandlerAndMapsTimeout()
+    {
+        using var client = new HttpClient(new WaitingHandler());
+        using var auth = new TokenAuthentication("pat", new("token"));
+        var transport = new ServiceTransport(client, auth, "example", requestSeconds: 1);
+        var error = await Assert.ThrowsExactlyAsync<AdoException>(() => transport.GetAsync(Operations.ProjectList, EndpointBuilder.Project(Operations.ProjectList, "example"), CancellationToken.None));
+        Assert.AreEqual("request_timeout", error.Code);
+    }
+
+    private sealed class WaitingHandler : HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            throw new AssertFailedException("Deadline must cancel the handler.");
+        }
+    }
     internal sealed class FakeHandler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
     {
         public int Calls { get; private set; }

@@ -99,10 +99,10 @@ public static class ConfigurationLoader
             || profile.Pagination.MaxItems < 1 || profile.Pagination.PageSize > profile.Pagination.MaxItems
             || profile.Pagination.Limit > profile.Pagination.MaxItems)
             throw Invalid("Pagination values must be positive and not exceed maxItems.");
-        if (profile.Timeouts is null || profile.Timeouts.RequestSeconds < 1 || profile.Timeouts.OperationSeconds < 1
+        if (profile.Timeouts is null || profile.Timeouts.RequestSeconds < 1 || profile.Timeouts.OperationSeconds < 1 || profile.Timeouts.OperationSeconds > 86400
             || profile.Timeouts.RequestSeconds > profile.Timeouts.OperationSeconds)
-            throw Invalid("Timeouts must be positive; request timeout cannot exceed operation timeout.");
-        if (profile.Downloads is null || profile.Downloads.MaxBytes < 1 || profile.Downloads.TimeoutSeconds < 1)
+            throw Invalid("Timeouts must be positive and no greater than one day; request timeout cannot exceed operation timeout.");
+        if (profile.Downloads is null || profile.Downloads.MaxBytes < 1 || profile.Downloads.TimeoutSeconds is < 1 or > 86400)
             throw Invalid("Download limits must be positive.");
     }
 

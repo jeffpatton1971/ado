@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Ado.Domain;
 
 namespace Ado.Cli;
 
@@ -7,11 +8,17 @@ internal static class OutputWriter
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
     private static readonly JsonSerializerOptions TextOptions = new(JsonOptions) { WriteIndented = true };
 
-    public static Task SuccessAsync<T>(TextWriter output, T data, bool json) => output.WriteLineAsync(json
-        ? JsonSerializer.Serialize(new { ok = true, data, meta = new { schemaVersion = 1, truncated = false } }, JsonOptions)
+    public static Task SuccessAsync<T>(TextWriter output, T data, bool json, ResultMetadata? metadata = null) => output.WriteLineAsync(json
+        ? JsonSerializer.Serialize(new { ok = true, data, meta = metadata ?? new ResultMetadata() }, JsonOptions)
         : JsonSerializer.Serialize(data, TextOptions));
 
     public static Task ErrorAsync(TextWriter output, TextWriter error, string code, string message, bool retryable, bool json) => json
         ? output.WriteLineAsync(JsonSerializer.Serialize(new { ok = false, error = new { code, message, details = new { }, retryable } }, JsonOptions))
         : error.WriteLineAsync($"{code}: {message}");
+
+    public static Task PartialAsync(TextWriter output, IReadOnlyList<ProjectInfo> data, ResultMetadata meta) => output.WriteLineAsync(
+        JsonSerializer.Serialize(new { ok = false, data, meta, error = new { code = "incomplete_result", message = "The requested complete result exceeds a safety bound.", details = new { }, retryable = false } }, JsonOptions));
+
+    public static string TerminalSafe(string value) => string.Concat(value.Select(c =>
+        char.IsControl(c) || char.GetUnicodeCategory(c) == System.Globalization.UnicodeCategory.Format ? $"\\u{(int)c:x4}" : c.ToString()));
 }

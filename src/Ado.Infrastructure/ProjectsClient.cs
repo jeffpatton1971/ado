@@ -29,7 +29,8 @@ public sealed class ProjectsClient(ServiceTransport transport, string organizati
             int top = Math.Min(pageSize, limit - scanned);
             var uri = EndpointBuilder.Project(Operations.ProjectList, organization, query: new Dictionary<string, string?>
             {
-                ["$top"] = top.ToString(CultureInfo.InvariantCulture), ["continuationToken"] = next
+                ["$top"] = top.ToString(CultureInfo.InvariantCulture),
+                ["continuationToken"] = next
             });
             using var response = await transport.GetAsync(Operations.ProjectList, uri, cancellationToken);
             requestId = response.RequestId;
