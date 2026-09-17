@@ -10,6 +10,20 @@ namespace Ado.Tests;
 public sealed class CliTests
 {
     [TestMethod]
+    [DataRow("--help")]
+    [DataRow("-h")]
+    [DataRow("-?")]
+    public async Task AllHelpAliasesWorkWithoutConfigurationOrCredentials(string alias)
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        int result = await CliApp.RunAsync(["project", "list", alias], output, error,
+            environment: key => key == "ADO_OUTPUT" ? null : throw new AssertFailedException("Help must not resolve configuration or credentials."));
+        Assert.AreEqual(0, result);
+        StringAssert.Contains(output.ToString(), "Usage:");
+    }
+
+    [TestMethod]
     public async Task VersionIsCleanSemanticVersion()
     {
         using var output = new StringWriter();

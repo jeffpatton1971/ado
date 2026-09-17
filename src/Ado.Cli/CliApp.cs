@@ -85,7 +85,7 @@ public static class CliApp
                 await output.WriteLineAsync(Version);
                 return 0;
             }
-            if (args.Length == 0 || args.Contains("--help", StringComparer.Ordinal) || args.Contains("-h", StringComparer.Ordinal))
+            if (args.Length == 0 || parsed.Action is System.CommandLine.Help.HelpAction)
             {
                 if (jsonOutput)
                     await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor" } }, true);
