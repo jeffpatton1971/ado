@@ -7,6 +7,20 @@ namespace Ado.Infrastructure;
 
 public sealed class PipelinesClient(ServiceTransport transport, string organization, string project)
 {
+    public async Task<int> StartAsync(int pipelineId, PipelineRunRequest request, string? confirmation, CancellationToken cancellationToken)
+    {
+        using var response = await transport.StartPipelineAsync(project, pipelineId, request.Serialize(), confirmation, cancellationToken);
+        try
+        {
+            var value = response.Document.RootElement;
+            int id = PositiveId(value);
+            if (!value.TryGetProperty("pipeline", out var pipeline) || PositiveId(pipeline) != pipelineId) throw Invalid();
+            // Only numeric identity is returned: the service may echo sensitive input in other fields.
+            return id;
+        }
+        catch (AdoException) { throw ServiceTransport.UncertainWrite(); }
+    }
+
     public async Task<CollectionResult<PipelineInfo>> ListAsync(int pageSize, int limit, string? continuation, CancellationToken cancellationToken)
     {
         if (pageSize < 1 || limit < 1) throw new AdoException("invalid_pagination", "Page size and limit must be positive.", ExitCode.Usage);

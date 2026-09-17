@@ -19,7 +19,10 @@ public static class Operations
     public static readonly OperationDescriptor PipelineGet = Pipeline("pipeline get", "pipelines/get", "none");
     public static readonly OperationDescriptor PipelineRuns = Pipeline("pipeline runs", "runs/list", "server cap 10000; no paging");
     public static readonly OperationDescriptor PipelineRunGet = Pipeline("pipeline run get", "runs/get", "none");
-    public static IReadOnlyList<OperationDescriptor> All { get; } = [ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet];
+    public static readonly OperationDescriptor PipelineRunStart = new("pipeline run start", ServiceHost.Core, "7.1", true,
+        true, "exact target", true, "none", "vso.build_execute",
+        "https://learn.microsoft.com/en-us/rest/api/azure/devops/pipelines/runs/run-pipeline?view=azure-devops-rest-7.1");
+    public static IReadOnlyList<OperationDescriptor> All { get; } = [ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet, PipelineRunStart];
 
     private static OperationDescriptor Pipeline(string command, string endpoint, string pagination) => new(command,
         ServiceHost.Core, "7.1", false, true, "none", false, pagination, "vso.build",

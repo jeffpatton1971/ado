@@ -25,6 +25,50 @@ public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider 
 
     public string Redact(string text) => authentication.Redact(text);
 
+    public async Task<JsonResponse> StartPipelineAsync(string project, int pipelineId, string body,
+        string? confirmation, CancellationToken cancellationToken)
+    {
+        SafetyPolicy.BeforeDispatch(Operations.PipelineRunStart, readOnly, dryRun);
+        var uri = EndpointBuilder.Pipeline(Operations.PipelineRunStart, organization, project, pipelineId);
+        EndpointBuilder.ValidateDestination(uri, ServiceHost.Core, organization, project);
+        MutationConfirmation.Require(MutationConfirmation.PipelineStartTarget(organization, project, pipelineId), confirmation);
+        if (System.Text.Encoding.UTF8.GetByteCount(body) > 1024 * 1024)
+            throw new AdoException("request_limit_exceeded", "The run request exceeds the 1 MiB safety limit.", ExitCode.Usage);
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(requestSeconds));
+        using var request = new HttpRequestMessage(HttpMethod.Post, uri);
+        request.Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
+        request.Headers.Accept.ParseAdd("application/json");
+        request.Headers.Add("X-TFS-FedAuthRedirect", "Suppress");
+        authentication.Apply(request);
+        deadline.Token.ThrowIfCancellationRequested();
+        // No write retries: after entering SendAsync even cancellation may follow delivery.
+        try
+        {
+            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+            if (IsTransient(response.StatusCode) || (int)response.StatusCode >= 500) throw UncertainWrite();
+            if (!response.IsSuccessStatusCode) throw Map(response.StatusCode);
+            const int maximum = 4 * 1024 * 1024;
+            if (response.Content.Headers.ContentLength > maximum) throw UncertainWrite();
+            await using var stream = await response.Content.ReadAsStreamAsync(deadline.Token);
+            using var buffer = new MemoryStream();
+            var chunk = new byte[16384];
+            while (true)
+            {
+                int read = await stream.ReadAsync(chunk, deadline.Token);
+                if (read == 0) break;
+                if (buffer.Length + read > maximum) throw UncertainWrite();
+                await buffer.WriteAsync(chunk.AsMemory(0, read), deadline.Token);
+            }
+            return new(JsonDocument.Parse(buffer.ToArray(), new JsonDocumentOptions { MaxDepth = 32 }), null, null, checked((int)buffer.Length));
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or OperationCanceledException or JsonException)
+        { throw UncertainWrite(); }
+    }
+
+    public static AdoException UncertainWrite() => new("uncertain_write",
+        "The pipeline submission outcome could not be verified. Do not blindly retry. Inspect pipeline runs for the same organization, project and pipeline ID, or check Azure DevOps before submitting again.", ExitCode.UncertainWrite);
+
     public async Task<JsonResponse> GetAsync(OperationDescriptor operation, Uri uri, CancellationToken cancellationToken, string? project = null)
     {
         SafetyPolicy.BeforeDispatch(operation, readOnly, dryRun);
