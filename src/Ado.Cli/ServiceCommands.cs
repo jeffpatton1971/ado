@@ -7,7 +7,7 @@ using Ado.Platform;
 namespace Ado.Cli;
 
 public sealed record ServiceOptions(string Command, bool Json, bool NonInteractive, bool ReadOnly, bool DryRun,
-    int? Top, bool All, string? Continuation, bool RequireComplete, string? Search);
+    int? Top, bool All, string? Continuation, bool RequireComplete, string? Search, int? PipelineId = null, int? RunId = null);
 
 internal static class ServiceCommands
 {
@@ -41,6 +41,15 @@ internal static class ServiceCommands
             throw new AdoException("project_required", "Project get requires --project or a configured project.", ExitCode.Usage);
         if (options.Command == "project search" && string.IsNullOrWhiteSpace(options.Search))
             throw new AdoException("search_required", "Project search requires --name with a nonempty name fragment.", ExitCode.Usage);
+        bool pipelineCommand = options.Command.StartsWith("pipeline ", StringComparison.Ordinal);
+        if (pipelineCommand)
+        {
+            EndpointBuilder.ProjectSegment(profile.Project);
+            if (options.Command != "pipeline list" && options.PipelineId is null or <= 0)
+                throw new AdoException("pipeline_required", "Supply a positive --pipeline-id.", ExitCode.Usage);
+            if (options.Command == "pipeline run get" && options.RunId is null or <= 0)
+                throw new AdoException("run_required", "Supply a positive --run-id.", ExitCode.Usage);
+        }
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(profile.Timeouts.OperationSeconds));
         try
@@ -54,6 +63,8 @@ internal static class ServiceCommands
             using var authentication = new TokenAuthentication(reference.Type, secret);
             using var client = testHandler is null ? ServiceTransport.CreateClient() : new HttpClient(testHandler, disposeHandler: false) { Timeout = Timeout.InfiniteTimeSpan };
             var transport = new ServiceTransport(client, authentication, organization, profile.Timeouts.RequestSeconds, options.ReadOnly, options.DryRun);
+            if (pipelineCommand)
+                return await PipelineCommands.ReadAsync(new PipelinesClient(transport, organization, profile.Project!), options, top, limit, output, error, deadline.Token);
             var projects = new ProjectsClient(transport, organization);
             ProjectResult result;
             if (options.Command == "project get" || (options.Command == "auth check" && profile.Project is not null))

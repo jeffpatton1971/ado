@@ -1,8 +1,9 @@
 # Capability matrix
 
 Only implemented commands appear in this table. The approved design contains the
-planned service commands. Implemented APIs are tested with mocked HTTP; no live
-organization access has been performed during development.
+planned service commands. Automated tests use mocked HTTP. The user reported successful
+live Core project listing/retrieval; the development agent has not accessed the live
+organization. Pipeline commands still await live verification.
 
 | Command | Service host | API | Read/write | Pagination | Dry-run | Confirmation | Auth | Status |
 |---|---|---|---|---|---|---|---|---|
@@ -15,6 +16,10 @@ organization access has been performed during development.
 | project get | dev.azure.com | Core Projects 7.1 | Read | None | N/A | None | Same as list | Mock HTTP verified |
 | project search | dev.azure.com | Core Projects 7.1 | Read | Bounded list plus client name filter | N/A | None | Same as list | Mock HTTP verified |
 | auth check | dev.azure.com | Core Projects 7.1 | Read | One list page or project get | N/A | None | Same as list | Tests endpoint access only |
+| pipeline list | dev.azure.com | Pipelines 7.1 | Read | Opaque header continuation | N/A | None | vso.build | Mock HTTP verified |
+| pipeline get | dev.azure.com | Pipelines 7.1 | Read | None | N/A | None | vso.build | Mock HTTP verified |
+| pipeline runs | dev.azure.com | Pipelines Runs 7.1 | Read | No paging; server caps at 10,000 | N/A | None | vso.build | Mock HTTP verified |
+| pipeline run get | dev.azure.com | Pipelines Runs 7.1 | Read | None | N/A | None | vso.build | Mock HTTP verified |
 
 Output schema starts at version 1. Azure DevOps Services only.
 

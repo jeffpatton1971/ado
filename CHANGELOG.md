@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add pipeline list/get/runs and pipeline run get using the documented 7.1 Pipelines
+  endpoints, project-bound routing, opaque definition continuation and honest run-history
+  completeness metadata. Run output omits variables, parameter values and expanded YAML.
+
 - Ignore personal repository-root config.json and document explicit local-config selection.
 
 - Pin development and CI to .NET SDK 10.0.400 without automatic roll-forward.

@@ -16,7 +16,7 @@ internal static class OutputWriter
         ? output.WriteLineAsync(JsonSerializer.Serialize(new { ok = false, error = new { code, message, details = new { }, retryable } }, JsonOptions))
         : error.WriteLineAsync($"{code}: {message}");
 
-    public static Task PartialAsync(TextWriter output, IReadOnlyList<ProjectInfo> data, ResultMetadata meta) => output.WriteLineAsync(
+    public static Task PartialAsync<T>(TextWriter output, IReadOnlyList<T> data, ResultMetadata meta) => output.WriteLineAsync(
         JsonSerializer.Serialize(new { ok = false, data, meta, error = new { code = "incomplete_result", message = "The requested complete result exceeds a safety bound.", details = new { }, retryable = false } }, JsonOptions));
 
     public static string TerminalSafe(string value) => string.Concat(value.Select(c =>

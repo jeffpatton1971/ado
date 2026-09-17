@@ -52,7 +52,7 @@ public static class CliApp
         var search = new Command("search", "Filter a bounded project scan by name (client-side substring match).");
         var top = new Option<int?>("--top") { Description = "Requested page size." };
         var all = new Option<bool>("--all") { Description = "Scan up to the configured maximum." };
-        var continuation = new Option<string>("--continuation-token") { Description = "Numeric project continuation offset." };
+        var continuation = new Option<string>("--continuation-token") { Description = "Endpoint continuation token (numeric for projects, opaque for pipelines)." };
         var requireComplete = new Option<bool>("--require-complete") { Description = "Exit 10 if output is truncated." };
         var searchName = new Option<string>("--name") { Description = "Project name fragment." };
         foreach (var command in new[] { list, search })
@@ -64,6 +64,21 @@ public static class CliApp
         projectCommand.Subcommands.Add(get);
         projectCommand.Subcommands.Add(search);
         root.Subcommands.Add(projectCommand);
+        var pipeline = new Command("pipeline", "Inspect Pipelines API definitions and runs; distinct from builds and classic releases.");
+        var pipelineList = new Command("list", "List pipeline definitions and their reported configuration types.");
+        var pipelineGet = new Command("get", "Inspect a pipeline definition.");
+        var pipelineRuns = new Command("runs", "Inspect runs; server caps history at 10000 without paging.");
+        var pipelineRun = new Command("run", "Inspect a Pipelines API execution.");
+        var pipelineRunGet = new Command("get", "Inspect a specific pipeline run.");
+        var pipelineId = new Option<int?>("--pipeline-id") { Description = "Positive pipeline definition ID." };
+        var runId = new Option<int?>("--run-id") { Description = "Positive pipeline run ID." };
+        foreach (var option in new Option[] { top, all, continuation, requireComplete }) pipelineList.Options.Add(option);
+        foreach (var option in new Option[] { all, requireComplete }) pipelineRuns.Options.Add(option);
+        foreach (var command in new[] { pipelineGet, pipelineRuns, pipelineRunGet }) command.Options.Add(pipelineId);
+        pipelineRunGet.Options.Add(runId);
+        pipelineRun.Subcommands.Add(pipelineRunGet);
+        foreach (var command in new[] { pipelineList, pipelineGet, pipelineRuns, pipelineRun }) pipeline.Subcommands.Add(command);
+        root.Subcommands.Add(pipeline);
         var auth = new Command("auth", "Check access using the selected credential.");
         var check = new Command("check", "Test project endpoint access; other services are not checked.");
         auth.Subcommands.Add(check);
@@ -88,7 +103,7 @@ public static class CliApp
             if (args.Length == 0 || parsed.Action is System.CommandLine.Help.HelpAction)
             {
                 if (jsonOutput)
-                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor" } }, true);
+                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get" } }, true);
                 else
                 {
                     var helpArgs = args.Length == 0 ? new[] { "--help" } : args;
@@ -105,7 +120,9 @@ public static class CliApp
             }
             var selectedCommand = parsed.CommandResult.Command;
             string? serviceCommand = selectedCommand == list ? "project list" : selectedCommand == get ? "project get"
-                : selectedCommand == search ? "project search" : selectedCommand == check ? "auth check" : selectedCommand == doctor ? "doctor" : null;
+                : selectedCommand == search ? "project search" : selectedCommand == check ? "auth check" : selectedCommand == doctor ? "doctor"
+                : selectedCommand == pipelineList ? "pipeline list" : selectedCommand == pipelineGet ? "pipeline get"
+                : selectedCommand == pipelineRuns ? "pipeline runs" : selectedCommand == pipelineRunGet ? "pipeline run get" : null;
             if (selectedCommand != show && serviceCommand is null)
                 throw new AdoException("command_required", "Choose a command. Use ado --help for supported syntax.", ExitCode.Usage);
 
@@ -130,7 +147,7 @@ public static class CliApp
                 using var argumentToken = parsed.GetValue(token) is { } tokenValue ? new SecretValue(tokenValue) : null;
                 return await ServiceCommands.RunAsync(resolved.Settings, selection ?? new(configuredAuth, false), argumentToken,
                     new(serviceCommand, jsonOutput, parsed.GetValue(nonInteractive), parsed.GetValue(readOnly), parsed.GetValue(dryRun),
-                        parsed.GetValue(top), parsed.GetValue(all), parsed.GetValue(continuation), parsed.GetValue(requireComplete), parsed.GetValue(searchName)),
+                        parsed.GetValue(top), parsed.GetValue(all), parsed.GetValue(continuation), parsed.GetValue(requireComplete), parsed.GetValue(searchName), parsed.GetValue(pipelineId), parsed.GetValue(runId)),
                     output, error, input ?? Console.In, environment, testHandler, testNativeProvider, cancellationToken);
             }
             if (parsed.GetValue(effective))
