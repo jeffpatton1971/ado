@@ -52,6 +52,41 @@ public sealed class PipelineRunRequest
     }
 
     internal string Serialize() => JsonSerializer.Serialize(body);
+    internal string SerializePreview()
+    {
+        // Caller-controlled input cannot override this flag; never mutate the start request.
+        var preview = new Dictionary<string, object>(body) { ["previewRun"] = true };
+        string json = JsonSerializer.Serialize(preview);
+        if (System.Text.Encoding.UTF8.GetByteCount(json) > 1024 * 1024)
+            throw new AdoException("request_limit_exceeded", "The preview request exceeds the 1 MiB safety limit.", ExitCode.Usage);
+        return json;
+    }
+
+    public void ValidatePreview() => _ = SerializePreview();
+
+    internal string RedactInputValues(string text, CancellationToken cancellationToken)
+    {
+        var values = new HashSet<string>(StringComparer.Ordinal);
+        void Collect(JsonElement element)
+        {
+            if (element.ValueKind == JsonValueKind.String && element.GetString() is { Length: > 0 } value)
+                values.Add(value);
+            else if (element.ValueKind == JsonValueKind.Object)
+                foreach (var property in element.EnumerateObject()) Collect(property.Value);
+            else if (element.ValueKind == JsonValueKind.Array)
+                foreach (var item in element.EnumerateArray()) Collect(item);
+        }
+        foreach (object value in body.Values)
+            if (value is JsonElement element) Collect(element);
+        // Literal and JSON-escaped forms only; arbitrary template transformations cannot be inferred.
+        foreach (string value in values.ToArray()) values.Add(JsonSerializer.Serialize(value)[1..^1]);
+        foreach (string value in values.OrderByDescending(value => value.Length))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            text = text.Replace(value, "[REDACTED]", StringComparison.Ordinal);
+        }
+        return text;
+    }
     public override string ToString() => "[pipeline run request; values omitted]";
 
     private static async Task<JsonElement> ReadObjectAsync(string path, CancellationToken cancellationToken)

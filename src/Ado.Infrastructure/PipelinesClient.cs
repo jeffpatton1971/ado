@@ -7,6 +7,18 @@ namespace Ado.Infrastructure;
 
 public sealed class PipelinesClient(ServiceTransport transport, string organization, string project)
 {
+    public async Task<PipelinePreviewInfo> PreviewAsync(int pipelineId, PipelineRunRequest request, string? confirmation,
+        bool showYaml, CancellationToken cancellationToken)
+    {
+        using var response = await transport.PreviewPipelineAsync(project, pipelineId, request, confirmation, cancellationToken);
+        var value = response.Document.RootElement;
+        if (value.ValueKind != JsonValueKind.Object || !value.TryGetProperty("finalYaml", out var yaml)
+            || yaml.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(yaml.GetString())) throw Invalid();
+        if (value.TryGetProperty("pipeline", out var pipeline) && PositiveId(pipeline) != pipelineId) throw Invalid();
+        string text = yaml.GetString()!;
+        return new(pipelineId, true, text.Length, showYaml ? request.RedactInputValues(transport.Redact(text), cancellationToken) : null);
+    }
+
     public async Task<int> StartAsync(int pipelineId, PipelineRunRequest request, string? confirmation, CancellationToken cancellationToken)
     {
         using var response = await transport.StartPipelineAsync(project, pipelineId, request.Serialize(), confirmation, cancellationToken);

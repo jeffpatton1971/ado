@@ -58,12 +58,12 @@ public static partial class EndpointBuilder
         string path = $"/{organization}/{ProjectSegment(project)}/_apis/pipelines";
         if (operation != Operations.PipelineList)
         {
-            if (operation != Operations.PipelineGet && operation != Operations.PipelineRuns && operation != Operations.PipelineRunGet && operation != Operations.PipelineRunStart)
+            if (operation != Operations.PipelineGet && operation != Operations.PipelineRuns && operation != Operations.PipelineRunGet && operation != Operations.PipelineRunStart && operation != Operations.PipelineRunPreview)
                 throw new AdoException("unsupported_operation", "This endpoint is not registered.", ExitCode.Usage);
             if (pipelineId is null or <= 0) throw new AdoException("pipeline_required", "Supply a positive --pipeline-id.", ExitCode.Usage);
             path += "/" + pipelineId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
-        if (operation == Operations.PipelineRuns || operation == Operations.PipelineRunGet || operation == Operations.PipelineRunStart) path += "/runs";
+        if (operation == Operations.PipelineRuns || operation == Operations.PipelineRunGet || operation == Operations.PipelineRunStart || operation == Operations.PipelineRunPreview) path += "/runs";
         if (operation == Operations.PipelineRunGet)
         {
             if (runId is null or <= 0) throw new AdoException("run_required", "Supply a positive --run-id.", ExitCode.Usage);

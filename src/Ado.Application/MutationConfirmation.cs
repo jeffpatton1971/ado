@@ -7,6 +7,9 @@ public static class MutationConfirmation
     public static string PipelineStartTarget(string organization, string project, int pipelineId) =>
         $"pipeline run start:{organization}/{project}/{pipelineId.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
 
+    public static string PipelinePreviewTarget(string organization, string project, int pipelineId) =>
+        $"pipeline run preview:{organization}/{project}/{pipelineId.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+
     public static void Require(string expected, string? supplied)
     {
         if (!string.Equals(expected, supplied, StringComparison.Ordinal))
