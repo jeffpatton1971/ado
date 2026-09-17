@@ -6,8 +6,9 @@ Under development; Azure DevOps Server is not supported. See the
 
 ## Current implementation
 
-The initial foundation provides `--help`, clean semantic `--version`, and safe JSON
-argument errors. Service commands are not implemented yet. See the
+The initial foundation provides `--help`, clean semantic `--version`, safe JSON
+errors, and `config paths`/`config show --effective`. See
+[configuration and global parameters](docs/configuration.md). Service commands are not implemented yet. See the
 [capability matrix](docs/capabilities.md); planned commands are not advertised as working.
 
 ## Development

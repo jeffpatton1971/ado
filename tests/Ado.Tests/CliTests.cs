@@ -31,4 +31,50 @@ public sealed class CliTests
         Assert.IsFalse(output.ToString().Contains("secret-sentinel", StringComparison.Ordinal));
         Assert.AreEqual("", error.ToString());
     }
+
+    [TestMethod]
+    public async Task CancellationStillProducesJsonEnvelope()
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        Assert.AreEqual(130, await CliApp.RunAsync(["config", "paths", "--json"], output, error, new CancellationToken(true)));
+        using var document = JsonDocument.Parse(output.ToString());
+        Assert.AreEqual("cancelled", document.RootElement.GetProperty("error").GetProperty("code").GetString());
+        Assert.AreEqual("", error.ToString());
+    }
+
+    [TestMethod]
+    [DataRow("--limit", "not-a-number")]
+    [DataRow("--output", "unknown")]
+    [DataRow("--timeout", "999999999999999999")]
+    public async Task MalformedOptionsRemainSafeJson(string option, string value)
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        Assert.AreEqual(2, await CliApp.RunAsync(["config", "show", "--json", option, value], output, error, environment: _ => null));
+        using var document = JsonDocument.Parse(output.ToString());
+        Assert.IsFalse(document.RootElement.GetProperty("ok").GetBoolean());
+        Assert.AreEqual("", error.ToString());
+    }
+
+    [TestMethod]
+    public async Task ConfigShowUsesProfileJsonPreferenceAndDoesNotReadTokenEnvironment()
+    {
+        string path = Path.GetTempFileName();
+        try
+        {
+            await File.WriteAllTextAsync(path, """{"defaultProfile":"work","profiles":{"work":{"organization":"example","output":"json"}}}""");
+            using var output = new StringWriter();
+            using var error = new StringWriter();
+            string? Env(string key)
+            {
+                Assert.AreNotEqual("ADO_TOKEN", key);
+                return null;
+            }
+            Assert.AreEqual(0, await CliApp.RunAsync(["config", "show", "--effective", "--config", path], output, error, environment: Env));
+            using var document = JsonDocument.Parse(output.ToString());
+            Assert.AreEqual("example", document.RootElement.GetProperty("data").GetProperty("settings").GetProperty("organization").GetString());
+        }
+        finally { File.Delete(path); }
+    }
 }
