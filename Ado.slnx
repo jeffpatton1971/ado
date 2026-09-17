@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Ado.Domain/Ado.Domain.csproj" />
+    <Project Path="src/Ado.Application/Ado.Application.csproj" />
+    <Project Path="src/Ado.Infrastructure/Ado.Infrastructure.csproj" />
+    <Project Path="src/Ado.Platform/Ado.Platform.csproj" />
+    <Project Path="src/Ado.Cli/Ado.Cli.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Ado.Tests/Ado.Tests.csproj" />
+  </Folder>
+</Solution>

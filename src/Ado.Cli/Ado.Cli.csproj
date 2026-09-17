@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>ado</AssemblyName>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>ado</ToolCommandName>
+    <PackageId>PattonTech.Ado.Cli</PackageId>
+    <Authors>PattonTech</Authors>
+    <Description>Azure DevOps Services CLI for interactive users and automation.</Description>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" />
+    <ProjectReference Include="../Ado.Infrastructure/Ado.Infrastructure.csproj" />
+    <ProjectReference Include="../Ado.Platform/Ado.Platform.csproj" />
+  </ItemGroup>
+</Project>
