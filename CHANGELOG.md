@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add opaque PAT/Entra authentication abstractions and bounded environment/stdin/masked-prompt providers (CLI wiring follows).
+
 - Record approved Azure DevOps Services CLI design and threat model.
 - Adopt `ado` command name, `ado` configuration directory and `ADO_` environment prefix.
 - Add .NET 10 solution, centralized versioning, CLI help/version and safe JSON usage errors.
