@@ -6,7 +6,8 @@ Windows tests additionally write/read/delete a uniquely named synthetic generic
 credential with session persistence; this test skips on other platforms or unavailable
 Windows logon sessions. Existing credential items are never enumerated or read.
 
-The GitHub workflow builds/tests on Windows, Linux and macOS, checks formatting,
+The GitHub workflow builds/tests on Windows, Linux and macOS using SDK 10.0.400
+selected from the exact `global.json` pin. It checks formatting,
 audits direct/transitive dependencies, verifies --version against Directory.Build.props,
 and creates an ephemeral tool package. Separate jobs cross-compile self-contained
 outputs for x64 and Arm64 on all three OS families. Cross-compilation is not execution

@@ -25,7 +25,8 @@ cross-compilation but has not yet run remotely. See [verification status](docs/t
 ## Development
 
 Install the [.NET 10 LTS SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0).
-The repository pins 10.0.401 with patch roll-forward. Choose x64 for Intel/AMD systems
+The repository pins SDK 10.0.400 exactly, without automatic roll-forward. CI reads
+the same version from `global.json`. Choose x64 for Intel/AMD systems
 or Arm64 for ARM systems. Windows: Settings > System > About > System type;
 macOS: About This Mac (Apple silicon is Arm64); Linux: `uname -m`
 (`x86_64` is x64, `aarch64` is Arm64).

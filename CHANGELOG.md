@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Pin development and CI to .NET SDK 10.0.400 without automatic roll-forward.
+
 - Harden redaction of encoded credentials and reject malformed continuation headers;
   ensure every help alias works without configuration or credentials.
 
