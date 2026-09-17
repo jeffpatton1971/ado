@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add registered project endpoints, organization/host validation, redirect refusal,
+  bounded read retries and responses, typed project results and continuation handling.
+
 - Add native credential adapters and setup guidance for Windows Credential Manager,
   macOS Keychain and Linux Secret Service, with non-interactive prompt suppression.
 
