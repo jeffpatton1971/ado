@@ -53,7 +53,7 @@ public sealed class TokenAuthentication : IAuthenticationProvider
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", value);
         }
     }
-    public string Redact(string text) => text.Replace(secret.Read(), "[REDACTED]", StringComparison.Ordinal)
-        .Replace(Convert.ToBase64String(Encoding.UTF8.GetBytes(":" + secret.Read())), "[REDACTED]", StringComparison.Ordinal);
+    public string Redact(string text) => text.Replace(Convert.ToBase64String(Encoding.UTF8.GetBytes(":" + secret.Read())), "[REDACTED]", StringComparison.Ordinal)
+        .Replace(secret.Read(), "[REDACTED]", StringComparison.Ordinal);
     public void Dispose() => secret.Dispose();
 }

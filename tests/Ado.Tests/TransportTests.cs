@@ -153,6 +153,22 @@ public sealed class TransportTests
     }
 
     [TestMethod]
+    public async Task OversizedContinuationCannotMasqueradeAsCompleteResult()
+    {
+        using var handler = new FakeHandler(_ =>
+        {
+            var response = Json("{\"value\":[]}");
+            response.Headers.Add("x-ms-continuationtoken", new string('1', 129));
+            return response;
+        });
+        using var client = new HttpClient(handler);
+        using var auth = new TokenAuthentication("pat", new("token"));
+        var projects = new ProjectsClient(new(client, auth, "example"), "example");
+        var error = await Assert.ThrowsExactlyAsync<AdoException>(() => projects.ListAsync(100, 100, null, null, CancellationToken.None));
+        Assert.AreEqual("invalid_service_response", error.Code);
+    }
+
+    [TestMethod]
     public async Task RequestDeadlineCancelsHandlerAndMapsTimeout()
     {
         using var client = new HttpClient(new WaitingHandler());

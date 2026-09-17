@@ -66,6 +66,8 @@ public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider 
                         await buffer.WriteAsync(chunk.AsMemory(0, read), deadline.Token);
                     }
                     string? continuation = Header(response, "x-ms-continuationtoken");
+                    if (response.Headers.Contains("x-ms-continuationtoken") && continuation is null)
+                        throw new AdoException("invalid_service_response", "The project continuation token is invalid.", ExitCode.Transient);
                     if (continuation is not null && (!int.TryParse(continuation, out int offset) || offset < 0))
                         throw new AdoException("invalid_service_response", "The project continuation token is invalid.", ExitCode.Transient);
                     string? requestId = Header(response, "x-vss-e2eid") ?? Header(response, "x-ms-request-id");

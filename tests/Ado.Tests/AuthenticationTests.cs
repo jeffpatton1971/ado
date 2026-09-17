@@ -11,6 +11,13 @@ namespace Ado.Tests;
 public sealed class AuthenticationTests
 {
     [TestMethod]
+    public void EncodedHeaderIsRedactedBeforeOverlappingRawValue()
+    {
+        using var auth = new TokenAuthentication("pat", new("="));
+        Assert.AreEqual("[REDACTED]", auth.Redact(Convert.ToBase64String(Encoding.UTF8.GetBytes(":="))));
+    }
+
+    [TestMethod]
     [DataRow("pat", "Basic")]
     [DataRow("entra-token", "Bearer")]
     public void TokenTypeIsExplicitAndValueIsOpaque(string type, string scheme)
