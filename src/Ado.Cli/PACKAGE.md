@@ -12,7 +12,8 @@ or native credential stores. Native macOS/Linux execution remains pending valida
 Server preview uses a separate confirmation and is blocked by --read-only; expanded
 YAML is omitted unless --show-yaml is requested. Build list/get support bounded history
 and safe execution metadata. Build logs/log get provide a bounded log index and
-terminal-safe content, with optional service line ranges. Build queue/cancel/outputs and release/feed commands
+terminal-safe content, with optional service line ranges. Build artifact list/get inspect
+output metadata without exposing download URLs. Build queue/cancel/download and release/feed commands
 are not implemented in this development build.
 
 ```text

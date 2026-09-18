@@ -107,6 +107,9 @@ Build list supports paging plus --definition-id, --status, --result and --branch
 build get requires --build-id. Build logs requires --build-id; build log get additionally
 requires --log-id and accepts --start-line/--end-line. Log commands accept --limit,
 --all and --require-complete, but no paging tokens. See [build contracts](builds.md).
+Build artifact list/get require --build-id; get also requires --artifact-name. List
+supports --limit, --all and --require-complete without server pagination. These commands
+inspect build-output metadata only; download links are not returned or followed.
 
 `--version` always prints only the semantic version, even with --json. Config text
 output uses indented JSON for readability. Schema errors exit 3; command syntax errors

@@ -63,7 +63,7 @@ result and source branch; JSON includes the full allowlisted fields.
 
 These commands only send GET requests. --read-only is supported; --dry-run still performs
 reads. Shared bounded read retries and safe errors apply. No build queue/cancel,
-changes, work items or build-output operations are implemented in this slice.
+changes, work items or build-output downloads are implemented in this slice.
 
 ## Build logs
 
@@ -111,14 +111,52 @@ exit 10/ok:false while retaining content when full-log completeness cannot be es
 Empty whole logs succeed. Oversized, malformed or unexpected continuation responses
 fail safely without echoing raw service payloads.
 
+## Build-output metadata
+
+`build artifact list` and `build artifact get` inspect outputs attached to a Build API
+execution. These are not Azure Artifacts feed packages. Both use Build API 7.1, require
+project context and `vso.build`, and only send GET requests accepting application/json.
+
+```text
+ado build artifact list --config ./config.json --build-id 18722 --token-prompt --output table --read-only --limit 100
+```
+
+Get selects an output by its exact name, not its numeric ID. If the list contains an
+output named `drop`, inspect it with:
+
+```text
+ado build artifact get --config ./config.json --build-id 18722 --artifact-name drop --token-prompt --output table --read-only
+```
+
+The name is encoded as one query value and never interpreted as a path or URL. It must
+be nonempty, at most 1024 characters and contain no controls. Get verifies that the
+response name matches before redaction. JSON returns id, buildId, name, resourceType
+and optional source (the producing job reference). Resource types are preserved as
+reported; missing type is unknown. No type is assumed to be downloadable.
+
+Resource data, property bags, download/service URLs and links are omitted and never
+followed. No file is downloaded or written. Arbitrary resource properties do not imply
+a universal size or file-count field. Text is credential-redacted and human table cells
+escape terminal controls. JSON get returns one object; list returns an array.
+
+List has no documented pagination. --limit bounds displayed outputs; --all uses the
+configured ceiling. The full metadata response is still limited to 4 MiB before parsing.
+No --top or --continuation-token is accepted. Empty lists succeed, including builds that
+published no outputs. When the local limit truncates results, metadata is partial and
+has no continuation token; --require-complete retains partial data but returns exit 10.
+Unexpected continuation headers and malformed responses fail safely. --dry-run still
+performs these metadata reads. Downloads and archive extraction remain unimplemented.
+
 ## Verification
 
 Mocked tests cover routes, encoding, filters, opaque pagination, page/item bounds,
 repeated tokens, safe output, IDs/context, CLI validation and strict completeness.
 The user reported successful live build list for definition 1128 and build get for
-18722. Log index/content live validation is pending. Mocked log tests cover routes,
+18722. The user also retrieved its 26-entry log index and log 3 (27 lines). Mocked log tests cover routes,
 line ranges, JSON forms, bounds, safe output and strict completeness. The development
-agent has made no live requests.
+agent has made no live requests. Build-output metadata tests cover routes, name encoding,
+identity checks, safe field selection, output bounds and CLI behavior. Live build-output
+metadata validation remains pending.
 
 Official endpoint references, checked before implementation:
 
@@ -126,3 +164,5 @@ Official endpoint references, checked before implementation:
 - [Builds Get](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get?view=azure-devops-rest-7.1)
 - [Get Build Logs](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get-build-logs?view=azure-devops-rest-7.1)
 - [Get Build Log](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get-build-log?view=azure-devops-rest-7.1)
+- [List Build Artifacts](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/artifacts/list?view=azure-devops-rest-7.1)
+- [Get Build Artifact](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/artifacts/get-artifact?view=azure-devops-rest-7.1)

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add build artifact list/get for bounded output metadata, preserving resource types
+  while omitting resource data, property bags and download links. No downloads occur.
+- Record user-reported live log index/content success for build 18722/log 3.
+
 - Add build logs and build log get with a bounded log index, optional service line
   ranges, credential redaction, terminal escaping and explicit completeness metadata.
 - Record user-reported live build list/get success for definition 1128/build 18722.

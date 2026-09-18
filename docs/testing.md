@@ -35,8 +35,10 @@ server-preview success for pipeline 1128 (13,778 YAML characters, content omitte
 No live server preview has been performed by the development agent. Build list/get
 have mocked route/filter/pagination/output coverage and user-reported live success for
 definition 1128/build 18722. Log index/content tests use mocked HTTP and cover response
-and output bounds, line ranges, redaction, terminal escaping and completeness. Live
-log validation remains pending.
+and output bounds, line ranges, redaction, terminal escaping and completeness. The user
+reported a successful 26-log index and content retrieval for log 3 of build 18722.
+Build-output metadata list/get have mocked route/name/filtering/limit coverage; their
+live validation remains pending.
 
 Native macOS calls use a deprecated generic-password API and cannot safely abort an
 active OS approval dialog. This is documented rather than claiming universal cancellation

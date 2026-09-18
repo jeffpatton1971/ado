@@ -9,7 +9,7 @@ namespace Ado.Cli;
 public sealed record ServiceOptions(string Command, bool Json, bool NonInteractive, bool ReadOnly, bool DryRun,
     int? Top, bool All, string? Continuation, bool RequireComplete, string? Search, int? PipelineId = null, int? RunId = null,
     string? Confirmation = null, string? RefName = null, string? ParametersFile = null, string? VariablesFile = null, bool ShowYaml = false,
-    int? BuildId = null, BuildFilters? BuildFilters = null, int? LogId = null, long? StartLine = null, long? EndLine = null);
+    int? BuildId = null, BuildFilters? BuildFilters = null, int? LogId = null, long? StartLine = null, long? EndLine = null, string? ArtifactName = null);
 
 internal static class ServiceCommands
 {
@@ -54,6 +54,9 @@ internal static class ServiceCommands
             if (options.Command is "build logs" or "build log get")
                 _ = EndpointBuilder.BuildLog(options.Command == "build logs" ? Operations.BuildLogs : Operations.BuildLogGet,
                     organization, profile.Project!, options.BuildId!.Value, options.LogId, options.StartLine, options.EndLine);
+            if (options.Command is "build artifact list" or "build artifact get")
+                _ = EndpointBuilder.BuildArtifact(options.Command == "build artifact list" ? Operations.BuildArtifactList : Operations.BuildArtifactGet,
+                    organization, profile.Project!, options.BuildId!.Value, options.ArtifactName);
             // Validate pagination before credential acquisition as well as at endpoint construction.
             if (options.Command == "build list")
                 _ = EndpointBuilder.Build(Operations.BuildList, organization, profile.Project!, top: top, continuation: options.Continuation, filters: options.BuildFilters);
@@ -115,6 +118,8 @@ internal static class ServiceCommands
             using var authentication = new TokenAuthentication(reference.Type, secret);
             using var client = testHandler is null ? ServiceTransport.CreateClient() : new HttpClient(testHandler, disposeHandler: false) { Timeout = Timeout.InfiniteTimeSpan };
             var transport = new ServiceTransport(client, authentication, organization, profile.Timeouts.RequestSeconds, options.ReadOnly, options.DryRun);
+            if (options.Command is "build artifact list" or "build artifact get")
+                return await BuildArtifactCommands.ReadAsync(new BuildArtifactsClient(transport, organization, profile.Project!), options, limit, output, error, deadline.Token);
             if (options.Command is "build logs" or "build log get")
                 return await BuildLogCommands.ReadAsync(new BuildLogsClient(transport, organization, profile.Project!), options, limit, output, error, deadline.Token);
             if (buildCommand)

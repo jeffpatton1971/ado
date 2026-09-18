@@ -115,6 +115,16 @@ public static class CliApp
         build.Subcommands.Add(buildGet);
         build.Subcommands.Add(buildLogs);
         build.Subcommands.Add(buildLog);
+        var buildArtifact = new Command("artifact", "Inspect outputs produced by a build, not Azure Artifacts feed packages.");
+        var buildArtifactList = new Command("list", "List bounded build-output metadata; no downloads.");
+        var buildArtifactGet = new Command("get", "Get one build output by name; no downloads.");
+        var artifactName = new Option<string>("--artifact-name") { Description = "Exact build-output name returned by build artifact list." };
+        foreach (var command in new[] { buildArtifactList, buildArtifactGet }) command.Options.Add(buildId);
+        foreach (var option in new Option[] { all, requireComplete }) buildArtifactList.Options.Add(option);
+        buildArtifactGet.Options.Add(artifactName);
+        buildArtifact.Subcommands.Add(buildArtifactList);
+        buildArtifact.Subcommands.Add(buildArtifactGet);
+        build.Subcommands.Add(buildArtifact);
         root.Subcommands.Add(build);
         var auth = new Command("auth", "Check access using the selected credential.");
         var check = new Command("check", "Test project endpoint access; other services are not checked.");
@@ -140,7 +150,7 @@ public static class CliApp
             if (args.Length == 0 || parsed.Action is System.CommandLine.Help.HelpAction)
             {
                 if (jsonOutput)
-                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build logs", "build log get" } }, true);
+                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build logs", "build log get", "build artifact list", "build artifact get" } }, true);
                 else
                 {
                     var helpArgs = args.Length == 0 ? new[] { "--help" } : args;
@@ -162,7 +172,8 @@ public static class CliApp
                 : selectedCommand == pipelineRuns ? "pipeline runs" : selectedCommand == pipelineRunGet ? "pipeline run get"
                 : selectedCommand == pipelineRunStart ? "pipeline run start" : selectedCommand == pipelineRunPreview ? "pipeline run preview"
                 : selectedCommand == buildList ? "build list" : selectedCommand == buildGet ? "build get"
-                : selectedCommand == buildLogs ? "build logs" : selectedCommand == buildLogGet ? "build log get" : null;
+                : selectedCommand == buildLogs ? "build logs" : selectedCommand == buildLogGet ? "build log get"
+                : selectedCommand == buildArtifactList ? "build artifact list" : selectedCommand == buildArtifactGet ? "build artifact get" : null;
             if (selectedCommand != show && serviceCommand is null)
                 throw new AdoException("command_required", "Choose a command. Use ado --help for supported syntax.", ExitCode.Usage);
 
@@ -190,7 +201,7 @@ public static class CliApp
                         parsed.GetValue(top), parsed.GetValue(all), parsed.GetValue(continuation), parsed.GetValue(requireComplete), parsed.GetValue(searchName), parsed.GetValue(pipelineId), parsed.GetValue(runId),
                         parsed.GetValue(confirm), parsed.GetValue(refName), parsed.GetValue(parametersFile), parsed.GetValue(variablesFile), parsed.GetValue(showYaml),
                         parsed.GetValue(buildId), new(parsed.GetValue(definitionId), parsed.GetValue(buildStatus), parsed.GetValue(buildResult), parsed.GetValue(branch)),
-                        parsed.GetValue(logId), parsed.GetValue(startLine), parsed.GetValue(endLine)),
+                        parsed.GetValue(logId), parsed.GetValue(startLine), parsed.GetValue(endLine), parsed.GetValue(artifactName)),
                     output, error, input ?? Console.In, environment, testHandler, testNativeProvider, cancellationToken);
             }
             if (parsed.GetValue(effective))
