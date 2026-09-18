@@ -10,8 +10,9 @@ service-specific access probes and JSON/non-interactive output support automatio
 
 PATs and externally supplied Entra tokens can come from stdin, environment, masked
 prompts or existing native credential-store items. Plaintext configuration tokens are
-rejected. Automatic Entra login/refresh is not implemented. Native macOS/Linux store
-validation remains open, separately from passing CLI tests/install checks on those OSes.
+rejected. Automatic Entra login/refresh is not implemented. The user verified macOS
+Keychain access, including non-interactive and repeated auth checks. Linux native
+Secret Service validation remains open despite passing CLI tests/install checks.
 
 Run start and server YAML preview support credential-free local dry-run and require
 exact confirmation before dispatch. --read-only blocks both remote actions while

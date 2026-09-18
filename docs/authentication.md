@@ -63,8 +63,9 @@ containing the token. Use a deliberate unique service/account pair.
 
 Unlock the keychain before headless execution. The adapter suppresses user interaction
 in non-interactive mode and reports first-use guidance. It uses the longstanding generic
-password API; this API is deprecated by Apple, so migration to SecItem APIs and actual
-macOS validation remain platform-hardening work. A synchronous OS approval dialog cannot
+password API; this API is deprecated by Apple, so migration to SecItem APIs remains
+platform-hardening work. Successful native access is user-verified, including
+non-interactive and repeated auth checks. A synchronous OS approval dialog cannot
 be forcibly cancelled safely by the CLI; dismiss it to complete cancellation.
 
 ## Linux Secret Service
@@ -91,8 +92,11 @@ use secret-injected environment or stdin. Native calls receive a GCancellable.
 
 Adapter contracts and error mapping are tested with fake stores, without developer
 credentials. Windows additionally round-trips a uniquely named synthetic generic
-credential and deletes it in a finally block. Native macOS/Linux calls have not been executed on this Windows development
-host; those integrations need target-OS validation before a supported release claim.
+credential and deletes it in a finally block. The user verified macOS installation
+and successful macos-keychain auth checks, including non-interactive and repeated
+invocations. Linux Secret Service remains unverified on a native session. macOS
+locked/denied/missing-item and relocation/re-authorization cases remain unverified
+on a real keychain; fake-store tests do not establish those native behaviors.
 No credentials are stored by ado. Managed strings cannot guarantee secure memory erasure.
 Plaintext configuration remains unimplemented and is rejected.
 

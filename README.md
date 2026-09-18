@@ -18,7 +18,7 @@ The development version is **0.1.0**. M1 remains in progress; no tagged release 
 | Classic releases | `release list`, `get`, `environments`, `approvals`, `deployments`, `tasks`, `task log` |
 | Explicit pipeline actions | `pipeline run start`, `pipeline run preview`, each with local dry-run and exact confirmation |
 
-[Hosted CI](https://github.com/jeffpatton1971/ado/actions/runs/35360735378) passed tests and packaged-tool installation on Windows x64, Linux x64 and macOS Arm64, plus cross-compilation for six OS/architecture targets. Compilation is not runtime verification. Native macOS/Linux credential-store checks and live retry-history/Container-artifact coverage remain open. See [verification](docs/testing.md).
+[Hosted CI](https://github.com/jeffpatton1971/ado/actions/runs/35360735378) passed tests and packaged-tool installation on Windows x64, Linux x64 and macOS Arm64, plus cross-compilation for six OS/architecture targets. Compilation is not runtime verification. The user also verified macOS installation and Keychain authentication, including non-interactive and repeated checks. Linux native credential-store checks and live retry-history/Container-artifact coverage remain open. See [verification](docs/testing.md).
 
 ## Workstation setup
 
@@ -229,7 +229,7 @@ ado auth check --config ./config.json --output table --read-only
 ado auth check --config ./config.json --non-interactive --json --read-only
 ```
 
-Approve the expected executable on the first invocation; choose **Always Allow** if subsequent unattended access is intended. The second invocation verifies prompt-free access. Moving or rebuilding the executable may require approval again. Actual macOS/Linux native-store validation remains outstanding despite their CLI test suites passing.
+Approve the expected executable on the first invocation; choose **Always Allow** if subsequent unattended access is intended. The second invocation verifies prompt-free access. Moving or rebuilding the executable may require approval again. Successful macOS Keychain access, including non-interactive and repeated checks, is user-verified. Linux native-store and macOS failure/re-authorization paths remain unverified.
 
 ### Automation and Entra tokens
 

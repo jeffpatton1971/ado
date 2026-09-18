@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Record user-verified macOS installation and Keychain-backed authentication,
+  including non-interactive and repeated access; retain Linux native-store and live
+  retry/Container validation gaps.
+
 - Add Azure DevOps-specific Copilot instructions; align repository and README policy
   so branch pushes and PR creation/merge join release actions behind the human-only gate.
 

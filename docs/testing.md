@@ -145,7 +145,12 @@ passed all nine jobs at commit 32ea5c8: three OS test/format/audit/package/insta
 jobs and six self-contained cross-compiles. Windows passed 563 tests with no skips;
 Linux/macOS each passed 562 and skipped only the Windows native credential test.
 This also verifies disposable Windows native credential storage on the hosted runner.
-macOS/Linux native keyring validation and Windows/Linux Arm64 runtime validation
+The user subsequently installed ado on macOS following the README and reported
+successful auth check with macos-keychain, including non-interactive and repeated
+invocations. This verifies the native provider's successful access path on that
+installation; the user did not specify its architecture. Locked/denied/missing-item
+paths and executable relocation/re-authorization are not established by this report.
+Linux native keyring validation and Windows/Linux Arm64 runtime validation
 remain outstanding; cross-compilation alone does not close those gaps. The user reported successful
 live Core project listing/retrieval and pipeline listing/run-history checks on 2026-09-17.
 Live individual pipeline/run retrieval and submission remain unverified; the development
@@ -169,6 +174,8 @@ request signedContent; tests cover credential isolation, expiry and identity che
 On 2026-09-17 the user successfully downloaded CompiledOutputs from build 18522
 (4,455,202 bytes), then extracted and listed its contents with PowerShell. This verifies
 the signed PipelineArtifact path for that output; live Container download remains unverified.
+The user rechecked build 18522: CompiledOutputs (17112) and NuGetPackages (17115)
+both report PipelineArtifact. Neither is a classic Container live-test fixture.
 The download symlink test skipped in the current Windows session because creating a
 synthetic symlink requires unavailable privileges; the Linux/macOS CI suites passed
 this coverage (their only skipped test was the Windows native credential test).

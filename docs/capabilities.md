@@ -1,5 +1,9 @@
 # Capability matrix
 
+The user verified macOS installation and macos-keychain-backed auth check, including
+non-interactive and repeated access. This covers successful native credential reads;
+Linux Secret Service and macOS native failure/re-authorization paths remain unverified.
+
 Exact-source acceptance tests verify that identical names and successful outcomes
 cannot substitute a different commit, and that separate matching runs retain their
 IDs/results. Bounded scans stay partial and resumable. Retry attempt identities use
