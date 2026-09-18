@@ -56,7 +56,9 @@ token. An empty array is complete; missing/null environment arrays fail. Truncat
 is explicit, and --require-complete preserves results but returns exit 10. This
 summarizes current environments, not deployment-attempt history. Mock coverage includes
 identity checks, malformed responses, redaction, terminal escaping and completeness;
-live environment verification remains pending.
+the user verified release 1492 returned environment 1499 (ib-tasks), definition
+environment 22, status rejected and rank 1. This summary does not establish the
+reason for the rejected status.
 
 References:
 

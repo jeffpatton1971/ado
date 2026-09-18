@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Record user-reported release environment inspection for release 1492:
+  environment 1499 (ib-tasks), definition environment 22, status rejected, rank 1.
 - Add release environments with bounded environment IDs, deployment status and rank,
   safe output and strict completeness reporting.
 - Record user-reported successful classic release get for release 1492 after
