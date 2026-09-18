@@ -118,6 +118,27 @@ public static partial class EndpointBuilder
         return new UriBuilder("https", Host(operation.Service)) { Path = path, Query = string.Join('&', query) }.Uri;
     }
 
+    public static Uri BuildLog(OperationDescriptor operation, string organization, string project, int buildId,
+        int? logId = null, long? startLine = null, long? endLine = null)
+    {
+        ValidateOrganization(organization);
+        if (buildId <= 0) throw new AdoException("build_required", "Supply a positive --build-id.", ExitCode.Usage);
+        string path = $"/{organization}/{ProjectSegment(project)}/_apis/build/builds/{buildId.ToString(System.Globalization.CultureInfo.InvariantCulture)}/logs";
+        string query = "api-version=" + operation.ApiVersion;
+        if (operation == Operations.BuildLogGet)
+        {
+            if (logId is null or <= 0) throw new AdoException("log_required", "Supply a positive --log-id.", ExitCode.Usage);
+            if (startLine is < 0 || endLine is < 0 || (startLine is not null && endLine is not null && endLine < startLine))
+                throw new AdoException("invalid_line_range", "Line positions must be nonnegative and end-line must not precede start-line.", ExitCode.Usage);
+            path += "/" + logId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (startLine is not null) query += "&startLine=" + startLine.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (endLine is not null) query += "&endLine=" + endLine.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+        else if (operation != Operations.BuildLogs || logId is not null || startLine is not null || endLine is not null)
+            throw new AdoException("unsupported_operation", "This log endpoint or query is not registered.", ExitCode.Usage);
+        return new UriBuilder("https", Host(operation.Service)) { Path = path, Query = query }.Uri;
+    }
+
     public static void ValidateDestination(Uri uri, ServiceHost service, string organization, string? project = null)
     {
         ValidateOrganization(organization);
