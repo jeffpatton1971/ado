@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Record user-reported successful signed PipelineArtifact download for build 18522,
+  CompiledOutputs (4,455,202 bytes), and subsequent PowerShell archive extraction.
 - Resolve PipelineArtifact downloads through the Pipelines signedContent API, using
   the build's definition ID and an unexpired URL. The PAT stays on dev.azure.com;
   identity-service redirects remain blocked.

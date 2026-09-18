@@ -226,7 +226,10 @@ name for CompiledOutputs (17112). A user-run download of that output was blocked
 redirect validation for artprodcus3.artifacts.visualstudio.com. That service suffix is
 now allowed without forwarding credentials. The next attempt redirected to
 spsprodcus2.vssps.visualstudio.com for sign-in and was also blocked. PipelineArtifact
-downloads now use signedContent; successful live transfer remains unverified. Tests cover header
+downloads now use signedContent. On 2026-09-17 the user successfully downloaded
+CompiledOutputs from build 18522 (4,455,202 bytes), extracted it with PowerShell
+Expand-Archive and listed its contents. Extraction was performed outside the CLI;
+live Container download remains unverified. Tests cover header
 isolation, unsafe redirects and safe hostname diagnostics, redirect bounds,
 byte limits, interruption cleanup, timeouts, ZIP envelope checks and overwrite refusal.
 Signed-content tests cover the pipeline/run route, credential isolation, missing or

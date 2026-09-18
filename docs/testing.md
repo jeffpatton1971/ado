@@ -43,7 +43,9 @@ and mocked HTTP only, covering redirect credential isolation, bounds, interrupti
 cleanup, file conflicts and local dry-run. User-run downloads reached the artifact
 service but were blocked on its sign-in redirect. PipelineArtifact downloads now
 request signedContent; tests cover credential isolation, expiry and identity checks.
-Successful live download remains unverified.
+On 2026-09-17 the user successfully downloaded CompiledOutputs from build 18522
+(4,455,202 bytes), then extracted and listed its contents with PowerShell. This verifies
+the signed PipelineArtifact path for that output; live Container download remains unverified.
 The download symlink test skipped in the current Windows session because creating a
 synthetic symlink requires unavailable privileges; cross-platform execution remains pending.
 
