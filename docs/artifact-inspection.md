@@ -2,7 +2,8 @@
 
 `artifact inspect` reads an existing ZIP downloaded by `build artifact download`
 or another tool. It makes no service requests, loads no profile/configuration and
-retrieves no credentials. It does not extract files or print member content.
+retrieves no credentials. It does not extract files. Member text is printed only
+when explicitly requested with --show-text.
 
 ```powershell
 dotnet run --project src/Ado.Cli --configuration Release -- artifact inspect --file "$env:TEMP\ado-CompiledOutputs-18522.zip" --output table --read-only --limit 100
@@ -12,6 +13,35 @@ Use `--entry` with an exact, case-sensitive path from the inventory to inspect a
 hash one member. Directories have no content digest. Selection happens locally
 after the full archive has already been downloaded; it does not reduce network
 transfer. The file may need downloading again if the prior smoke-test ZIP was removed.
+
+## Selected text
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- artifact inspect --file "$env:TEMP\ado-CompiledOutputs-18522.zip" --entry "CompiledOutputs/src/plugin.json" --show-text --text-lines 100 --output table --read-only
+```
+
+--show-text requires one exact file entry of at most 1 MiB expanded size. The entire
+member is hashed and decoded as strict UTF-8; an optional leading UTF-8 BOM is omitted
+from display. Invalid UTF-8, NUL bytes, directories and oversized text fail without
+returning content. There is no encoding guessing or fallback for binary files.
+Use metadata/hash mode for those files. Content is not parsed or executed as JSON,
+XML, scripts or templates, and valid UTF-8 alone does not establish semantic validity.
+
+--text-lines defaults to 100 and accepts 1–10000; it requires --show-text. Line
+endings are normalized into lines. Table output escapes terminal controls. JSON
+entries gain textLines and textLineCount (null unless requested), preserving content
+via JSON escaping. These strings remain untrusted input for downstream consumers.
+Truncation reports line_limit; --require-complete returns exit 10 with retained
+metadata, full member hash and selected lines. --limit still limits inventory entries.
+The 1 MiB text ceiling also bounds a single long line. No selected text is written
+to disk or automatically retained. Text may contain secrets: this local command
+does not retrieve credentials or claim to redact arbitrary member content.
+
+Tests cover opt-in behavior, BOM/line handling, full hashes with truncated output,
+terminal/JSON escaping, empty text, invalid encodings, NULs and the expanded text
+ceiling. Live text inspection remains pending.
+
+## Hashes and bounds
 
 The archive SHA-256 is always computed. `--expected-sha256` accepts an independently
 obtained digest. A bounded in-memory snapshot ensures the bytes inspected match

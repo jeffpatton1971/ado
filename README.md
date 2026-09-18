@@ -23,7 +23,8 @@ See [configuration and global parameters](docs/configuration.md),
 the [capability matrix](docs/capabilities.md).
 
 `artifact inspect` lists a downloaded ZIP's entries and computes archive/selected
-member hashes locally. See [artifact inspection](docs/artifact-inspection.md) for
+member hashes locally. Add --show-text to read bounded UTF-8 member text.
+See [artifact inspection](docs/artifact-inspection.md) for
 fixed bounds and exact selection. Extraction is not yet implemented.
 
 Windows x64 tests pass locally, including a disposable synthetic Credential Manager

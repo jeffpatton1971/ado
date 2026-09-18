@@ -150,7 +150,9 @@ public static class CliApp
         var archiveFile = new Option<string>("--file") { Description = "Existing local ZIP file." };
         var archiveEntry = new Option<string>("--entry") { Description = "Exact case-sensitive archive path to inspect and hash." };
         var expectedHash = new Option<string>("--expected-sha256") { Description = "Expected SHA-256 of the archive file." };
-        foreach (var option in new Option[] { archiveFile, archiveEntry, expectedHash, requireComplete }) artifactInspect.Options.Add(option);
+        var showText = new Option<bool>("--show-text") { Description = "Print selected member's UTF-8 text (may contain secrets); maximum 1 MiB." };
+        var textLines = new Option<int?>("--text-lines") { Description = "Text line limit from 1 to 10000; default 100; requires --show-text." };
+        foreach (var option in new Option[] { archiveFile, archiveEntry, expectedHash, showText, textLines, requireComplete }) artifactInspect.Options.Add(option);
         artifact.Subcommands.Add(artifactInspect);
         root.Subcommands.Add(artifact);
         var release = new Command("release", "Inspect classic releases; separate from YAML pipeline runs.");
@@ -218,8 +220,10 @@ public static class CliApp
 
             if (parsed.CommandResult.Command == artifactInspect)
             {
+                if (parsed.GetValue(textLines) is not null && !parsed.GetValue(showText))
+                    throw new AdoException("invalid_text_options", "--text-lines requires --show-text.", ExitCode.Usage);
                 var inspection = await ArtifactArchiveInspector.InspectAsync(parsed.GetValue(archiveFile), parsed.GetValue(archiveEntry),
-                    parsed.GetValue(expectedHash), parsed.GetValue(limit) ?? 100, cancellationToken);
+                    parsed.GetValue(expectedHash), parsed.GetValue(limit) ?? 100, cancellationToken, parsed.GetValue(showText), parsed.GetValue(textLines) ?? 100);
                 bool partial = inspection.Meta.Completeness != "complete";
                 if (jsonOutput)
                 {
@@ -231,8 +235,12 @@ public static class CliApp
                     await output.WriteLineAsync($"ARCHIVE SHA256 {inspection.Data.Sha256}  BYTES {inspection.Data.ArchiveBytes}  ENTRIES {inspection.Data.TotalEntries}");
                     await output.WriteLineAsync("PATH  TYPE  BYTES  COMPRESSED BYTES  SHA256");
                     foreach (var entry in inspection.Data.Entries)
+                    {
                         await output.WriteLineAsync($"{OutputWriter.TerminalSafe(entry.Path)}  {(entry.Directory ? "directory" : "file")}  {entry.Bytes}  {entry.CompressedBytes}  {entry.Sha256 ?? "not computed"}");
-                    if (partial) await error.WriteLineAsync("warning: Archive inventory is truncated; raise --limit within the 10000-entry ceiling.");
+                        if (entry.TextLines is not null)
+                            foreach (string line in entry.TextLines) await output.WriteLineAsync(OutputWriter.TerminalSafe(line));
+                    }
+                    if (partial) await error.WriteLineAsync("warning: Archive inspection is truncated; inspect JSON metadata or raise --limit/--text-lines within their ceilings.");
                 }
                 return partial && parsed.GetValue(requireComplete) ? (int)ExitCode.Partial : 0;
             }

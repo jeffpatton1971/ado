@@ -4,16 +4,20 @@ using Ado.Domain;
 
 namespace Ado.Infrastructure;
 
-public sealed record ArchiveEntryInfo(string Path, bool Directory, long Bytes, long CompressedBytes, string? Sha256);
+public sealed record ArchiveEntryInfo(string Path, bool Directory, long Bytes, long CompressedBytes, string? Sha256,
+    IReadOnlyList<string>? TextLines = null, int? TextLineCount = null);
 public sealed record ArchiveInspection(long ArchiveBytes, string Sha256, bool? ExpectedHashMatches, int TotalEntries,
     IReadOnlyList<ArchiveEntryInfo> Entries);
 public sealed record ArchiveInspectionResult(ArchiveInspection Data, ResultMetadata Meta);
 
 public static class ArtifactArchiveInspector
 {
-    public static async Task<ArchiveInspectionResult> InspectAsync(string? path, string? entryName, string? expectedHash, int limit, CancellationToken cancellationToken)
+    public static async Task<ArchiveInspectionResult> InspectAsync(string? path, string? entryName, string? expectedHash, int limit, CancellationToken cancellationToken,
+        bool showText = false, int textLines = 100)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if ((showText && string.IsNullOrEmpty(entryName)) || textLines is < 1 or > 10000)
+            throw new AdoException("invalid_text_options", "Text inspection requires an exact --entry and --text-lines from 1 to 10000.", ExitCode.Usage);
         if (string.IsNullOrWhiteSpace(path) || limit is < 1 or > 10000 || (expectedHash is not null
             && (expectedHash.Length != 64 || expectedHash.Any(c => !Uri.IsHexDigit(c)))))
             throw new AdoException("invalid_archive_options", "Supply --file, a limit from 1 to 10000 and, optionally, a 64-digit --expected-sha256.", ExitCode.Usage);
@@ -76,12 +80,18 @@ public static class ArtifactArchiveInspector
             if (entryName is not null && selected.Length == 0)
                 throw new AdoException("archive_entry_not_found", "The exact archive entry was not found.", ExitCode.NotFound);
             var results = new List<ArchiveEntryInfo>();
+            bool textTruncated = false;
             foreach (var entry in selected.Take(limit))
             {
                 ct.ThrowIfCancellationRequested();
                 string? hash = null;
+                List<string>? lines = null;
+                int? lineCount = null;
+                if (showText && (entry.FullName.EndsWith('/') || entry.Length > 1024 * 1024))
+                    throw new AdoException("archive_text_limit", "Text inspection requires a file of at most 1 MiB expanded size.", ExitCode.Safety);
                 if (entryName is not null && !entry.FullName.EndsWith('/'))
                 {
+                    using var text = showText ? new MemoryStream() : null;
                     await using var content = entry.Open();
                     using var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
                     var buffer = new byte[65536];
@@ -92,15 +102,38 @@ public static class ArtifactArchiveInspector
                         read += count;
                         if (read > maximum || read > entry.Length) throw Bound();
                         hasher.AppendData(buffer, 0, count);
+                        if (text is not null)
+                        {
+                            if (read > 1024 * 1024) throw Bound();
+                            await text.WriteAsync(buffer.AsMemory(0, count), ct);
+                        }
                     }
                     if (read != entry.Length) throw new InvalidDataException();
                     hash = Convert.ToHexStringLower(hasher.GetHashAndReset());
+                    if (text is not null)
+                    {
+                        string decoded;
+                        try { decoded = new System.Text.UTF8Encoding(false, true).GetString(text.ToArray()); }
+                        catch (System.Text.DecoderFallbackException) { throw InvalidText(); }
+                        if (decoded.Contains('\0')) throw InvalidText();
+                        if (decoded.StartsWith('\uFEFF')) decoded = decoded[1..];
+                        lines = [];
+                        lineCount = 0;
+                        using var reader = new StringReader(decoded);
+                        while (reader.ReadLine() is { } line)
+                        {
+                            ct.ThrowIfCancellationRequested();
+                            lineCount++;
+                            if (lines.Count < textLines) lines.Add(line);
+                        }
+                        textTruncated = lineCount > textLines;
+                    }
                 }
-                results.Add(new(entry.FullName, entry.FullName.EndsWith('/'), entry.Length, entry.CompressedLength, hash));
+                results.Add(new(entry.FullName, entry.FullName.EndsWith('/'), entry.Length, entry.CompressedLength, hash, lines, lineCount));
             }
-            bool truncated = selected.Length > limit;
+            bool truncated = selected.Length > limit || textTruncated;
             return new(new(snapshot.Length, digest, expectedHash is null ? null : true, archive.Entries.Count, results),
-                new(Truncated: truncated, Completeness: truncated ? "partial" : "complete", TruncationReason: truncated ? "item_limit" : null, ScannedCount: archive.Entries.Count));
+                new(Truncated: truncated, Completeness: truncated ? "partial" : "complete", TruncationReason: textTruncated ? "line_limit" : truncated ? "item_limit" : null, ScannedCount: archive.Entries.Count));
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         { throw new AdoException("archive_timeout", "Archive inspection exceeded its 60-second deadline.", ExitCode.Transient); }
@@ -110,5 +143,6 @@ public static class ArtifactArchiveInspector
         { throw new AdoException("invalid_archive", "The archive could not be read or is not a supported ZIP.", ExitCode.Safety); }
     }
     private static AdoException Unsafe() => new("unsafe_archive", "The archive path or entry names contain unsafe links, paths or collisions.", ExitCode.Safety);
+    private static AdoException InvalidText() => new("invalid_archive_text", "The selected member is not supported UTF-8 text (invalid encoding or NUL bytes). Use metadata/hash inspection for binary members.", ExitCode.Safety);
     private static AdoException Bound() => new("archive_limit", "Archive limits exceeded: 64 MiB file/member, 256 MiB declared expanded total, or 10000 entries.", ExitCode.Safety);
 }

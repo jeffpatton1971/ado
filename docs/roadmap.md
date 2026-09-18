@@ -89,8 +89,9 @@ hashes exact selected members; safe extraction is still unimplemented.
   artifact inspect provides local inventory and exact member metadata/hash selection.
   User verified a downloaded artifact inventory and archive hash (build 18522,
   270 entries, limit 100 with truncation warning), then exact selection and hashing
-  of CompiledOutputs/src/plugin.json (527 expanded bytes). Raw/structured content
-  inspection remains open; selection does not reduce download transfer.
+  of CompiledOutputs/src/plugin.json (527 expanded bytes). Opt-in bounded UTF-8
+  member text is implemented and mock-tested; live text verification and structured
+  package interpretation remain open. Selection does not reduce download transfer.
 - [ ] Report artifact identity, size and SHA-256; compare an expected hash when
   supplied. A computed digest alone must not be called authenticity verification.
   Local archive/member digests and expected archive hash comparison are implemented;
