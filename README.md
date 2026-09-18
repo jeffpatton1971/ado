@@ -2,7 +2,9 @@
 
 A standalone Azure DevOps **Services** CLI for people and unattended automation.
 Under development; Azure DevOps Server is not supported. See the
-[approved design](docs/design.md) and [threat model](docs/threat-model.md).
+[approved design](docs/design.md), [prioritized requirements and milestones](docs/roadmap.md),
+and [threat model](docs/threat-model.md). The MVP prioritizes authenticated, read-only
+run diagnostics, selected build evidence, exact source provenance and package inspection.
 
 ## Current implementation
 
@@ -24,9 +26,11 @@ Windows x64 tests pass locally, including a disposable synthetic Credential Mana
 round-trip. User-run live project listing/retrieval and pipeline listing/run-history checks
 succeeded. macOS/Linux native keyring execution and live run submission remain pending.
 User-run server YAML preview, build list/get and log index/content reads also succeeded.
-Build-output metadata list/get also passed user-run live checks. ZIP downloads are
-mock-tested; live download validation remains pending. Build queue/cancel, classic releases, feed metadata and completion
-commands remain planned; the initial release is not complete.
+Build-output metadata list/get and a PipelineArtifact ZIP download passed user-run
+live checks; Container download live verification remains pending. Classic-release
+inspection through task logs also passed user-run checks. Run-URL input, richer
+diagnostics, exact provenance, archive inspection and feed/package access remain
+MVP gaps. The initial release is not complete; see the backlog for acceptance criteria.
 
 The [CI definition](.github/workflows/ci.yml) covers three-OS tests and six-RID
 cross-compilation but has not yet run remotely. See [verification status](docs/testing.md).

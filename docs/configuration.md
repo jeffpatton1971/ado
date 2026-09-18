@@ -51,7 +51,8 @@ selects pat or entra-token. `provider` names the backend; `service` names the cr
 service; `account` is its lookup key, not necessarily an email address. Providers:
 environment, stdin, prompt, windows-credential-manager, macos-keychain,
 linux-secret-service. Native references require both service and account.
-No plaintext token field is currently accepted; its explicit insecure opt-in is pending.
+No plaintext token field is accepted. The read-only diagnostics MVP retains this
+restriction; use a native credential reference or a supported external token source.
 Configuration commands never retrieve credentials or read ADO_TOKEN.
 
 ## Precedence

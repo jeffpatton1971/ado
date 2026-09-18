@@ -5,6 +5,10 @@ commits explicitly requested. Package: `PattonTech.Ado.Cli`. Configuration direc
 `ado`; environment prefix: `ADO_`. The name overlaps other tools; this is a deliberate
 user choice. Existing AGPL license is retained.
 
+Delivery priorities revised 2026-09-17 to the user's BAT requirements sheet:
+authenticated read-only diagnostics first. The [requirements backlog](roadmap.md)
+is authoritative for milestone order, feature gaps and completion criteria.
+
 ## Boundaries
 
 Azure DevOps Services only. C#/.NET 10 LTS. CLI -> Application -> Domain;
@@ -27,11 +31,11 @@ are atomic; missing explicit credentials never silently fall back.
 Default config.json directories: Windows APPDATA/ado; macOS Library/Application
 Support/ado; Linux XDG_CONFIG_HOME/ado or ~/.config/ado. No repository-local discovery.
 Config output omits secrets. Unix broad readability warns; plaintext credentials
-require explicit insecure opt-in and secure permissions. Windows uses NTFS ACLs.
+are rejected and ado does not persist tokens. Windows uses NTFS ACLs.
 
 PAT Basic with empty username and externally supplied Entra Bearer tokens. Tokens
 remain opaque. Sources: explicit argument (warning), stdin, masked prompt, environment,
-native Windows Credential Manager/macOS Keychain/Linux libsecret, opt-in plaintext.
+native Windows Credential Manager/macOS Keychain/Linux libsecret.
 Provider, service and account identify the credential; account is not an email rule.
 Noninteractive mode prevents provider unlock/access prompts. No token telemetry,
 logging, URL placement, hashing, claim inspection or persistence by default.
@@ -60,8 +64,10 @@ provenance requires 7.1-preview.1 and explicit preview opt-in. Pipeline runtime 
 parameters map to templateParameters; do not invent a runtimeParameters REST field.
 
 Downloads require an explicit destination, size/time bounds, no accidental overwrites,
-safe filesystem paths and temporary-to-final rename. Archive extraction is deferred.
-Logs are bounded and terminal controls escaped unless explicit raw mode is selected.
+safe filesystem paths and temporary-to-final rename. Opt-in bounded archive inspection
+and safe extraction are M1 requirements, not implemented capabilities. Logs are
+bounded with escaped terminal controls and no automatic retention. Evidence export
+uses selected sanitized fields; arbitrary raw logs are not assumed secret-free.
 
 ## Output and delivery
 
@@ -70,11 +76,15 @@ Exit codes: 0 success; 1 internal; 2 usage; 3 config; 4 authentication; 5 author
 6 not found; 7 safety/conflict; 8 uncertain write; 9 exhausted transient/timeout;
 10 partial/strict completeness; 130 cancellation unless write outcome uncertain.
 
-Milestones: (1) foundation/config/auth/projects/diagnostics; (2) pipelines;
-(3) builds/logs/output downloads; (4) classic releases; (5) feed/package metadata;
-(6) platform hardening/packaging/completion/documentation/CI. Native credential work
-starts in milestone 1. Each milestone has small commits, tests, capability and docs
-updates, and changelog updates. Never represent placeholders as working capabilities.
+Milestones: (1) authentication plus run diagnostics, selected build evidence, exact
+source discovery/provenance and feed/package inspection; (2) configuration, expanded
+YAML, detailed tests/comparison, watching and richer evidence export; (3) read-only
+agent/queue and environment/check diagnostics; (4) optional authorized execution.
+Administrative writes, Azure Repos PR management and Boards CRUD are deferred.
+Platform hardening, packaging, documentation and CI are release gates across milestones.
+Existing classic-release and execution commands are retained; new work follows the
+[ranked backlog](roadmap.md). Each milestone has small commits, tests, capability
+and docs updates, and changelog updates. Never represent placeholders as working capabilities.
 
 Version authority: Directory.Build.props. Clean semantic --version; metadata only
 on diagnostic request. Tests never require developer credentials. CI covers Windows,

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Align milestones with the BAT requirements: authentication and read-only diagnostics,
+  selected build evidence, exact source provenance and package inspection form the MVP.
+  Add a ranked backlog with current gaps, acceptance criteria and platform release gates;
+  defer further classic-release expansion and execution work behind that MVP.
+
 - Record successful user-reported release task log retrieval for release 1492,
   environment 1499, deployment 1506, task 12 after the phaseId parsing fix.
 
