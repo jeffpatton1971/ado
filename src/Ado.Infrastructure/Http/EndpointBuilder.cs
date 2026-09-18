@@ -139,6 +139,23 @@ public static partial class EndpointBuilder
         return new UriBuilder("https", Host(operation.Service)) { Path = path, Query = query }.Uri;
     }
 
+    public static Uri BuildArtifact(OperationDescriptor operation, string organization, string project, int buildId, string? artifactName = null)
+    {
+        ValidateOrganization(organization);
+        if (buildId <= 0) throw new AdoException("build_required", "Supply a positive --build-id.", ExitCode.Usage);
+        string path = $"/{organization}/{ProjectSegment(project)}/_apis/build/builds/{buildId.ToString(System.Globalization.CultureInfo.InvariantCulture)}/artifacts";
+        string query = "api-version=" + operation.ApiVersion;
+        if (operation == Operations.BuildArtifactGet)
+        {
+            if (string.IsNullOrWhiteSpace(artifactName) || artifactName.Length > 1024 || artifactName.Any(char.IsControl))
+                throw new AdoException("artifact_name_required", "Supply --artifact-name with a nonempty build-output name, at most 1024 characters and without controls.", ExitCode.Usage);
+            query += "&artifactName=" + Uri.EscapeDataString(artifactName);
+        }
+        else if (operation != Operations.BuildArtifactList || artifactName is not null)
+            throw new AdoException("unsupported_operation", "This build-output endpoint is not registered.", ExitCode.Usage);
+        return new UriBuilder("https", Host(operation.Service)) { Path = path, Query = query }.Uri;
+    }
+
     public static void ValidateDestination(Uri uri, ServiceHost service, string organization, string? project = null)
     {
         ValidateOrganization(organization);

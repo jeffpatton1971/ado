@@ -43,7 +43,17 @@ public static class Operations
         Command = "build log get",
         Documentation = "https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get-build-log?view=azure-devops-rest-7.1"
     };
-    public static IReadOnlyList<OperationDescriptor> All { get; } = [ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet, PipelineRunStart, PipelineRunPreview, BuildList, BuildGet, BuildLogs, BuildLogGet];
+    public static readonly OperationDescriptor BuildArtifactList = BuildGet with
+    {
+        Command = "build artifact list",
+        Documentation = "https://learn.microsoft.com/en-us/rest/api/azure/devops/build/artifacts/list?view=azure-devops-rest-7.1"
+    };
+    public static readonly OperationDescriptor BuildArtifactGet = BuildGet with
+    {
+        Command = "build artifact get",
+        Documentation = "https://learn.microsoft.com/en-us/rest/api/azure/devops/build/artifacts/get-artifact?view=azure-devops-rest-7.1"
+    };
+    public static IReadOnlyList<OperationDescriptor> All { get; } = [ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet, PipelineRunStart, PipelineRunPreview, BuildList, BuildGet, BuildLogs, BuildLogGet, BuildArtifactList, BuildArtifactGet];
 
     private static OperationDescriptor Pipeline(string command, string endpoint, string pagination) => new(command,
         ServiceHost.Core, "7.1", false, true, "none", false, pagination, "vso.build",
