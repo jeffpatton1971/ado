@@ -104,7 +104,9 @@ Pipeline run start/preview require exact --confirm for server requests and optio
 accept --ref, --parameters-file and --variables-file. Preview additionally accepts
 --show-yaml (expanded content can contain secrets). See [pipeline contracts](pipelines.md).
 Build list supports paging plus --definition-id, --status, --result and --branch;
-build get requires --build-id. See [build contracts](builds.md).
+build get requires --build-id. Build logs requires --build-id; build log get additionally
+requires --log-id and accepts --start-line/--end-line. Log commands accept --limit,
+--all and --require-complete, but no paging tokens. See [build contracts](builds.md).
 
 `--version` always prints only the semantic version, even with --json. Config text
 output uses indented JSON for readability. Schema errors exit 3; command syntax errors

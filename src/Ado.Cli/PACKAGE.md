@@ -11,7 +11,8 @@ PATs or externally supplied Entra tokens through stdin, environment, masked prom
 or native credential stores. Native macOS/Linux execution remains pending validation.
 Server preview uses a separate confirmation and is blocked by --read-only; expanded
 YAML is omitted unless --show-yaml is requested. Build list/get support bounded history
-and safe execution metadata. Build queue/cancel/logs/outputs and release/feed commands
+and safe execution metadata. Build logs/log get provide a bounded log index and
+terminal-safe content, with optional service line ranges. Build queue/cancel/outputs and release/feed commands
 are not implemented in this development build.
 
 ```text

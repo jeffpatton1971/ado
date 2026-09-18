@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add build logs and build log get with a bounded log index, optional service line
+  ranges, credential redaction, terminal escaping and explicit completeness metadata.
+- Record user-reported live build list/get success for definition 1128/build 18722.
+
 - Add build list/get with Build API 7.1, server-side definition/status/result/branch
   filters, newest-queued ordering, bounded opaque pagination and safe execution fields.
 - Record user-reported successful live server YAML preview for pipeline 1128.

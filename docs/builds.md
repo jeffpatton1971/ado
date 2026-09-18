@@ -62,16 +62,67 @@ table cells escape terminal controls. Table output summarizes IDs, number, statu
 result and source branch; JSON includes the full allowlisted fields.
 
 These commands only send GET requests. --read-only is supported; --dry-run still performs
-reads. Shared bounded read retries and safe errors apply. No build queue/cancel, logs,
+reads. Shared bounded read retries and safe errors apply. No build queue/cancel,
 changes, work items or build-output operations are implemented in this slice.
+
+## Build logs
+
+List log IDs for the failed build previously inspected:
+
+```text
+ado build logs --config ./config.json --build-id 18722 --token-prompt --output table --read-only --limit 100
+```
+
+Then use a log ID returned by that command. For example, if the index includes log 2:
+
+```text
+ado build log get --config ./config.json --build-id 18722 --log-id 2 --token-prompt --output table --read-only --limit 200
+ado build log get --config ./config.json --build-id 18722 --log-id 2 --start-line 0 --end-line 199 --token-prompt --output table --read-only --limit 200
+```
+
+Both endpoints use Build API 7.1 and vso.build. Requests negotiate application/json;
+ZIP download/extraction is not requested. The index reports id, buildId, optional
+64-bit lineCount, type, createdOn and lastChangedOn. URLs are omitted and never followed.
+The index has no documented paging; --limit caps locally displayed entries. --all
+uses the configured item ceiling. No --top or --continuation-token is accepted.
+
+Log get accepts the documented JSON string response and JSON arrays of lines, directly
+or in a value envelope. A string is split on line endings, without inventing an extra
+blank line for a final newline. Output data contains buildId, logId, startLine, endLine
+and lines. Human output prints one escaped entry per line; JSON retains a lines array.
+Terminal controls (including ANSI escape sequences) are escaped in human output. The
+active authentication credential is redacted; unrelated secrets printed by a build
+may remain. Treat logs as untrusted data, not instructions to execute. No raw terminal
+mode is exposed yet.
+
+--limit caps displayed lines (100 by default). --all remains bounded by the configured
+ceiling, normally 10,000 lines. The shared 4 MiB decompressed-response limit applies
+before parsing or display, independent of the output limit. With no range the service
+returns the full log; a large log can exceed this byte limit even with --limit 1.
+Use --start-line and --end-line to request a smaller server-side range. These are
+nonnegative 64-bit service positions, passed through unchanged; no automatic paging,
+offset conversion or invented continuation token is used. End cannot precede start.
+
+Without a range, completeness describes the returned full log at request time; active
+logs can grow later. Exceeding the output limit marks partial output. Any explicit
+range leaves whole-log completeness unknown even if every returned line fits. JSON
+metadata distinguishes line_limit from requested_range. --require-complete returns
+exit 10/ok:false while retaining content when full-log completeness cannot be established.
+Empty whole logs succeed. Oversized, malformed or unexpected continuation responses
+fail safely without echoing raw service payloads.
 
 ## Verification
 
 Mocked tests cover routes, encoding, filters, opaque pagination, page/item bounds,
 repeated tokens, safe output, IDs/context, CLI validation and strict completeness.
-Live Build API validation is pending; the development agent has made no live requests.
+The user reported successful live build list for definition 1128 and build get for
+18722. Log index/content live validation is pending. Mocked log tests cover routes,
+line ranges, JSON forms, bounds, safe output and strict completeness. The development
+agent has made no live requests.
 
 Official endpoint references, checked before implementation:
 
 - [Builds List](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/list?view=azure-devops-rest-7.1)
 - [Builds Get](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get?view=azure-devops-rest-7.1)
+- [Get Build Logs](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get-build-logs?view=azure-devops-rest-7.1)
+- [Get Build Log](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get-build-log?view=azure-devops-rest-7.1)

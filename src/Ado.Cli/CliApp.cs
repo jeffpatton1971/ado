@@ -53,7 +53,7 @@ public static class CliApp
         var top = new Option<int?>("--top") { Description = "Requested page size." };
         var all = new Option<bool>("--all") { Description = "Scan up to the configured maximum." };
         var continuation = new Option<string>("--continuation-token") { Description = "Endpoint continuation token (numeric for projects, opaque for pipelines/builds)." };
-        var requireComplete = new Option<bool>("--require-complete") { Description = "Exit 10 if output is truncated." };
+        var requireComplete = new Option<bool>("--require-complete") { Description = "Exit 10 if results are truncated or completeness is unknown." };
         var searchName = new Option<string>("--name") { Description = "Project name fragment." };
         foreach (var command in new[] { list, search })
         {
@@ -94,6 +94,12 @@ public static class CliApp
         var build = new Command("build", "Inspect Build API execution records, separate from Pipelines runs.");
         var buildList = new Command("list", "List builds newest queued first with bounded pagination.");
         var buildGet = new Command("get", "Get a Build API record by build ID.");
+        var buildLogs = new Command("logs", "List log IDs and line counts for a build; no server pagination.");
+        var buildLog = new Command("log", "Read individual build logs.");
+        var buildLogGet = new Command("get", "Read bounded log content; terminal controls are escaped.");
+        var logId = new Option<int?>("--log-id") { Description = "Positive log ID returned by build logs." };
+        var startLine = new Option<long?>("--start-line") { Description = "Nonnegative service line position; passed through unchanged." };
+        var endLine = new Option<long?>("--end-line") { Description = "Nonnegative service end position; must not precede start-line." };
         var buildId = new Option<int?>("--build-id") { Description = "Positive Build API execution ID." };
         var definitionId = new Option<int?>("--definition-id") { Description = "Filter by one Build definition ID." };
         var buildStatus = new Option<string>("--status") { Description = "none, inProgress, completed, cancelling, postponed, notStarted or all" };
@@ -101,8 +107,14 @@ public static class CliApp
         var branch = new Option<string>("--branch") { Description = "Exact source branch, typically refs/heads/main." };
         foreach (var option in new Option[] { top, all, continuation, requireComplete, definitionId, buildStatus, buildResult, branch }) buildList.Options.Add(option);
         buildGet.Options.Add(buildId);
+        foreach (var command in new[] { buildLogs, buildLogGet })
+            foreach (var option in new Option[] { buildId, all, requireComplete }) command.Options.Add(option);
+        foreach (var option in new Option[] { logId, startLine, endLine }) buildLogGet.Options.Add(option);
+        buildLog.Subcommands.Add(buildLogGet);
         build.Subcommands.Add(buildList);
         build.Subcommands.Add(buildGet);
+        build.Subcommands.Add(buildLogs);
+        build.Subcommands.Add(buildLog);
         root.Subcommands.Add(build);
         var auth = new Command("auth", "Check access using the selected credential.");
         var check = new Command("check", "Test project endpoint access; other services are not checked.");
@@ -128,7 +140,7 @@ public static class CliApp
             if (args.Length == 0 || parsed.Action is System.CommandLine.Help.HelpAction)
             {
                 if (jsonOutput)
-                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get" } }, true);
+                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build logs", "build log get" } }, true);
                 else
                 {
                     var helpArgs = args.Length == 0 ? new[] { "--help" } : args;
@@ -149,7 +161,8 @@ public static class CliApp
                 : selectedCommand == pipelineList ? "pipeline list" : selectedCommand == pipelineGet ? "pipeline get"
                 : selectedCommand == pipelineRuns ? "pipeline runs" : selectedCommand == pipelineRunGet ? "pipeline run get"
                 : selectedCommand == pipelineRunStart ? "pipeline run start" : selectedCommand == pipelineRunPreview ? "pipeline run preview"
-                : selectedCommand == buildList ? "build list" : selectedCommand == buildGet ? "build get" : null;
+                : selectedCommand == buildList ? "build list" : selectedCommand == buildGet ? "build get"
+                : selectedCommand == buildLogs ? "build logs" : selectedCommand == buildLogGet ? "build log get" : null;
             if (selectedCommand != show && serviceCommand is null)
                 throw new AdoException("command_required", "Choose a command. Use ado --help for supported syntax.", ExitCode.Usage);
 
@@ -176,7 +189,8 @@ public static class CliApp
                     new(serviceCommand, jsonOutput, parsed.GetValue(nonInteractive), parsed.GetValue(readOnly), parsed.GetValue(dryRun),
                         parsed.GetValue(top), parsed.GetValue(all), parsed.GetValue(continuation), parsed.GetValue(requireComplete), parsed.GetValue(searchName), parsed.GetValue(pipelineId), parsed.GetValue(runId),
                         parsed.GetValue(confirm), parsed.GetValue(refName), parsed.GetValue(parametersFile), parsed.GetValue(variablesFile), parsed.GetValue(showYaml),
-                        parsed.GetValue(buildId), new(parsed.GetValue(definitionId), parsed.GetValue(buildStatus), parsed.GetValue(buildResult), parsed.GetValue(branch))),
+                        parsed.GetValue(buildId), new(parsed.GetValue(definitionId), parsed.GetValue(buildStatus), parsed.GetValue(buildResult), parsed.GetValue(branch)),
+                        parsed.GetValue(logId), parsed.GetValue(startLine), parsed.GetValue(endLine)),
                     output, error, input ?? Console.In, environment, testHandler, testNativeProvider, cancellationToken);
             }
             if (parsed.GetValue(effective))

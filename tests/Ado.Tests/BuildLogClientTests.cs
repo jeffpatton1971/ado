@@ -55,4 +55,32 @@ public sealed class BuildLogClientTests
         Assert.AreEqual(2, result.Meta.ScannedCount);
     }
 
+    [TestMethod]
+    [DataRow("\"\"")]
+    [DataRow("[]")]
+    public async Task EmptyWholeLogIsComplete(string content)
+    {
+        using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json(content));
+        using var http = new HttpClient(handler);
+        using var auth = new TokenAuthentication("pat", new("synthetic"));
+        var result = await new BuildLogsClient(new(http, auth, "example"), "example", "Backend").GetAsync(34, 2, null, null, 100, CancellationToken.None);
+        Assert.AreEqual(0, result.Data.Lines.Count);
+        Assert.AreEqual("complete", result.Meta.Completeness);
+        Assert.IsFalse(result.Meta.Truncated);
+    }
+
+    [TestMethod]
+    [DataRow("[{\"id\":2,\"lineCount\":-1}]")]
+    [DataRow("[{\"id\":2},{\"id\":2}]")]
+    [DataRow("[{\"id\":0}]")]
+    [DataRow("[{\"id\":2,\"createdOn\":\"invalid\"}]")]
+    public async Task MalformedIndexIsRejected(string content)
+    {
+        using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json(content));
+        using var http = new HttpClient(handler);
+        using var auth = new TokenAuthentication("pat", new("synthetic"));
+        var client = new BuildLogsClient(new(http, auth, "example"), "example", "Backend");
+        var error = await Assert.ThrowsExactlyAsync<AdoException>(() => client.ListAsync(34, 100, CancellationToken.None));
+        Assert.AreEqual("invalid_service_response", error.Code);
+    }
 }

@@ -16,8 +16,10 @@ internal static class OutputWriter
         ? output.WriteLineAsync(JsonSerializer.Serialize(new { ok = false, error = new { code, message, details = new { }, retryable } }, JsonOptions))
         : error.WriteLineAsync($"{code}: {message}");
 
-    public static Task PartialAsync<T>(TextWriter output, IReadOnlyList<T> data, ResultMetadata meta) => output.WriteLineAsync(
-        JsonSerializer.Serialize(new { ok = false, data, meta, error = new { code = "incomplete_result", message = "The requested complete result exceeds a safety bound.", details = new { }, retryable = false } }, JsonOptions));
+    public static Task PartialAsync<T>(TextWriter output, IReadOnlyList<T> data, ResultMetadata meta) => PartialValueAsync(output, data, meta);
+
+    public static Task PartialValueAsync<T>(TextWriter output, T data, ResultMetadata meta) => output.WriteLineAsync(
+        JsonSerializer.Serialize(new { ok = false, data, meta, error = new { code = "incomplete_result", message = "Full result completeness could not be established within the selected bounds.", details = new { }, retryable = false } }, JsonOptions));
 
     public static string TerminalSafe(string value) => string.Concat(value.Select(c =>
         char.IsControl(c) || char.GetUnicodeCategory(c) == System.Globalization.UnicodeCategory.Format ? $"\\u{(int)c:x4}" : c.ToString()));
