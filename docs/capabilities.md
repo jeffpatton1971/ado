@@ -110,7 +110,10 @@ associated with a PR. This does not query GitHub checks or Azure Repos PR detail
 An empty complete result means no matches in the filtered service listing; it does
 not prove a PR has no builds under other conventions. Resume with all original filters.
 See [build variables](https://learn.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops)
-and the Build List API below. PR discovery is mock-tested; live verification is pending.
+and the Build List API below. The user verified GitHub PR 8 in
+`global-build/rackspace-output-terraform`, scoped to definition 1124: build 18856,
+completed/succeeded, on `refs/pull/8/merge`. TfsGit and PR continuation remain
+mock-tested only; live PR head-to-merge mapping is not implemented.
 
 Build list supports server-side `--repository-id` and `--repository-type` filters
 (for example `TfsGit`). `--source-sha` accepts a full 40-character Git SHA and matches

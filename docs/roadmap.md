@@ -139,8 +139,10 @@ with explicit unavailable states; it does not infer template usage or fetch curr
   documented endpoint capabilities and bounded client filtering where necessary.
   Report scan completeness; never imply an unbounded search was exhaustive.
   Repository-scoped `--pr-number` now covers GitHub/TfsGit PR validation builds
-  using `refs/pull/N/merge` and the pullRequest reason. Other provider/ref conventions,
-  PR head-to-merge mapping and live PR verification remain outstanding.
+  using `refs/pull/N/merge` and the pullRequest reason. Other provider/ref conventions
+  and PR head-to-merge mapping remain outstanding. Live GitHub PR discovery was
+  verified for global-build/rackspace-output-terraform PR 8 (definition 1124,
+  build 18856); TfsGit and PR pagination remain mock-tested only.
 - [ ] Report repository identity, exact source commit, PR/merge context and resolved
   repository resources/shared-template revisions where the service exposes them.
 - [ ] Distinguish run-time revisions from current definition or branch contents;

@@ -105,8 +105,14 @@ Live JSON output, missing-resource states and other repository types remain unve
 PR discovery mocks cover GitHub/TfsGit repository-scoped merge refs, pullRequest
 reason filtering, continuation preservation, rejection of wrong/missing repository
 identity, wrong refs and non-PR reasons, and validation before authentication.
-A PR head SHA cannot match a different built merge SHA. Live PR discovery is pending;
-no particular PR number has yet been provided for the user's repository.
+A PR head SHA cannot match a different built merge SHA.
+On 2026-09-18 the user verified PR discovery in rseng/impldevmpc for GitHub repository
+`global-build/rackspace-output-terraform`, PR 8, definition 1124, with limit 100.
+The table returned build 18856 (20260917.1), completed/succeeded, on `refs/pull/8/merge`,
+with no truncation warning. The user reported that `global-build/rackspace-bat-api`
+has no PR-triggered builds, so it was not used for this smoke test.
+Live JSON metadata, PR pagination, TfsGit and exact merge-SHA filtering remain
+unverified; this does not establish the PR head SHA or independently verify a merge.
 
 Build discovery tests cover repository query encoding, full-SHA validation before
 credential lookup, exact case-insensitive source matching, nonmatching scan limits,
