@@ -34,6 +34,9 @@ Core, YAML and JSON package resolution. Before declaring M1 complete, reconcile
 day-one platform/automation evidence and documented limitations, run final local
 verification and prepare the candidate version/changelog for human release review.
 Unavailable live retry history remains a documented, non-blocking limitation.
+The selected initial stable version is 1.0.0. Directory.Build.props, package
+references and installation examples use that version; CHANGELOG.md summarizes
+its scope and limitations. Candidate CI is required before tagging/publication.
 The user accepted Windows, macOS and Linux support on 2026-09-18: live use on
 Windows/macOS plus hosted Linux CI is sufficient for M1 platform acceptance.
 Unverified Linux native-store and architecture-specific runtime cases remain

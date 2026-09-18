@@ -4,7 +4,7 @@
 
 ## Status
 
-The development version is **0.1.0**. M1 remains in progress; no tagged release or public package/binary release has been published. See the [roadmap](docs/roadmap.md) for completion gates and the [capability matrix](docs/capabilities.md) for contracts and verification evidence.
+The release candidate is **1.0.0**, covering the M1 read-only diagnostics scope. Tagging and publication remain pending candidate CI and release review. See the [roadmap](docs/roadmap.md) for completion gates and the [capability matrix](docs/capabilities.md) for contracts and verification evidence.
 
 | Area | Implemented commands |
 |---|---|
@@ -90,7 +90,7 @@ The package ID is **`PattonTech.Ado.Cli`**; the executable is **`ado`**. Until a
 
 ```powershell
 dotnet pack src/Ado.Cli --configuration Release --no-build --output artifacts/packages
-dotnet tool install --global PattonTech.Ado.Cli --version 0.1.0 --source (Resolve-Path artifacts/packages).Path
+dotnet tool install --global PattonTech.Ado.Cli --version 1.0.0 --source (Resolve-Path artifacts/packages).Path
 ado --version
 ado --help
 Get-Command ado
@@ -102,7 +102,7 @@ If the command is not found, add `%USERPROFILE%\.dotnet\tools` to your user `PAT
 
 ```sh
 dotnet pack src/Ado.Cli --configuration Release --no-build --output artifacts/packages
-dotnet tool install --global PattonTech.Ado.Cli --version 0.1.0 --source "$PWD/artifacts/packages"
+dotnet tool install --global PattonTech.Ado.Cli --version 1.0.0 --source "$PWD/artifacts/packages"
 export PATH="$PATH:$HOME/.dotnet/tools"
 ado --version
 ado --help
@@ -116,7 +116,7 @@ Persist the PATH export in `~/.zprofile` on macOS, or the appropriate startup fi
 To install into an explicit directory instead of globally:
 
 ```text
-dotnet tool install PattonTech.Ado.Cli --version 0.1.0 --source artifacts/packages --tool-path .tools/ado
+dotnet tool install PattonTech.Ado.Cli --version 1.0.0 --source artifacts/packages --tool-path .tools/ado
 ```
 
 Run `.tools/ado/ado.exe` on Windows or `./.tools/ado/ado` on macOS/Linux. Both forms of tool installation require a compatible .NET 10 runtime. For repeatable development checks, `pwsh -File scripts/Test-ToolPackage.ps1` installs the newly packed version with an isolated cache without changing global PATH.

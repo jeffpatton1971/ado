@@ -1,5 +1,14 @@
 # Verification and CI
 
+## 1.0.0 candidate verification — 2026-09-18
+
+After updating the authoritative version and internal project lock references,
+locked restore, Release build (zero warnings/errors), format verification and
+the full local suite passed: 563 passed, one platform-dependent symlink test
+skipped. Packing produced PattonTech.Ado.Cli.1.0.0.nupkg; isolated installation
+and packaged-command smoke checks passed on Windows x64. The SDK remains 10.0.400.
+Hosted verification of this candidate is tracked by the PR checks.
+
 ## M1 local candidate verification — 2026-09-18
 
 The user reported the full verification sequence passing on Windows x64 for

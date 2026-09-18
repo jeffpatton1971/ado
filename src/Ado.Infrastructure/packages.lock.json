@@ -5,7 +5,7 @@
       "ado.application": {
         "type": "Project",
         "dependencies": {
-          "Ado.Domain": "[0.1.0, )"
+          "Ado.Domain": "[1.0.0, )"
         }
       },
       "ado.domain": {

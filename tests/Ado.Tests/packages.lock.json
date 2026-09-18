@@ -95,7 +95,7 @@
       "ado.application": {
         "type": "Project",
         "dependencies": {
-          "Ado.Domain": "[0.1.0, )"
+          "Ado.Domain": "[1.0.0, )"
         }
       },
       "ado.domain": {
@@ -104,20 +104,20 @@
       "ado.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "Ado.Application": "[0.1.0, )"
+          "Ado.Application": "[1.0.0, )"
         }
       },
       "ado.platform": {
         "type": "Project",
         "dependencies": {
-          "Ado.Application": "[0.1.0, )"
+          "Ado.Application": "[1.0.0, )"
         }
       },
       "PattonTech.Ado.Cli": {
         "type": "Project",
         "dependencies": {
-          "Ado.Infrastructure": "[0.1.0, )",
-          "Ado.Platform": "[0.1.0, )",
+          "Ado.Infrastructure": "[1.0.0, )",
+          "Ado.Platform": "[1.0.0, )",
           "System.CommandLine": "[2.0.12, )"
         }
       },

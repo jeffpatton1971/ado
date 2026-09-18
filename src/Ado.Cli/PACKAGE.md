@@ -1,6 +1,7 @@
 # ado — Azure DevOps Services CLI
 
-Development build of `PattonTech.Ado.Cli`; the executable is `ado`.
+`PattonTech.Ado.Cli` 1.0.0 provides the initial stable read-only diagnostics scope;
+the executable is `ado`.
 Azure DevOps Server/on-premises is not supported. The .NET tool requires .NET 10.
 
 Includes project and pipeline discovery, build diagnosis/timelines/logs, build artifact
