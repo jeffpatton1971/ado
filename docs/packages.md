@@ -97,22 +97,25 @@ Completeness describes returned metadata in the selected scope/filter, not globa
 availability. An empty search does not prove absence; HTTP 401/403/404 retain their
 error categories, including masked-not-found ambiguity. These calls do not establish
 download permission, compatibility or package contents. Version-range/dependency-graph
-solving is outside this command. Exact NuGet download is implemented but not yet
-live-verified; structured package semantic inspection remains outstanding for M1.
+solving is outside this command. Exact NuGet download and structured local nuspec
+inspection are implemented and user-verified for Json.Input.Provider 1.1.0.
 The user verified NuGet package listing in the organization-scoped automation feed
 with 20 returned rows and a bounded-search warning. Live continuation, version listing
 and exact version retrieval remain pending.
 The user also verified `package resolve` for Json.Input.Provider 1.1.0, returning
 package ID `2894f7c9-8ec5-4679-a5d8-b5836dc971ee` and version ID
 `945356c8-1454-4477-b38e-e9f37aed193c`. This verifies metadata resolution only;
-standalone version commands, live JSON and package content retrieval remain unverified.
+standalone version commands and live JSON remain unverified.
 The user verified destination-exists refusal before a token prompt, then externally
 expanded an existing Json.Input.Provider 1.1.0 nupkg. Its download origin and digest
-were not established by that output; successful CLI content transfer is still pending.
+were not established by that output. A subsequent CLI download succeeded with
+18,092 bytes and SHA-256
+`d229edb039c1555af0f136f67d4d1d12a526f56e1820be943598c091fd45b2d9`.
 Subsequent local artifact inspection verified the nuspec text and archive/member
 hashes (see testing.md). The manifest declares Json.Input.Provider 1.1.0 and a net9.0
-dependency group. This is local text inspection, not structured package validation,
-dependency resolution, signature verification or remote download provenance.
+dependency group. Subsequent `package inspect` output verified structured identity
+and dependency declarations with matching archive/member hashes. These checks do
+not establish dependency resolution, compatibility or publisher authenticity.
 
 References: [packages](https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/artifact-details/get-packages?view=azure-devops-rest-7.1),
 [versions](https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/artifact-details/get-package-versions?view=azure-devops-rest-7.1),

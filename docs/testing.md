@@ -6,7 +6,9 @@ commit. Only the exact SHA matches survive, retaining distinct build IDs and res
 The bounded variant returns partial data, scan count and continuation with exit 10.
 This does not infer that separate build IDs are retry attempts: intra-build retries
 are covered by timeline-history and diagnostic-workflow reference tests. Actual
-live retry fixtures remain outstanding.
+live retry fixtures are unavailable: the user could not identify an existing
+retried job/stage run. This is a documented live-coverage limitation, not an
+independent M1 blocker; no work pipeline will be rerun to create a fixture.
 
 Repository-filter acceptance: ordinary build searches now reject wrong or missing
 returned repository IDs/types, including a successful build with the requested SHA.

@@ -44,6 +44,13 @@ only a human may create/push a tag or publish a release; agents must not do so.
 Keep any unavailable live/platform checks explicit rather than silently checking
 them off. Verification CI and local packaging do not authorize a release.
 
+Live retry-history validation is unavailable: the user could not identify an
+existing run with a retried job/stage. Retain synthetic attempt-history coverage
+and document this release limitation; it does not independently block M1. Do not
+rerun a work pipeline solely to manufacture a fixture. The next live acceptance
+check is standalone package version listing and exact-version retrieval for the
+already verified organization-scoped automation package Json.Input.Provider.
+
 ### M1.1 — Run details, stage/job/task timeline and targeted logs (rank 1)
 
 Available: pipeline/run and build details, timeline records with parent IDs, log

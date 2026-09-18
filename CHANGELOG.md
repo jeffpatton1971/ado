@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Document unavailable live retry-history fixtures as a non-blocking coverage
+  limitation and refresh package verification status and next acceptance checks.
+
 - Record successful classic Container selected-member hashing and service-backed
   evidence export with matching digests; close the both-artifact-types acceptance item.
 
