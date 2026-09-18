@@ -39,7 +39,8 @@ public sealed class PackageDownloadTests
         {
             using var memory = new MemoryStream();
             using (var zip = new ZipArchive(memory, ZipArchiveMode.Create, true))
-            using (var writer = new StreamWriter(zip.CreateEntry("Core.nuspec").Open())) writer.Write("test-only-content");
+            using (var writer = new StreamWriter(zip.CreateEntry("Core.nuspec").Open()))
+                writer.Write("<package><metadata><id>Core</id><version>1.1.0</version><description>raw-content-sentinel</description><dependencies><group targetFramework='net9.0'><dependency id='Dependency' version='[2.0,3.0)'/></group></dependencies></metadata></package>");
             byte[] bytes = scenario == "not_zip" ? new byte[32] : memory.ToArray();
             int listCalls = 0, storageCalls = 0;
             using var handler = new TransportTests.FakeHandler(request =>
@@ -83,10 +84,57 @@ public sealed class PackageDownloadTests
                 Assert.AreEqual(Convert.ToHexStringLower(SHA256.HashData(bytes)), data.GetProperty("sha256").GetString());
                 Assert.AreEqual(VersionId, data.GetProperty("resolution").GetProperty("version").GetProperty("id").GetString());
                 Assert.AreEqual(1, Directory.GetFiles(directory).Length);
+                await VerifyLocalWorkflow(data, directory);
             }
             else Assert.AreEqual(0, Directory.GetFiles(directory).Length);
         }
         finally { Directory.Delete(directory, true); }
+    }
+
+    private static async Task VerifyLocalWorkflow(JsonElement download, string directory)
+    {
+        // Consume the download's automation contract rather than reconstructing its output.
+        string file = download.GetProperty("destination").GetString()!;
+        string digest = download.GetProperty("sha256").GetString()!;
+        using var handler = new TransportTests.FakeHandler(_ => throw new AssertFailedException("Local workflow made an HTTP request"));
+        async Task<(int Exit, string Output)> Local(string[] args)
+        {
+            using var output = new StringWriter(); using var error = new StringWriter();
+            int exit = await CliApp.RunAsync([.. args, "--file", file, "--json", "--read-only", "--non-interactive", "--config", Path.Combine(directory, "absent.json")],
+                output, error, input: new StringReader(""), environment: _ => null, testHandler: handler);
+            Assert.AreEqual("", error.ToString());
+            Assert.IsFalse(output.ToString().Contains("raw-content-sentinel", StringComparison.Ordinal));
+            return (exit, output.ToString());
+        }
+        var inspected = await Local(["package", "inspect", "--expected-sha256", digest]);
+        Assert.AreEqual(0, inspected.Exit, inspected.Output);
+        using var inspection = JsonDocument.Parse(inspected.Output);
+        var package = inspection.RootElement.GetProperty("data");
+        Assert.AreEqual(1, inspection.RootElement.GetProperty("meta").GetProperty("schemaVersion").GetInt32());
+        Assert.AreEqual(digest, package.GetProperty("archiveSha256").GetString());
+        Assert.AreEqual(download.GetProperty("resolution").GetProperty("package").GetProperty("name").GetString(), package.GetProperty("id").GetString());
+        Assert.AreEqual(download.GetProperty("resolution").GetProperty("version").GetProperty("version").GetString(), package.GetProperty("version").GetString());
+        string member = package.GetProperty("manifestPath").GetString()!;
+        string memberHash = package.GetProperty("manifestSha256").GetString()!;
+        string destination = Path.Combine(directory, "evidence.json");
+        var exported = await Local(["artifact", "evidence", "--entry", member, "--expected-sha256", digest, "--destination", destination]);
+        Assert.AreEqual(0, exported.Exit, exported.Output);
+        using var evidence = JsonDocument.Parse(await File.ReadAllTextAsync(destination));
+        Assert.AreEqual(digest, evidence.RootElement.GetProperty("archive").GetProperty("sha256").GetString());
+        Assert.AreEqual(memberHash, evidence.RootElement.GetProperty("member").GetProperty("sha256").GetString());
+        Assert.AreEqual("not_supplied", evidence.RootElement.GetProperty("originVerification").GetString());
+        Assert.IsFalse(evidence.RootElement.GetRawText().Contains("raw-content-sentinel", StringComparison.Ordinal));
+        Assert.IsFalse(evidence.RootElement.GetRawText().Contains(directory, StringComparison.Ordinal));
+
+        // A stale/wrong expected digest must stop publication, even after a successful download.
+        string rejectedDestination = Path.Combine(directory, "rejected.json");
+        var rejected = await Local(["artifact", "evidence", "--entry", member, "--expected-sha256", new string('0', 64), "--destination", rejectedDestination]);
+        Assert.AreEqual(7, rejected.Exit, rejected.Output);
+        using var failure = JsonDocument.Parse(rejected.Output);
+        Assert.AreEqual("archive_hash_mismatch", failure.RootElement.GetProperty("error").GetProperty("code").GetString());
+        Assert.IsFalse(File.Exists(rejectedDestination));
+        Assert.AreEqual(0, handler.Calls);
+        Assert.AreEqual(2, Directory.GetFiles(directory).Length);
     }
 
     [TestMethod]

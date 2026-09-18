@@ -100,7 +100,7 @@ is implemented with shared validation and no-overwrite publication.
   270 entries, limit 100 with truncation warning), then exact selection and hashing
   of CompiledOutputs/src/plugin.json (527 expanded bytes). Opt-in bounded UTF-8
   member text is implemented and user-verified for that manifest with unchanged
-  hashes. Structured package interpretation remains open. Selection does not reduce
+  hashes. Structured nuspec declarations are implemented and user-verified. Selection does not reduce
   download transfer; live JSON/truncated-text checks remain outstanding.
 - [ ] Report artifact identity, size and SHA-256; compare an expected hash when
   supplied. A computed digest alone must not be called authenticity verification.
@@ -195,6 +195,9 @@ version lookup and is not an additional M1 acceptance gate.
   groups and raw version declarations with archive/member hashes; synthetic tests
   pass. User verified structured identity, net9.0 dependency declarations and both
   hashes matching the earlier local inspection. Declarations do not establish compatibility.
+  Synthetic JSON/non-interactive workflows now connect direct/redirected package
+  downloads to inspection and evidence export, checking hash agreement, local-only
+  reads, metadata-only evidence and refusal to publish on expected-hash mismatch.
 - [ ] Keep preview-only provenance features explicitly opted in and separate from
   basic package availability. Record scope/API and verification limits.
 

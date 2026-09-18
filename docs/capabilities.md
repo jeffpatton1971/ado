@@ -1,5 +1,11 @@
 # Capability matrix
 
+Package workflow acceptance tests connect download JSON to local manifest
+inspection and evidence export for direct and storage-redirect transfers. They
+verify hash agreement and rejection of a wrong expected hash without publication.
+Local steps require no credentials/configuration or HTTP. This is synthetic
+coverage; user-reported live JSON/non-interactive validation remains pending.
+
 Only implemented commands appear in this table. The approved design contains the
 architecture; the [requirements backlog](roadmap.md) tracks planned features and
 milestone acceptance criteria. Automated tests use mocked HTTP. The user reported successful

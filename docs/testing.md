@@ -1,5 +1,24 @@
 # Verification and CI
 
+Package automation acceptance: the direct and storage-redirect download cases now
+consume the JSON destination/digest in `package inspect`, then use its manifest
+path/hash in `artifact evidence`. Checks verify identity and digest agreement,
+schema version, no raw member content in evidence, no invented remote provenance,
+and no publication on expected-hash mismatch. Local steps run non-interactively
+without credentials, with a nonexistent config and a handler that rejects HTTP.
+This is synthetic end-to-end coverage, not additional live service verification.
+
+For a live JSON/non-interactive diagnosis check in PowerShell 7, supply the token
+through stdin; the shell prompts, but ado itself must not prompt:
+
+```powershell
+Read-Host "Token" -MaskInput | dotnet run --project src/Ado.Cli --configuration Release -- build diagnose --config ./config.json --build-id 18722 --token-stdin --non-interactive --json --read-only --include-history --limit 100 --require-complete
+```
+
+Expect one JSON envelope with `ok:true`, schemaVersion 1 and complete metadata.
+The failed build is diagnostic data, not a CLI failure. This known run has no
+previous-attempt references, so it cannot verify live retry-history traversal.
+
 `AuthProbeTests` verifies selected build, artifact-list and organization-feed GET
 routes, no fallback project request, 401/403/404 failure propagation and required
 context rejection before credential retrieval. Live commands are documented in
@@ -211,8 +230,9 @@ NuGet download mocks cover metadata resolution followed by exact content routing
 direct and redirected ZIP bytes/hash, credential isolation, unsafe-host rejection,
 byte ceilings, non-ZIP content, 403, temporary cleanup, dry-run without credentials
 and existing destination preservation. Build artifact tests also exercise the shared
-bounded transfer implementation. Live NuGet download remains pending; tests do not
-claim nuspec/signature verification or package compatibility.
+bounded transfer implementation. Live NuGet download and matching digest were
+subsequently user-verified (see the local manifest section above); transfer checks
+do not claim nuspec/signature verification or package compatibility.
 On 2026-09-18 the user ran package download for Json.Input.Provider 1.1.0 against
 an existing destination and received `destination_exists` before any token prompt.
 The user then successfully expanded that existing nupkg with PowerShell and listed

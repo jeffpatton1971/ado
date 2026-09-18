@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Verify JSON/non-interactive package download-to-inspection-to-evidence workflows,
+  including matching hashes, local credential-free reads and hash-mismatch refusal.
+
 - Record successful live build and artifact-list access probes, completing user
   validation of the three new probe types in read-only/table mode.
 
