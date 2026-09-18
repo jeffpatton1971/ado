@@ -39,7 +39,12 @@ does not retrieve credentials or claim to redact arbitrary member content.
 
 Tests cover opt-in behavior, BOM/line handling, full hashes with truncated output,
 terminal/JSON escaping, empty text, invalid encodings, NULs and the expanded text
-ceiling. Live text inspection remains pending.
+ceiling. The user verified --show-text table output for
+CompiledOutputs/src/plugin.json from build 18522 on 2026-09-18. The complete
+manifest was displayed without a truncation warning; archive and member hashes
+matched the earlier inspections. This confirms selected UTF-8 text display, not
+manifest semantics or the presence of its declared runtime assemblies. Live JSON
+and truncated-text checks remain unverified.
 
 ## Hashes and bounds
 

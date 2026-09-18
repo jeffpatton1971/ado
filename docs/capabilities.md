@@ -45,7 +45,8 @@ Output schema starts at version 1. Azure DevOps Services only.
 
 artifact inspect --show-text reads one exact UTF-8 member up to 1 MiB, with bounded
 line output and terminal escaping. It is local-only, opt-in and mock-tested;
-live text inspection remains pending. It does not sanitize arbitrary content.
+the user verified plugin.json text from build 18522. Live JSON/truncated-text
+checks remain pending. It does not sanitize arbitrary content.
 
 Build timelines include attempt/identifier/time/reference metadata and parent/order
 context. Optional --include-history traverses referenced timelines under shared

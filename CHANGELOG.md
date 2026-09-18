@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Record successful user-verified plugin.json text inspection from build 18522,
+  with unchanged archive/member hashes and no truncation warning. Declared
+  runtime dependencies are not automatically verified by text inspection.
+
 - Add opt-in artifact inspect --show-text with exact member selection, strict UTF-8,
   a 1 MiB expanded-text ceiling, bounded lines and safe terminal/JSON output.
   Truncation retains the full member hash and reports partial completeness.

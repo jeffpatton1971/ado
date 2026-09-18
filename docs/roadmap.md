@@ -90,8 +90,9 @@ hashes exact selected members; safe extraction is still unimplemented.
   User verified a downloaded artifact inventory and archive hash (build 18522,
   270 entries, limit 100 with truncation warning), then exact selection and hashing
   of CompiledOutputs/src/plugin.json (527 expanded bytes). Opt-in bounded UTF-8
-  member text is implemented and mock-tested; live text verification and structured
-  package interpretation remain open. Selection does not reduce download transfer.
+  member text is implemented and user-verified for that manifest with unchanged
+  hashes. Structured package interpretation remains open. Selection does not reduce
+  download transfer; live JSON/truncated-text checks remain outstanding.
 - [ ] Report artifact identity, size and SHA-256; compare an expected hash when
   supplied. A computed digest alone must not be called authenticity verification.
   Local archive/member digests and expected archive hash comparison are implemented;
