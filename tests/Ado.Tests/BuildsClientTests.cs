@@ -68,6 +68,9 @@ public sealed class BuildsClientTests
     [DataRow("{\"id\":34,\"definition\":{\"id\":0}}")]
     [DataRow("{\"id\":34,\"definition\":{\"id\":12},\"queueTime\":\"invalid\"}")]
     [DataRow("{\"id\":34,\"definition\":{\"id\":12},\"project\":{\"name\":\"Other\"}}")]
+    [DataRow("{\"id\":34,\"definition\":{\"id\":12},\"repository\":[]}")]
+    [DataRow("{\"id\":34,\"definition\":{\"id\":12},\"repository\":{\"id\":123}}")]
+    [DataRow("{\"id\":34,\"definition\":{\"id\":12},\"repository\":{\"type\":false}}")]
     public async Task MalformedOrMismatchedBuildIsRejected(string content)
     {
         using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json(content));
@@ -76,6 +79,36 @@ public sealed class BuildsClientTests
         var client = new BuildsClient(new(http, auth, "example"), "example", "Backend");
         var error = await Assert.ThrowsExactlyAsync<AdoException>(() => client.GetAsync(34, CancellationToken.None));
         Assert.AreEqual("invalid_service_response", error.Code);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task RepositoryIdentityIsAllowlistedForListAndGet(bool list)
+    {
+        const string build = """{"id":34,"definition":{"id":12},"repository":{"id":"owner/repo","name":"repo synthetic","type":"GitHub","url":"secret-sentinel","properties":{"token":"secret-sentinel"},"defaultBranch":"secret-sentinel"}}""";
+        using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json(list ? "{\"value\":[" + build + "]}" : build));
+        using var http = new HttpClient(handler);
+        using var auth = new TokenAuthentication("pat", new("synthetic"));
+        var client = new BuildsClient(new(http, auth, "example"), "example", "Backend");
+        var result = list ? await client.ListAsync(10, 10, null, new(), CancellationToken.None)
+            : await client.GetAsync(34, CancellationToken.None);
+        Assert.AreEqual(new BuildRepositoryInfo("owner/repo", "repo [REDACTED]", "GitHub"), result.Items[0].Repository);
+        Assert.IsFalse(JsonSerializer.Serialize(result).Contains("secret-sentinel", StringComparison.Ordinal));
+        Assert.AreEqual(1, handler.Calls);
+    }
+
+    [TestMethod]
+    [DataRow("null")]
+    [DataRow("{}")]
+    public async Task MissingRepositoryIdentityIsNotInvented(string repository)
+    {
+        using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json("{\"id\":34,\"definition\":{\"id\":12},\"repository\":" + repository + "}"));
+        using var http = new HttpClient(handler);
+        using var auth = new TokenAuthentication("pat", new("synthetic"));
+        var result = await new BuildsClient(new(http, auth, "example"), "example", "Backend").GetAsync(34, CancellationToken.None);
+        Assert.IsNull(result.Items[0].Repository?.Id);
+        Assert.IsNull(result.Items[0].Repository?.Type);
     }
 
     [TestMethod]

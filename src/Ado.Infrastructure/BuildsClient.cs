@@ -78,10 +78,17 @@ public sealed class BuildsClient(ServiceTransport transport, string organization
             if (field.ValueKind != JsonValueKind.String || !field.TryGetDateTimeOffset(out var date)) throw Invalid();
             return date;
         }
-        // Omit identities, parameters, properties, repository payloads, logs/URLs and trigger metadata.
+        BuildRepositoryInfo? repository = null;
+        if (value.TryGetProperty("repository", out var repositoryValue) && repositoryValue.ValueKind != JsonValueKind.Null)
+        {
+            if (repositoryValue.ValueKind != JsonValueKind.Object) throw Invalid();
+            repository = new(Text(repositoryValue, "id", 1024), Text(repositoryValue, "name", 1024), Text(repositoryValue, "type", 64));
+        }
+        // Only repository identity is exposed; omit properties, URLs, credentials and checkout settings.
+        // Also omit personal identities, parameters, logs/URLs and trigger metadata.
         return new(id, Text(value, "buildNumber", 1024), definitionId, Text(definition, "name", 1024),
             Text(value, "status", 64), Text(value, "result", 64), Text(value, "reason", 64),
-            Text(value, "sourceBranch", 2048), Text(value, "sourceVersion", 1024), Date("queueTime"), Date("startTime"), Date("finishTime"));
+            Text(value, "sourceBranch", 2048), Text(value, "sourceVersion", 1024), Date("queueTime"), Date("startTime"), Date("finishTime"), repository);
     }
 
     private string? Text(JsonElement value, string name, int maximum)

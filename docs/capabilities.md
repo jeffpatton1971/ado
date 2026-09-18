@@ -66,6 +66,16 @@ credential lookup. Mocked URL routing/rejection verified; the user verified a li
 timeline read using the modern run URL for build 18722. Other URL-command combinations
 and the legacy host remain mock-tested only.
 
+Build JSON now includes a nullable `repository` projection (ID, name and type) from
+the existing Build response. Build get table output also shows this identity and
+the source version. Missing identities remain null/unknown, not inferred from names
+or current definitions. Repository URLs, properties and checkout settings are omitted.
+Commands embedding BuildInfo, including diagnosis JSON and service-backed artifact
+evidence, inherit this additive projection. Reported identity does not verify commit
+contents or identify all secondary repositories; repository types retain Build API
+spelling and need not match the Pipelines API spelling. Mock-tested; live verification
+of the identity projection is pending.
+
 Pipeline run get includes `repositoryProvenance` in JSON and a repository table.
 It allowlists run resource alias, repository type, ref and version from the
 [Run Get response](https://learn.microsoft.com/en-us/rest/api/azure/devops/pipelines/runs/get?view=azure-devops-rest-7.1).

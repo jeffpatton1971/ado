@@ -154,6 +154,28 @@ public sealed class BuildCommandTests
         Assert.AreEqual(1, handler.Calls);
     }
 
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task GetShowsSourceAndRepositoryIdentity(bool jsonOutput)
+    {
+        using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json("""{"id":34,"definition":{"id":12},"sourceVersion":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","repository":{"id":"owner/repo","name":"repo\u001b[31m","type":"GitHub","url":"secret-sentinel"}}"""));
+        var result = await RunAsync(["get", "--build-id", "34"], handler, json: jsonOutput);
+        Assert.AreEqual(0, result.Exit, result.Output);
+        Assert.IsFalse(result.Output.Contains("secret-sentinel", StringComparison.Ordinal));
+        if (jsonOutput)
+        {
+            using var json = JsonDocument.Parse(result.Output);
+            Assert.AreEqual("owner/repo", json.RootElement.GetProperty("data").GetProperty("repository").GetProperty("id").GetString());
+        }
+        else
+        {
+            StringAssert.Contains(result.Output, "SOURCE VERSION " + new string('a', 40));
+            StringAssert.Contains(result.Output, "owner/repo  GitHub  repo\\u001b[31m");
+            Assert.IsFalse(result.Output.Contains('\u001b'));
+        }
+    }
+
     private static async Task<(int Exit, string Output, string Error)> RunAsync(string[] args, HttpMessageHandler handler, bool json = true, bool token = true)
     {
         string path = Path.GetTempFileName();

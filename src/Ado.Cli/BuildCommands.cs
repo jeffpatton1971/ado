@@ -24,6 +24,14 @@ internal static class BuildCommands
             await output.WriteLineAsync("BUILD ID  DEFINITION ID  NUMBER  STATUS  RESULT  BRANCH");
             foreach (var item in result.Items)
                 await output.WriteLineAsync($"{item.Id}  {item.DefinitionId}  {OutputWriter.TerminalSafe(item.BuildNumber ?? "")}  {OutputWriter.TerminalSafe(item.Status ?? "")}  {OutputWriter.TerminalSafe(item.Result ?? "")}  {OutputWriter.TerminalSafe(item.SourceBranch ?? "")}");
+            if (options.Command == "build get")
+            {
+                var build = result.Items[0];
+                await output.WriteLineAsync($"SOURCE VERSION {OutputWriter.TerminalSafe(build.SourceVersion ?? "unknown")}");
+                await output.WriteLineAsync("REPOSITORY ID  TYPE  NAME");
+                await output.WriteLineAsync($"{OutputWriter.TerminalSafe(build.Repository?.Id ?? "unknown")}  {OutputWriter.TerminalSafe(build.Repository?.Type ?? "unknown")}  {OutputWriter.TerminalSafe(build.Repository?.Name ?? "unknown")}");
+                await output.WriteLineAsync("note: Repository identity and source version are reported by the build; commit contents and additional repository revisions were not verified.");
+            }
             if (incomplete) await error.WriteLineAsync(result.Meta.Truncated
                 ? "warning: Results are truncated; JSON includes the continuation token. Resume with the same filters."
                 : "warning: Source versions are unavailable for some scanned builds; exact-source search completeness is unknown.");

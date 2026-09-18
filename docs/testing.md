@@ -74,6 +74,11 @@ active OS approval dialog. This is documented rather than claiming universal can
 or release readiness. Linux passes a cancellable to libsecret and suppresses unlock in
 non-interactive mode.
 
+Build repository identity tests cover list/get projection, string IDs (including
+GitHub owner/repository identifiers), missing identities, malformed field types,
+credential redaction, omission of URLs/properties and JSON/table terminal escaping.
+Live verification of these added identity fields is pending.
+
 Run repository provenance tests cover multiple reported revisions, missing and empty
 resources, missing versions, duplicate aliases, malformed values, credential redaction,
 omission of sensitive payload fields, JSON/table output and terminal escaping.
