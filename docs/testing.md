@@ -75,7 +75,15 @@ loadedRecords/scannedCount:30, truncated:false and completeness:complete. Nine
 findings comprise one failed task (log 21), three failed containers and five skips.
 The reported source SHA matches the earlier table result. All findings have attempt
 1 and no previous-attempt references; this does not verify history traversal.
-Live JSON targeted-log chaining remains pending. M1.1 automated acceptance is
+The user then retrieved build 18722/log 21 using stdin credentials, JSON,
+non-interactive/read-only mode, limit 100 and --require-complete. The response
+reported ok:true, schemaVersion:1, scannedCount:19, truncated:false and
+completeness:complete. It exposed the previously observed missing golden JSON
+file error. Raw log contents are not retained here. This verifies the user-driven
+diagnosis-to-log sequence by build ID; live URL-based automation and actual retry
+traversal remain unverified. The chat-rendered paste is not a byte-for-byte JSON
+capture, so this records reported envelope fields rather than a parser assertion.
+M1.1 automated acceptance is
 complete, not a claim of full platform or live-service release readiness.
 
 ## Test execution

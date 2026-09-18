@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record live JSON/non-interactive targeted-log retrieval following build diagnosis,
+  with complete output for build 18722/log 21; raw logs are not retained.
+
 - Record successful live JSON/non-interactive build diagnosis using stdin credentials:
   build 18722, 30 records, complete schema-v1 envelope and failed-task log reference 21.
 

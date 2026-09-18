@@ -54,7 +54,9 @@ build diagnose combines build details with categorized outcomes and exact prior-
 references. Targeted log content still uses an explicit build log get command.
 User verified JSON/non-interactive diagnosis with stdin credentials for build 18722:
 30 records, complete schema-v1 envelope and failed-task log reference 21.
-Missing live coverage: retry-history traversal and JSON targeted-log chaining. Automated
+User then retrieved log 21 in JSON/non-interactive/read-only mode with stdin credentials
+and --require-complete; the response reported complete, untruncated output.
+Missing live coverage: retry-history traversal and the combined run-URL automation path. Automated
 URL-to-diagnosis-to-targeted-log tests now exercise both, including failure paths.
 
 - [x] Accept supported Azure DevOps run URLs directly, including a run link obtained
@@ -85,7 +87,9 @@ URL-to-diagnosis-to-targeted-log tests now exercise both, including failure path
   exact GET routes, error/partial envelopes and no prompts are verified. 401/403
   timeline failures and 403/404 log failures remain errors. These are mock tests;
   live JSON/non-interactive diagnosis by build ID is now user-verified for 18722.
-  Live URL-to-JSON-targeted-log chaining and retry traversal remain verification gaps.
+  User also verified the selected log 21 read in JSON/non-interactive mode, completing
+  the diagnosis-to-log sequence by build ID. Live run-URL automation and retry
+  traversal remain verification gaps.
 
 ### M1.2 — Build artifacts and selected evidence (rank 2)
 
