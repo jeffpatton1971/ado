@@ -28,12 +28,12 @@ classic-release expansion and mutation work follow the priority order below.
 
 ## M1: authentication and ranks 1–4
 
-Current focus: M1 acceptance and source-query hardening. M1.1 run diagnostics, M1.2 selected
-artifact workflows and M1.3 bounded discovery/source context are implemented in
-usable slices with live verification of their primary paths. Outstanding acceptance
-work includes remaining live JSON/retry-history checks and platform
-coverage and package acceptance. Structured nuspec inspection and package download
-are user-verified. M1 is not complete.
+Current focus: final M1 release-readiness review. The ranks 1–4 feature checklists
+are complete with synthetic coverage and user-verified primary live paths, including
+Core, YAML and JSON package resolution. Before declaring M1 complete, reconcile
+day-one platform/automation evidence and documented limitations, run final local
+verification and prepare the candidate version/changelog for human release review.
+Unavailable live retry history remains a documented, non-blocking limitation.
 Deliver each slice in small tested commits, then update this checklist and capability
 evidence. Unimplemented checklist work below is not supported command syntax.
 
@@ -228,14 +228,16 @@ version lookup and is not an additional M1 acceptance gate.
   Live organization package listing/resumption, version list/get and exact resolution
   complement project feed listing and organization feed retrieval. Remaining live
   scope/format combinations are coverage limits, not missing command implementations.
-- [ ] Resolve Core, YAML, JSON and other requested dependency versions to exact
+- [x] Resolve Core, YAML, JSON and other requested dependency versions to exact
   package identities; distinguish not found, inaccessible and incomplete searches.
   JSON 1.1.0 and Rackspace.BAT.Core.Abstractions 2.8.0 are user-verified in
   automation. Core resolution with --limit 100 refused incomplete version evidence;
   --all then resolved the exact version. YAML name discovery and version inventory
   are user-verified for Yaml.Input.Provider; 2.5.0 is reported listed/latest.
-  Exact YAML resolution remains pending; the downstream-required version is not
-  established by listing. Resolution is metadata evidence, not download permission.
+  Exact Yaml.Input.Provider 2.5.0 resolution with --all subsequently returned the
+  expected package/version IDs. This acceptance fixture does not select or change
+  downstream dependencies. Synthetic tests cover not-found, inaccessible and
+  incomplete outcomes. Resolution is metadata evidence, not download permission.
 - [x] Download an exact NuGet package with credential isolation, explicit destination,
   byte/time bounds, no overwrite and reported digest.
   Implemented as package download using the documented 7.1-preview.1 content route,

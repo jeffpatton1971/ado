@@ -307,7 +307,10 @@ Yaml.Input.Provider and YamlDotNet. Version inventory for Yaml.Input.Provider
 without a truncation warning. Version 2.5.0 has ID
 `f350c717-cd33-48b2-aa43-67216d8e8fc8`, listed/latest true and deleted unknown.
 This establishes visible metadata, not the version required by a downstream
-project; exact YAML resolution and content retrieval are not claimed by this check.
+project. The user subsequently verified exact `package resolve` with --all for
+Yaml.Input.Provider 2.5.0, returning the same package and version IDs. Together
+with Core 2.8.0 and JSON 1.1.0, this completes the selected live dependency-resolution
+fixtures. YAML content retrieval and compatibility are not claimed by these checks.
 
 Package resolution mocks verify exact name/version selection, rejection of similarly
 named packages and different versions, ambiguous identity failures, independent

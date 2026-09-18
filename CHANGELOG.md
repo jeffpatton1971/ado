@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record exact YAML 2.5.0 resolution and complete the Core/YAML/JSON acceptance
+  fixtures; ranks 1–4 feature checklists are complete, pending final M1 release review.
+
 - Record live YAML package discovery and version inventory; exact YAML resolution
   remains pending.
 
