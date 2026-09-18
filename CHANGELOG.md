@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record successful live build and artifact-list access probes, completing user
+  validation of the three new probe types in read-only/table mode.
+
 - Record successful user validation of the organization-scoped automation feed
   access probe, retaining endpoint-only access and credential-validity limitations.
 

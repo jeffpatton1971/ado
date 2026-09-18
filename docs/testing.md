@@ -6,7 +6,10 @@ context rejection before credential retrieval. Live commands are documented in
 [authentication](authentication.md). The user verified the organization-scoped
 automation feed probe: accessConfirmed:true, authenticationType:pat and
 checkedCapability:"feed get", with credentialValidity:not_independently_verified.
-Build/artifact probes and live JSON automation remain pending.
+The user also verified build get for build 18722 and build artifact list for build
+18522, both with accessConfirmed:true and PAT authentication. These three probes
+were run in read-only/table mode with token prompts. Live JSON/non-interactive
+automation remains pending; these checks do not establish broader permissions.
 
 Local NuGet manifest smoke test (no token/configuration required):
 
