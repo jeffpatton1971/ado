@@ -23,6 +23,9 @@ List uses --top page sizes and --limit or --all within configured ceilings, at m
 100 pages and a 64 MiB aggregate response budget, plus the transport's 4 MiB per-response
 ceiling. Resume with the numeric JSON meta.continuationToken and the same definition
 filter. Malformed or repeated tokens, duplicate releases and oversized pages fail.
+Get may return a project reference with a GUID and null name. For a configured name,
+the CLI accepts this documented form and relies on the project-scoped request route;
+an explicit returned name must match. A configured GUID must match the returned GUID.
 Truncated results retain their continuation token; --require-complete retains data
 but returns exit 10. An empty complete list succeeds. Get validates the requested ID.
 

@@ -12,6 +12,23 @@ namespace Ado.Tests;
 public sealed class ReleaseTests
 {
     [TestMethod]
+    [DataRow("My Project", "null", "11111111-1111-1111-1111-111111111111", true)]
+    [DataRow("My Project", "null", "bad", false)]
+    [DataRow("My Project", "\"Other\"", "11111111-1111-1111-1111-111111111111", false)]
+    [DataRow("11111111-1111-1111-1111-111111111111", "null", "11111111-1111-1111-1111-111111111111", true)]
+    [DataRow("11111111-1111-1111-1111-111111111111", "null", "22222222-2222-2222-2222-222222222222", false)]
+    public async Task GetHandlesDocumentedIdOnlyProjectReference(string project, string nameJson, string id, bool accepted)
+    {
+        string body = "{\"id\":43,\"name\":\"Release-43\",\"releaseDefinition\":{\"id\":12},\"projectReference\":{\"id\":\"" + id + "\",\"name\":" + nameJson + "}}";
+        using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json(body));
+        using var http = new HttpClient(handler);
+        using var auth = new TokenAuthentication("pat", new("synthetic"));
+        var client = new ReleasesClient(new ServiceTransport(http, auth, "example"), "example", project);
+        if (accepted) Assert.AreEqual(43, (await client.GetAsync(43, CancellationToken.None)).Items[0].Id);
+        else await Assert.ThrowsExactlyAsync<AdoException>(() => client.GetAsync(43, CancellationToken.None));
+    }
+
+    [TestMethod]
     public async Task EmptyListIsComplete()
     {
         using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json("{\"value\":[]}"));

@@ -66,9 +66,22 @@ public sealed class ReleasesClient(ServiceTransport transport, string organizati
         if (value.TryGetProperty("projectReference", out var returnedProject))
         {
             if (returnedProject.ValueKind != JsonValueKind.Object) throw Invalid();
-            string field = Guid.TryParse(project, out _) ? "id" : "name";
-            if (!returnedProject.TryGetProperty(field, out var identity) || identity.ValueKind != JsonValueKind.String
-                || !string.Equals(identity.GetString(), project, StringComparison.OrdinalIgnoreCase)) throw Invalid();
+            if (Guid.TryParse(project, out var expectedId))
+            {
+                if (!returnedProject.TryGetProperty("id", out var identity) || identity.ValueKind != JsonValueKind.String
+                    || !identity.TryGetGuid(out var actualId) || actualId != expectedId) throw Invalid();
+            }
+            else if (returnedProject.TryGetProperty("name", out var name) && name.ValueKind != JsonValueKind.Null)
+            {
+                if (name.ValueKind != JsonValueKind.String || !string.Equals(name.GetString(), project, StringComparison.OrdinalIgnoreCase)) throw Invalid();
+            }
+            else
+            {
+                // Get Release documents an ID-only reference (name:null). The request
+                // remains bound to the configured project route; there is no name to compare.
+                if (!returnedProject.TryGetProperty("id", out var identity) || identity.ValueKind != JsonValueKind.String
+                    || !identity.TryGetGuid(out var actualId) || actualId == Guid.Empty) throw Invalid();
+            }
         }
         DateTimeOffset? Date(string name)
         {

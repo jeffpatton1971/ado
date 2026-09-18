@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Accept the documented ID-only project reference in classic release responses
+  when using a project name; retain explicit name/GUID mismatch checks.
 - Record user-reported live classic release listing with a bounded 20-item result
   and truncation warning; individual release retrieval remains unverified.
 - Add classic release list/get on the Release service host, with numeric pagination,
