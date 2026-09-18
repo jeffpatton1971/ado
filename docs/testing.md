@@ -1,5 +1,17 @@
 # Verification and CI
 
+Local NuGet manifest smoke test (no token/configuration required):
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- package inspect --file "$env:TEMP\ado-Json.Input.Provider-1.1.0.nupkg" --output table --read-only
+```
+
+Expect Json.Input.Provider 1.1.0, a net9.0 dependency group, declarations for
+Microsoft.Extensions.DependencyInjection (9.0.9) and Rackspace.BAT.Core.Abstractions
+(2.8.0), and hashes matching the earlier local archive/member inspection.
+Synthetic coverage includes range declarations, empty groups, no config access,
+DTD rejection, duplicate manifests/identity and truncated-text rejection.
+
 ## Read-only diagnostic workflow acceptance
 
 DiagnosticWorkflowTests exercises the actual CLI entry point with a supported run

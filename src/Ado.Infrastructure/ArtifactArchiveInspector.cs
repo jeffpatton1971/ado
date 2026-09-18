@@ -13,6 +13,8 @@ public sealed record ArchiveExtraction(string Entry, string Destination, long By
 
 public static class ArtifactArchiveInspector
 {
+    internal static Task<ArchiveInspectionResult> InspectManifestAsync(string? path, string? expectedHash, CancellationToken cancellationToken) =>
+        ProcessAsync(path, null, expectedHash, 1, cancellationToken, true, 10000, null, true);
     public static Task<ArchiveInspectionResult> InspectAsync(string? path, string? entryName, string? expectedHash, int limit, CancellationToken cancellationToken,
         bool showText = false, int textLines = 100) => ProcessAsync(path, entryName, expectedHash, limit, cancellationToken, showText, textLines, null);
 
@@ -28,10 +30,10 @@ public static class ArtifactArchiveInspector
     }
 
     private static async Task<ArchiveInspectionResult> ProcessAsync(string? path, string? entryName, string? expectedHash, int limit, CancellationToken cancellationToken,
-        bool showText, int textLines, DownloadTarget? target)
+        bool showText, int textLines, DownloadTarget? target, bool manifest = false)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if ((showText && string.IsNullOrEmpty(entryName)) || textLines is < 1 or > 10000)
+        if ((showText && string.IsNullOrEmpty(entryName) && !manifest) || textLines is < 1 or > 10000)
             throw new AdoException("invalid_text_options", "Text inspection requires an exact --entry and --text-lines from 1 to 10000.", ExitCode.Usage);
         if (string.IsNullOrWhiteSpace(path) || limit is < 1 or > 10000 || (expectedHash is not null
             && (expectedHash.Length != 64 || expectedHash.Any(c => !Uri.IsHexDigit(c)))))
@@ -91,6 +93,13 @@ public static class ArtifactArchiveInspector
                     if (files.Contains(name[..slash])) throw Unsafe();
                     slash = name.IndexOf('/', slash + 1);
                 }
+            }
+            if (manifest)
+            {
+                var manifests = archive.Entries.Where(entry => !entry.FullName.Contains('/') && entry.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase)).ToArray();
+                if (manifests.Length != 1)
+                    throw new AdoException("invalid_package_manifest", "Package inspection requires exactly one root nuspec file.", ExitCode.Safety);
+                entryName = manifests[0].FullName;
             }
             var selected = entryName is null ? archive.Entries.ToArray() : archive.Entries.Where(entry => entry.FullName == entryName).ToArray();
             if (entryName is not null && selected.Length == 0)

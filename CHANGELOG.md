@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add local package inspect for bounded nuspec identity and dependency declarations,
+  with archive/member hashes, DTD rejection and no configuration or network access.
+
 - Record local Json.Input.Provider 1.1.0 nuspec text and archive/member digest
   verification, separately from dependency semantics and remote download provenance.
 

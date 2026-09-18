@@ -1,5 +1,15 @@
 # Feed package discovery and download
 
+`package inspect --file <local.nupkg>` reports local package identity, dependency
+groups and raw version/include/exclude declarations with archive/member SHA-256
+values from one snapshot. No configuration, credentials or network are used.
+`--expected-sha256` optionally checks the archive. Exactly one root nuspec is
+required, using UTF-8 and at most 1 MiB / 10,000 lines. Shared archive safety
+checks apply. DTDs, duplicate identities and mixed grouped/ungrouped dependencies
+are rejected. Unsupported namespaces fail explicitly. This is not full schema
+validation, signature verification or dependency/compatibility resolution.
+See the [nuspec reference](https://learn.microsoft.com/en-us/nuget/reference/nuspec).
+
 These commands inspect Azure Artifacts metadata without downloading packages:
 
 - `ado package list --feed NAME_OR_ID` returns package GUID, name, normalized name

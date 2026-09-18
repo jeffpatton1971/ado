@@ -194,6 +194,9 @@ public static class CliApp
         var textLines = new Option<int?>("--text-lines") { Description = "Text line limit from 1 to 10000; default 100; requires --show-text." };
         foreach (var option in new Option[] { archiveFile, archiveEntry, expectedHash, showText, textLines, requireComplete }) artifactInspect.Options.Add(option);
         artifact.Subcommands.Add(artifactInspect);
+        var packageInspect = new Command("inspect", "Inspect local NuGet identity and dependency declarations without network access.");
+        foreach (var option in new Option[] { archiveFile, expectedHash }) packageInspect.Options.Add(option);
+        package.Subcommands.Add(packageInspect);
         var artifactExtract = new Command("extract", "Extract one exact ZIP member to an explicit new file; no overwrite or network access.");
         foreach (var option in new Option[] { archiveFile, archiveEntry, expectedHash, destination }) artifactExtract.Options.Add(option);
         artifact.Subcommands.Add(artifactExtract);
@@ -309,6 +312,12 @@ public static class CliApp
                     if (partial) await error.WriteLineAsync("warning: Archive inspection is truncated; inspect JSON metadata or raise --limit/--text-lines within their ceilings.");
                 }
                 return partial && parsed.GetValue(requireComplete) ? (int)ExitCode.Partial : 0;
+            }
+            if (parsed.CommandResult.Command == packageInspect)
+            {
+                var manifest = await NuGetPackageInspector.InspectAsync(parsed.GetValue(archiveFile), parsed.GetValue(expectedHash), cancellationToken);
+                await OutputWriter.SuccessAsync(output, manifest, jsonOutput);
+                return 0;
             }
             var location = ConfigurationPaths.Resolve(parsed.GetValue(configPath), environment);
             if (parsed.CommandResult.Command == paths)

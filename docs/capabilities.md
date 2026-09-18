@@ -9,6 +9,7 @@ agent has not accessed the live organization or submitted runs.
 | Command | Service host | API | Read/write | Pagination | Dry-run | Confirmation | Auth | Status |
 |---|---|---|---|---|---|---|---|---|
 | --version | Local | None | Read | None | N/A | None | None | Implemented |
+| package inspect | Local | None | Read | One root nuspec, 1 MiB / 10,000 lines | Local read | None | None | Synthetic tests; identity and dependency declarations only; user validation pending |
 | --help | Local | None | Read | None | N/A | None | None | Implemented |
 | config paths | Local | None | Read | None | N/A | None | None | Implemented |
 | config show [--effective] | Local | None | Read | None | N/A | None | None | Implemented |

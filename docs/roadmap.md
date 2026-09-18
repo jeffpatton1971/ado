@@ -172,8 +172,8 @@ warning); continuation and version reads remain pending. Exact NuGet name/litera
 version resolution to service GUIDs is now implemented with bounded complete scans;
 live resolution is verified for automation's Json.Input.Provider 1.1.0. Exact NuGet
 download now resolves metadata then saves bounded content with SHA-256 and isolated
-storage redirects; live validation is pending. Structured package inspection remains
-outstanding. Version-range/dependency-graph solving is outside this exact
+storage redirects; live validation is pending. Structured local package inspection
+is implemented; user validation is pending. Version-range/dependency-graph solving is outside this exact
 version lookup and is not an additional M1 acceptance gate.
 
 - [ ] List/get feeds, packages and exact versions, supporting applicable organization
@@ -191,8 +191,9 @@ version lookup and is not an additional M1 acceptance gate.
 - [ ] Inspect selected .nuspec, manifest and assembly entries using the bounded
   archive facilities from M1.2; never execute downloaded code.
   Local nuspec text/hash inspection is user-verified for Json.Input.Provider 1.1.0
-  (18,092-byte archive, 9 entries). Structured nuspec/dependency interpretation
-  remains outstanding; displayed declarations do not establish compatibility.
+  (18,092-byte archive, 9 entries). package inspect reports identity, dependency
+  groups and raw version declarations with archive/member hashes; synthetic tests
+  pass, user validation pending. Declarations do not establish compatibility.
 - [ ] Keep preview-only provenance features explicitly opted in and separate from
   basic package availability. Record scope/API and verification limits.
 
