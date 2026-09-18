@@ -52,12 +52,14 @@ Do not mark M1 complete solely because its commands exist.
 - Make small, coherent commits as work progresses. Preserve unrelated user changes and untracked files.
 - A source version bump does not authorize a tag, package publication, executable upload, GitHub release or release-workflow dispatch.
 
-## Human-only release gate
+## Human-only remote and release gate
 
 Agents must never create, move, delete or push Git tags; create a GitHub release;
-publish a NuGet package; upload release executables; or dispatch a release workflow.
+publish a NuGet package; upload release executables; dispatch a release workflow;
+push branches; or create or merge pull requests.
 Report a candidate source state for a human to release manually. M1 completion is
 the intended first tagged-version checkpoint, not permission for an agent to tag it.
 
-Normal branch pushes and verification CI are distinct from release actions and
-must stay within the user's authorized scope.
+Prepare local commits and report candidate source states for a human to push,
+open a PR, merge or release. Verification CI may run automatically after a human
+push; local builds, packing and isolated installation checks remain permitted.

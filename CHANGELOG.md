@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add Azure DevOps-specific Copilot instructions; align repository and README policy
+  so branch pushes and PR creation/merge join release actions behind the human-only gate.
+
 - Add ado-specific repository instructions covering safety boundaries, verification,
   mandatory pre-merge version/changelog updates and a human-only release gate;
   align README and roadmap policy with those instructions.
