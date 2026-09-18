@@ -72,12 +72,13 @@ public static class CliApp
         var packageVersion = new Command("version", "Inspect an exact package version identity.");
         var packageVersionGet = new Command("get", "Get a version by its service GUID, not a version range.");
         var packageResolve = new Command("resolve", "Resolve an exact NuGet name and literal version to service GUIDs using bounded metadata reads.");
+        var packageDownload = new Command("download", "Resolve and download one exact NuGet version to a new local file; dry-run is local only.");
         var packageVersionText = new Option<string>("--package-version") { Description = "Literal display or normalized version string; no ranges, wildcards or inferred normalization." };
         var packageId = new Option<string>("--package-id") { Description = "Package GUID from package list." };
         var versionId = new Option<string>("--version-id") { Description = "Version GUID from package versions." };
         var packageProtocol = new Option<string>("--protocol") { Description = "Service protocol filter, for example NuGet." };
         var packageName = new Option<string>("--name") { Description = "Server-side package name substring filter." };
-        foreach (var command in new[] { packageList, packageVersions, packageVersionGet, packageResolve })
+        foreach (var command in new[] { packageList, packageVersions, packageVersionGet, packageResolve, packageDownload })
         {
             command.Options.Add(feedScope);
             command.Options.Add(feedSelector);
@@ -87,8 +88,9 @@ public static class CliApp
         packageVersionGet.Options.Add(packageId);
         packageVersionGet.Options.Add(versionId);
         foreach (var option in new Option[] { packageName, packageVersionText, all, top }) packageResolve.Options.Add(option);
+        foreach (var option in new Option[] { packageName, packageVersionText, all, top }) packageDownload.Options.Add(option);
         packageVersion.Subcommands.Add(packageVersionGet);
-        foreach (var command in new[] { packageList, packageVersions, packageVersion, packageResolve }) package.Subcommands.Add(command);
+        foreach (var command in new[] { packageList, packageVersions, packageVersion, packageResolve, packageDownload }) package.Subcommands.Add(command);
         root.Subcommands.Add(package);
         foreach (var command in new[] { list, search })
         {
@@ -169,6 +171,7 @@ public static class CliApp
         var maxBytes = new Option<long?>("--max-bytes") { Description = "Lower the configured download byte ceiling." };
         var downloadTimeout = new Option<int?>("--download-timeout") { Description = "Lower the configured download timeout in seconds." };
         foreach (var option in new Option[] { destination, maxBytes, downloadTimeout }) buildArtifactDownload.Options.Add(option);
+        foreach (var option in new Option[] { destination, maxBytes, downloadTimeout }) packageDownload.Options.Add(option);
         var artifactName = new Option<string>("--artifact-name") { Description = "Exact build-output name returned by build artifact list." };
         foreach (var command in new[] { buildArtifactList, buildArtifactGet, buildArtifactDownload }) command.Options.Add(buildId);
         foreach (var option in new Option[] { all, requireComplete }) buildArtifactList.Options.Add(option);
@@ -314,7 +317,7 @@ public static class CliApp
                 return 0;
             }
             var selectedCommand = parsed.CommandResult.Command;
-            string? serviceCommand = selectedCommand == packageResolve ? "package resolve"
+            string? serviceCommand = selectedCommand == packageDownload ? "package download" : selectedCommand == packageResolve ? "package resolve"
                 : selectedCommand == packageList ? "package list" : selectedCommand == packageVersions ? "package versions"
                 : selectedCommand == packageVersionGet ? "package version get"
                 : selectedCommand == feedList ? "feed list" : selectedCommand == feedGet ? "feed get"
@@ -357,7 +360,7 @@ public static class CliApp
                 targetBuildId = target.BuildId;
             }
             CredentialSelection? selection = null;
-            if (serviceCommand is not null && serviceCommand != "doctor" && !(serviceCommand is "pipeline run start" or "pipeline run preview" or "build artifact download" or "build artifact evidence" && parsed.GetValue(dryRun)))
+            if (serviceCommand is not null && serviceCommand != "doctor" && !(serviceCommand is "pipeline run start" or "pipeline run preview" or "build artifact download" or "build artifact evidence" or "package download" && parsed.GetValue(dryRun)))
                 selection = CredentialSelection.Resolve(configuredAuth, parsed.GetValue(authType), parsed.GetValue(token) is not null,
                     parsed.GetValue(tokenStdin), parsed.GetValue(tokenPrompt), parsed.GetValue(credentialProvider),
                     parsed.GetValue(credentialService), parsed.GetValue(credentialAccount), environment);

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Cryptography;
 using Ado.Application;
 using Ado.Domain;
 using Ado.Infrastructure.Http;
@@ -6,9 +7,10 @@ using Ado.Infrastructure.Http;
 namespace Ado.Infrastructure;
 
 public sealed record BuildOutputDownload(int BuildId, string ArtifactName, string Destination, long Bytes, string Format = "zip");
+internal sealed record ZipTransfer(long Bytes, string Sha256);
 
 public sealed class BuildArtifactDownloader(HttpClient serviceClient, HttpClient contentClient, IAuthenticationProvider authentication,
-    string organization, string project)
+    string organization, string? project)
 {
     public static HttpClient CreateClient() => new(new HttpClientHandler
     {
@@ -31,10 +33,17 @@ public sealed class BuildArtifactDownloader(HttpClient serviceClient, HttpClient
     public async Task<BuildOutputDownload> DownloadAsync(int buildId, string artifactName, DownloadTarget target,
         long maxBytes, int timeoutSeconds, CancellationToken cancellationToken, Uri? signedContent = null)
     {
+        var uri = EndpointBuilder.BuildArtifact(Operations.BuildArtifactGet, organization, project!, buildId, artifactName);
+        var downloaded = await DownloadZipAsync(uri, ServiceHost.Core, target, maxBytes, timeoutSeconds, cancellationToken, signedContent);
+        return new(buildId, authentication.Redact(artifactName), authentication.Redact(target.Path), downloaded.Bytes);
+    }
+
+    internal async Task<ZipTransfer> DownloadZipAsync(Uri uri, ServiceHost service, DownloadTarget target,
+        long maxBytes, int timeoutSeconds, CancellationToken cancellationToken, Uri? signedContent = null)
+    {
         if (maxBytes <= 0 || timeoutSeconds <= 0 || timeoutSeconds > 86400)
             throw new AdoException("invalid_download_bounds", "Download byte limit and timeout must be positive; timeout cannot exceed one day.", ExitCode.Usage);
-        var uri = EndpointBuilder.BuildArtifact(Operations.BuildArtifactGet, organization, project, buildId, artifactName);
-        EndpointBuilder.ValidateDestination(uri, ServiceHost.Core, organization, project);
+        EndpointBuilder.ValidateDestination(uri, service, organization, project);
         if (signedContent is not null)
         {
             ValidateRedirect(signedContent);
@@ -82,6 +91,7 @@ public sealed class BuildArtifactDownloader(HttpClient serviceClient, HttpClient
                 var options = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.ReadWrite, Share = FileShare.None, Options = FileOptions.Asynchronous };
                 if (!OperatingSystem.IsWindows()) options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
                 long bytes = 0;
+                using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
                 var createdFile = new FileStream(candidate, options);
                 temporary = candidate; // Cleanup only a file successfully created by this operation.
                 await using (var file = createdFile)
@@ -94,6 +104,7 @@ public sealed class BuildArtifactDownloader(HttpClient serviceClient, HttpClient
                         if (read == 0) break;
                         if (read > maxBytes - bytes) throw TooLarge();
                         await file.WriteAsync(buffer.AsMemory(0, read), deadline.Token);
+                        hash.AppendData(buffer, 0, read);
                         bytes += read;
                     }
                     if (expected is not null && bytes != expected) throw Failure();
@@ -104,7 +115,7 @@ public sealed class BuildArtifactDownloader(HttpClient serviceClient, HttpClient
                 target.Check();
                 File.Move(temporary, target.Path, overwrite: false);
                 temporary = null;
-                return new(buildId, authentication.Redact(artifactName), authentication.Redact(target.Path), bytes);
+                return new(bytes, Convert.ToHexStringLower(hash.GetHashAndReset()));
             }
             throw Failure();
         }

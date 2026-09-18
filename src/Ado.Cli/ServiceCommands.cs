@@ -59,7 +59,12 @@ internal static class ServiceCommands
             _ = EndpointBuilder.Feed(options.Command == "feed list" ? Operations.FeedList : Operations.FeedGet, organization, feedProject, options.Feed);
             if (packageCommand)
             {
-                if (options.Command == "package resolve") (options.PackageQuery ?? new()).Validate(options.Command);
+                if (options.Command is "package resolve" or "package download")
+                {
+                    (options.PackageQuery ?? new()).Validate("package resolve");
+                    if (options.Command == "package download")
+                        _ = EndpointBuilder.NuGetContent(organization, feedProject, options.Feed, options.PackageQuery!.Name!, options.PackageQuery.Version!);
+                }
                 else
                 {
                     var operation = options.Command == "package list" ? Operations.PackageList : options.Command == "package versions" ? Operations.PackageVersions : Operations.PackageVersionGet;
@@ -108,8 +113,35 @@ internal static class ServiceCommands
         {
             DownloadTarget? downloadTarget = null;
             DownloadTarget? evidenceTarget = null;
+            DownloadTarget? packageTarget = null;
             long maxBytes = options.MaxBytes ?? profile.Downloads.MaxBytes;
             int downloadSeconds = options.DownloadTimeout ?? profile.Downloads.TimeoutSeconds;
+            if (options.Command == "package download")
+            {
+                if (maxBytes <= 0 || maxBytes > profile.Downloads.MaxBytes || downloadSeconds <= 0 || downloadSeconds > profile.Downloads.TimeoutSeconds)
+                    throw new AdoException("invalid_download_bounds", "Download overrides must be positive and within configured ceilings.", ExitCode.Usage);
+                packageTarget = DownloadTarget.Validate(options.Destination);
+                if (options.DryRun)
+                {
+                    await OutputWriter.SuccessAsync(output, new
+                    {
+                        action = options.Command,
+                        dryRun = true,
+                        written = false,
+                        organization,
+                        project = feedProject,
+                        feed = options.Feed,
+                        name = options.PackageQuery!.Name,
+                        version = options.PackageQuery.Version,
+                        destination = packageTarget.Path,
+                        maxBytes,
+                        downloadSeconds,
+                        apiVersion = Operations.PackageDownload.ApiVersion,
+                        note = "Local plan only; no credential lookup, HTTP request, resolution or file write."
+                    }, options.Json);
+                    return 0;
+                }
+            }
             if (options.Command == "build artifact evidence")
             {
                 if (string.IsNullOrEmpty(options.ArchiveEntry) || options.ArchiveEntry.Length > 2048 || options.ArchiveEntry.EndsWith('/') || options.ArchiveEntry.Any(char.IsControl))
@@ -208,6 +240,17 @@ internal static class ServiceCommands
             var transport = new ServiceTransport(client, authentication, organization, profile.Timeouts.RequestSeconds, options.ReadOnly, options.DryRun);
             if (feedCommand)
                 return await FeedCommands.ReadAsync(new(transport, organization, feedProject), options, limit, output, error, deadline.Token);
+            if (packageTarget is not null)
+            {
+                using var packageService = testHandler is null ? BuildArtifactDownloader.CreateClient() : new HttpClient(testHandler, false) { Timeout = Timeout.InfiniteTimeSpan };
+                using var packageContent = testHandler is null ? BuildArtifactDownloader.CreateClient() : new HttpClient(testHandler, false) { Timeout = Timeout.InfiniteTimeSpan };
+                var downloads = new BuildArtifactDownloader(packageService, packageContent, authentication, organization, feedProject);
+                var packageDownloader = new NuGetPackageDownloader(new(transport, organization, feedProject, options.Feed!), downloads, organization, feedProject, options.Feed!);
+                var downloaded = await packageDownloader.DownloadAsync(options.PackageQuery!, top, limit, packageTarget, maxBytes, downloadSeconds, deadline.Token);
+                await OutputWriter.SuccessAsync(output, downloaded with { Destination = authentication.Redact(downloaded.Destination) }, options.Json,
+                    new(Organization: organization, Project: feedProject));
+                return 0;
+            }
             if (packageCommand)
                 return await PackageCommands.ReadAsync(new(transport, organization, feedProject, options.Feed!), options, top, limit, output, error, deadline.Token);
             if (evidenceTarget is not null)

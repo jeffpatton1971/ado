@@ -171,6 +171,13 @@ package ID `2894f7c9-8ec5-4679-a5d8-b5836dc971ee` and version ID
 reads through the resolver; standalone version commands and live JSON remain
 unverified. No package was downloaded; downloadability and compatibility are not proven.
 
+NuGet download mocks cover metadata resolution followed by exact content routing,
+direct and redirected ZIP bytes/hash, credential isolation, unsafe-host rejection,
+byte ceilings, non-ZIP content, 403, temporary cleanup, dry-run without credentials
+and existing destination preservation. Build artifact tests also exercise the shared
+bounded transfer implementation. Live NuGet download remains pending; tests do not
+claim nuspec/signature verification or package compatibility.
+
 Live read-only tests require an explicitly authorized organization/project. Remote
 mutation tests require separate approval of exact disposable target, effect/cost,
 cleanup and reconciliation plan. No live test is automatically invoked by CI.

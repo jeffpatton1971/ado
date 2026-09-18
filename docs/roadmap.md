@@ -170,8 +170,10 @@ Package listing, bounded version inventory and exact version-GUID retrieval are
 implemented. NuGet listing in automation is verified live (20 rows and a bound
 warning); continuation and version reads remain pending. Exact NuGet name/literal
 version resolution to service GUIDs is now implemented with bounded complete scans;
-live resolution is verified for automation's Json.Input.Provider 1.1.0. Exact NuGet download and structured package inspection
-remain outstanding. Version-range/dependency-graph solving is outside this exact
+live resolution is verified for automation's Json.Input.Provider 1.1.0. Exact NuGet
+download now resolves metadata then saves bounded content with SHA-256 and isolated
+storage redirects; live validation is pending. Structured package inspection remains
+outstanding. Version-range/dependency-graph solving is outside this exact
 version lookup and is not an additional M1 acceptance gate.
 
 - [ ] List/get feeds, packages and exact versions, supporting applicable organization
@@ -180,6 +182,9 @@ version lookup and is not an additional M1 acceptance gate.
   package identities; distinguish not found, inaccessible and incomplete searches.
 - [ ] Download an exact NuGet package with credential isolation, explicit destination,
   byte/time bounds, no overwrite and reported digest.
+  Implemented as package download using the documented 7.1-preview.1 content route,
+  with local dry-run and ZIP-envelope checks. Mock transfer/failure tests pass;
+  live content retrieval remains unverified and nuspec/signature checks are separate.
 - [ ] Inspect selected .nuspec, manifest and assembly entries using the bounded
   archive facilities from M1.2; never execute downloaded code.
 - [ ] Keep preview-only provenance features explicitly opted in and separate from

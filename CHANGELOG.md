@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add exact NuGet package download after bounded metadata resolution, using the
+  documented content API, isolated storage redirects, no-overwrite publication,
+  SHA-256 reporting and ZIP-envelope checks. Local dry-run performs no HTTP or writes.
+
 - Record live resolution of Json.Input.Provider 1.1.0 in the organization-scoped
   automation feed to exact package and version identities; no content download yet.
 

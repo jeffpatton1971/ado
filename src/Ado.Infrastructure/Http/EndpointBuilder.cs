@@ -6,6 +6,19 @@ namespace Ado.Infrastructure.Http;
 
 public static partial class EndpointBuilder
 {
+    public static Uri NuGetContent(string organization, string? project, string? feed, string name, string version)
+    {
+        new PackageQuery(Name: name, Version: version).Validate("package resolve");
+        if (name is "." or ".." || version is "." or "..")
+            throw new AdoException("invalid_package_selector", "Package name and version must not be dot path segments.", ExitCode.Usage);
+        var baseUri = Feed(Operations.FeedGet, organization, project, feed);
+        return new UriBuilder(baseUri)
+        {
+            Host = Host(ServiceHost.Packages),
+            Path = baseUri.AbsolutePath + "/nuget/packages/" + Uri.EscapeDataString(name) + "/versions/" + Uri.EscapeDataString(version) + "/content",
+            Query = "api-version=" + Operations.PackageDownload.ApiVersion
+        }.Uri;
+    }
     public static Uri Package(OperationDescriptor operation, string organization, string? project, string? feed,
         PackageQuery filters, int top = 100, int skip = 0)
     {
@@ -59,6 +72,7 @@ public static partial class EndpointBuilder
         ServiceHost.Core => "dev.azure.com",
         ServiceHost.Release => "vsrm.dev.azure.com",
         ServiceHost.Feeds => "feeds.dev.azure.com",
+        ServiceHost.Packages => "pkgs.dev.azure.com",
         _ => throw new AdoException("unsupported_service", "The service host is not supported.", ExitCode.Usage)
     };
 
