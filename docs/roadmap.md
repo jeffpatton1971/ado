@@ -28,9 +28,9 @@ classic-release expansion and mutation work follow the priority order below.
 
 ## M1: authentication and ranks 1–4
 
-The active slice is M1.1. URL input and bounded history traversal are implemented;
-consolidated findings are implemented and live table diagnosis is verified; end-to-end automation
-verification remain open.
+M1.1 is implemented with end-to-end mocked automation coverage and live table
+diagnosis. Live JSON and actual retry-history checks remain outstanding. The next
+implementation slice is M1.2: bounded archive inventory and selected evidence.
 Deliver each slice in small tested commits, then update this checklist and capability
 evidence. Proposed work below is not currently supported command syntax.
 
@@ -44,7 +44,8 @@ references are now preserved in JSON; tables show order, parent and attempt cont
 Optional --include-history traverses referenced timelines within shared bounds.
 build diagnose combines build details with categorized outcomes and exact prior-attempt
 references. Targeted log content still uses an explicit build log get command.
-Missing: live retry-history and end-to-end JSON/non-interactive verification.
+Missing live coverage: retry-history and JSON/non-interactive operation. Automated
+URL-to-diagnosis-to-targeted-log tests now exercise both, including failure paths.
 
 - [x] Accept supported Azure DevOps run URLs directly, including a run link obtained
   from a GitHub check; parse locally, validate host/path/IDs and reject conflicts
@@ -60,15 +61,20 @@ Missing: live retry-history and end-to-end JSON/non-interactive verification.
   User verified parent/order and attempt columns on build 18722 (attempt 1, no
   previous references), including --include-history and its timeline-ID column.
   Live traversal across referenced timelines remains outstanding.
-- [ ] Identify failed tasks and their targeted logs; distinguish failures from
+- [x] Identify failed tasks and their targeted logs; distinguish failures from
   skipped/cancelled downstream work and earlier retry attempts. Label causal
   interpretation as inference when service evidence cannot establish it.
   build diagnose now reports categories, exact previous-attempt matches and log IDs;
   it does not infer causality or fetch raw logs. Mock coverage passes; the user verified
   live table diagnosis on build 18722 (one failed task at log 21, three failed
   containers, five skipped records). Live retry classification remains pending.
-- [ ] Verify a URL-to-failure workflow through JSON/non-interactive/read-only mode,
+- [x] Verify a URL-to-failure workflow through JSON/non-interactive/read-only mode,
   including missing permission, absent logs, retries and truncated output.
+  DiagnosticWorkflowTests follows a run URL through diagnosis with two attempts,
+  selects a log ID from JSON and retrieves bounded content. Synthetic stdin tokens,
+  exact GET routes, error/partial envelopes and no prompts are verified. 401/403
+  timeline failures and 403/404 log failures remain errors. These are mock tests;
+  live automation coverage remains a release verification gap.
 
 ### M1.2 — Build artifacts and selected evidence (rank 2)
 

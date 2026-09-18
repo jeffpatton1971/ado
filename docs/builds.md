@@ -325,6 +325,16 @@ five skipped records. All findings reported attempt 1. This verifies the combine
 read and outcome display; live JSON/strict completeness and actual retry-history
 classification remain unverified. The diagnosis did not retrieve log content.
 
+Automated end-to-end tests now chain URL-based JSON diagnosis to targeted log
+retrieval using synthetic stdin credentials and --non-interactive --read-only.
+They cover retry selection, bounded lines/ranges, denied timeline/log access and
+missing log content. This verifies the automation contract with mocks; it does
+not expand the live coverage above. For unattended use, supply an already-configured
+native credential reference, injected token environment variable or token stdin;
+--token-prompt is incompatible with JSON/non-interactive operation. Check exit
+codes and meta.completeness before treating findings as exhaustive; retain data
+from exit 10 when useful rather than interpreting it as an empty result.
+
 ## Verification
 
 Mocked tests cover routes, encoding, filters, opaque pagination, page/item bounds,

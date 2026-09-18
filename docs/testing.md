@@ -1,5 +1,25 @@
 # Verification and CI
 
+## Read-only diagnostic workflow acceptance
+
+DiagnosticWorkflowTests exercises the actual CLI entry point with a supported run
+URL, synthetic --token-stdin credentials, --json, --non-interactive and --read-only.
+It performs build diagnosis with current and previous-attempt timelines, selects
+the non-historical failed task's log ID from the JSON findings, then requests that
+log. Tests assert canonical GET routes, no implicit log reads during diagnosis,
+one JSON envelope per invocation, no prompts and selected-credential redaction.
+Range and local-line limits retain data with strict exit 10; absent/forbidden logs
+and unauthorized/forbidden timeline reads return their error exit codes without
+echoing service bodies. Existing diagnosis tests cover truncated timeline evidence.
+
+All service responses in this workflow are mocked. User-run live table diagnosis
+and separate targeted log reads for build 18722 succeeded. Live JSON/non-interactive
+and actual previous-attempt traversal remain outstanding; the same-build table
+smoke tests do not establish those paths. M1.1 implementation/automated acceptance
+is complete, not a claim of full platform or live-service release readiness.
+
+## Test execution
+
 `dotnet test Ado.slnx` runs unit, CLI and mocked-HTTP integration tests without live
 Azure DevOps credentials or network calls. Package restore/audit reaches NuGet.
 Windows tests additionally write/read/delete a uniquely named synthetic generic
