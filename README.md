@@ -203,14 +203,75 @@ Select another profile with `--profile`; profiles do not inherit settings or cre
 
 ### Native credential stores
 
-Replace the example `authentication` object with a reference to an existing item:
+Choose the complete configuration for your operating system and save it as
+`config.json` (or at the default location listed above). Replace `example-org` and
+`Example Project` with your Azure DevOps organization and project. The `service`
+and `account` values must match an existing credential-store item; the token stays
+in that store and is never included in this file.
+
+**macOS — Keychain (`macos-keychain`)**
 
 ```json
 {
-  "type": "pat",
-  "provider": "windows-credential-manager",
-  "service": "ado/example-org",
-  "account": "azure-devops-pat"
+  "schemaVersion": 1,
+  "defaultProfile": "work",
+  "profiles": {
+    "work": {
+      "organization": "example-org",
+      "project": "Example Project",
+      "authentication": {
+        "type": "pat",
+        "provider": "macos-keychain",
+        "service": "ado/example-org",
+        "account": "azure-devops-pat"
+      },
+      "output": "table"
+    }
+  }
+}
+```
+
+**Windows — Credential Manager (`windows-credential-manager`)**
+
+```json
+{
+  "schemaVersion": 1,
+  "defaultProfile": "work",
+  "profiles": {
+    "work": {
+      "organization": "example-org",
+      "project": "Example Project",
+      "authentication": {
+        "type": "pat",
+        "provider": "windows-credential-manager",
+        "service": "ado/example-org",
+        "account": "azure-devops-pat"
+      },
+      "output": "table"
+    }
+  }
+}
+```
+
+**Linux — Secret Service (`linux-secret-service`)**
+
+```json
+{
+  "schemaVersion": 1,
+  "defaultProfile": "work",
+  "profiles": {
+    "work": {
+      "organization": "example-org",
+      "project": "Example Project",
+      "authentication": {
+        "type": "pat",
+        "provider": "linux-secret-service",
+        "service": "ado/example-org",
+        "account": "azure-devops-pat"
+      },
+      "output": "table"
+    }
+  }
 }
 ```
 
@@ -221,6 +282,17 @@ Replace the example `authentication` object with a reference to an existing item
 | Linux | `linux-secret-service` | String attributes `service` and `account` |
 
 The item's password/secret is the token. These lookup labels are not tokens, and `account` need not be an email address. `ado` reads existing credentials; it does not store them. See [native setup and limitations](docs/authentication.md) for provisioning instructions and Linux dependencies.
+
+Validate any of these files locally, then check access using its configured store:
+
+```text
+ado doctor --config ./config.json --output table
+ado auth check --config ./config.json --output table --read-only
+```
+
+Omit `--token-prompt` and `--token-stdin` when testing the configured store: those
+flags select a different credential source. Linux requires libsecret and an
+available Secret Service session/keyring, as described in the setup reference.
 
 For first-use macOS Keychain authorization, run this without `--non-interactive` or `--token-prompt` after configuring the `macos-keychain` provider:
 

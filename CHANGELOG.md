@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add complete README configurations for macOS Keychain, Windows Credential
+  Manager and Linux Secret Service, including credential lookup labels and checks.
+
 - Record exact YAML 2.5.0 resolution and complete the Core/YAML/JSON acceptance
   fixtures; ranks 1–4 feature checklists are complete, pending final M1 release review.
 
