@@ -10,7 +10,8 @@ public sealed record ServiceOptions(string Command, bool Json, bool NonInteracti
     int? Top, bool All, string? Continuation, bool RequireComplete, string? Search, int? PipelineId = null, int? RunId = null,
     string? Confirmation = null, string? RefName = null, string? ParametersFile = null, string? VariablesFile = null, bool ShowYaml = false,
     int? BuildId = null, BuildFilters? BuildFilters = null, int? LogId = null, long? StartLine = null, long? EndLine = null, string? ArtifactName = null,
-    string? Destination = null, long? MaxBytes = null, int? DownloadTimeout = null, int? ReleaseId = null, int? ReleaseDefinitionId = null);
+    string? Destination = null, long? MaxBytes = null, int? DownloadTimeout = null, int? ReleaseId = null, int? ReleaseDefinitionId = null,
+    int? EnvironmentId = null, int? DeploymentId = null, int? TaskId = null);
 
 internal static class ServiceCommands
 {
@@ -46,6 +47,13 @@ internal static class ServiceCommands
             throw new AdoException("search_required", "Project search requires --name with a nonempty name fragment.", ExitCode.Usage);
         bool pipelineCommand = options.Command.StartsWith("pipeline ", StringComparison.Ordinal);
         bool buildCommand = options.Command.StartsWith("build ", StringComparison.Ordinal);
+        if (options.Command == "release task log")
+        {
+            _ = EndpointBuilder.Release(Operations.ReleaseGet, organization, profile.Project!, options.ReleaseId);
+            if (options.EnvironmentId is null or <= 0 || options.DeploymentId is null or <= 0 || options.TaskId is null or <= 0
+                || options.StartLine is < 0 || options.EndLine is < 0 || (options.StartLine is not null && options.EndLine < options.StartLine))
+                throw new AdoException("invalid_log_context", "Supply positive --environment-id, --deployment-id and --task-id and valid nonnegative line bounds.", ExitCode.Usage);
+        }
         if (options.Command is "release list" or "release get" or "release environments" or "release approvals" or "release deployments" or "release tasks")
             _ = options.Command != "release list"
                 ? EndpointBuilder.Release(Operations.ReleaseGet, organization, profile.Project!, options.ReleaseId)
@@ -150,6 +158,8 @@ internal static class ServiceCommands
             using var authentication = new TokenAuthentication(reference.Type, secret);
             using var client = testHandler is null ? ServiceTransport.CreateClient() : new HttpClient(testHandler, disposeHandler: false) { Timeout = Timeout.InfiniteTimeSpan };
             var transport = new ServiceTransport(client, authentication, organization, profile.Timeouts.RequestSeconds, options.ReadOnly, options.DryRun);
+            if (options.Command == "release task log")
+                return await ReleaseCommands.TaskLogAsync(new ReleasesClient(transport, organization, profile.Project!), options, limit, output, error, deadline.Token);
             if (options.Command is "release list" or "release get" or "release environments" or "release approvals" or "release deployments" or "release tasks")
                 return await ReleaseCommands.ReadAsync(new ReleasesClient(transport, organization, profile.Project!), options, top, limit, output, error, deadline.Token);
             if (downloadTarget is not null)

@@ -22,6 +22,11 @@ public static class Operations
     public static readonly OperationDescriptor ReleaseApprovals = ReleaseGet with { Command = "release approvals" };
     public static readonly OperationDescriptor ReleaseDeployments = ReleaseGet with { Command = "release deployments" };
     public static readonly OperationDescriptor ReleaseTasks = ReleaseGet with { Command = "release tasks" };
+    public static readonly OperationDescriptor ReleaseTaskLog = ReleaseGet with
+    {
+        Command = "release task log",
+        Documentation = "https://learn.microsoft.com/en-us/rest/api/azure/devops/release/releases/get-task-log?view=azure-devops-rest-7.1"
+    };
     public static readonly OperationDescriptor ProjectList = new("project list", ServiceHost.Core, "7.1", false,
         false, "none", false, "header continuation / numeric offset", "vso.project",
         "https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/list?view=azure-devops-rest-7.1");
@@ -73,7 +78,7 @@ public static class Operations
     };
     public static readonly OperationDescriptor BuildArtifactDownload = BuildArtifactGet with { Command = "build artifact download", SupportsDryRun = true };
     public static readonly OperationDescriptor PipelineArtifactSignedContent = Pipeline("build artifact download", "artifacts/get", "none");
-    public static IReadOnlyList<OperationDescriptor> All { get; } = [ReleaseList, ReleaseGet, ReleaseEnvironments, ReleaseApprovals, ReleaseDeployments, ReleaseTasks, ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet, PipelineRunStart, PipelineRunPreview, BuildList, BuildGet, BuildTimeline, BuildLogs, BuildLogGet, BuildArtifactList, BuildArtifactGet, BuildArtifactDownload];
+    public static IReadOnlyList<OperationDescriptor> All { get; } = [ReleaseList, ReleaseGet, ReleaseEnvironments, ReleaseApprovals, ReleaseDeployments, ReleaseTasks, ReleaseTaskLog, ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet, PipelineRunStart, PipelineRunPreview, BuildList, BuildGet, BuildTimeline, BuildLogs, BuildLogGet, BuildArtifactList, BuildArtifactGet, BuildArtifactDownload];
 
     private static OperationDescriptor Pipeline(string command, string endpoint, string pagination) => new(command,
         ServiceHost.Core, "7.1", false, true, "none", false, pagination, "vso.build",

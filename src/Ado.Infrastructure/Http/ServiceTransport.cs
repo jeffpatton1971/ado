@@ -9,6 +9,7 @@ public sealed record JsonResponse(JsonDocument Document, string? ContinuationTok
 {
     public void Dispose() => Document.Dispose();
 }
+public sealed record TextResponse(string Text, string? ContinuationToken, string? RequestId);
 
 public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider authentication, string organization,
     int requestSeconds = 60, bool readOnly = true, bool dryRun = false,
@@ -89,7 +90,16 @@ public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider 
     public static AdoException UncertainWrite() => new("uncertain_write",
         "The pipeline submission outcome could not be verified. Do not blindly retry. Inspect pipeline runs for the same organization, project and pipeline ID, or check Azure DevOps before submitting again.", ExitCode.UncertainWrite);
 
-    public async Task<JsonResponse> GetAsync(OperationDescriptor operation, Uri uri, CancellationToken cancellationToken, string? project = null)
+    public Task<JsonResponse> GetAsync(OperationDescriptor operation, Uri uri, CancellationToken cancellationToken, string? project = null) =>
+        ReadAsync(operation, uri, cancellationToken, project, "application/json", (bytes, continuation, requestId) =>
+            new JsonResponse(JsonDocument.Parse(bytes, new JsonDocumentOptions { MaxDepth = 32 }), continuation, requestId, bytes.Length));
+
+    public Task<TextResponse> GetTextAsync(OperationDescriptor operation, Uri uri, CancellationToken cancellationToken, string project) =>
+        ReadAsync(operation, uri, cancellationToken, project, "text/plain", (bytes, continuation, requestId) =>
+            new TextResponse(Redact(new System.Text.UTF8Encoding(false, true).GetString(bytes).TrimStart('\uFEFF')), continuation, requestId));
+
+    private async Task<T> ReadAsync<T>(OperationDescriptor operation, Uri uri, CancellationToken cancellationToken, string? project,
+        string mediaType, Func<byte[], string?, string?, T> parse)
     {
         SafetyPolicy.BeforeDispatch(operation, readOnly, dryRun);
         if (operation.IsWrite) throw new AdoException("unsupported_operation", "The read transport cannot send mutations.", ExitCode.Safety);
@@ -103,7 +113,7 @@ public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider 
                 try
                 {
                     using var request = new HttpRequestMessage(HttpMethod.Get, uri);
-                    request.Headers.Accept.ParseAdd("application/json");
+                    request.Headers.Accept.ParseAdd(mediaType);
                     request.Headers.Add("X-TFS-FedAuthRedirect", "Suppress");
                     authentication.Apply(request);
                     using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
@@ -117,6 +127,10 @@ public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider 
                         continue;
                     }
                     if (!response.IsSuccessStatusCode) throw Map(response.StatusCode);
+                    if (mediaType == "text/plain" && (response.StatusCode != HttpStatusCode.OK
+                        || response.Content.Headers.ContentType?.MediaType != "text/plain"
+                        || response.Content.Headers.ContentType.CharSet?.Trim('"').ToLowerInvariant() is not (null or "utf-8" or "us-ascii")))
+                        throw new AdoException("invalid_service_response", "The log endpoint did not return supported UTF-8 plain text.", ExitCode.Transient);
                     const int maximum = 4 * 1024 * 1024;
                     if (response.Content.Headers.ContentLength > maximum) throw Oversized();
                     await using var stream = await response.Content.ReadAsStreamAsync(deadline.Token);
@@ -135,8 +149,7 @@ public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider 
                     if (operation == Operations.ProjectList && continuation is not null && (!int.TryParse(continuation, out int offset) || offset < 0))
                         throw new AdoException("invalid_service_response", "The project continuation token is invalid.", ExitCode.Transient);
                     string? requestId = Header(response, "x-vss-e2eid") ?? Header(response, "x-ms-request-id");
-                    return new(JsonDocument.Parse(buffer.ToArray(), new JsonDocumentOptions { MaxDepth = 32 }), continuation,
-                        requestId is null ? null : Redact(requestId), checked((int)buffer.Length));
+                    return parse(buffer.ToArray(), continuation, requestId is null ? null : Redact(requestId));
                 }
                 catch (HttpRequestException) when (attempt < 2)
                 {
@@ -150,6 +163,8 @@ public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider 
         { throw new AdoException("request_timeout", "The read request exceeded its timeout.", ExitCode.Transient, true); }
         catch (JsonException)
         { throw new AdoException("invalid_service_response", "The service returned invalid or excessively nested JSON.", ExitCode.Transient); }
+        catch (System.Text.DecoderFallbackException)
+        { throw new AdoException("invalid_service_response", "The service returned invalid UTF-8 log content.", ExitCode.Transient); }
         catch (IOException) { throw Transient(); }
     }
 

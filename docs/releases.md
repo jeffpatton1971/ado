@@ -131,7 +131,32 @@ environment 1499, deployment 1506, attempt 1. Task 12 (Setting up 200compute) re
 failed; the other nine tasks reported succeeded. Line counts were absent. The task
 summary identifies the failure location, not its underlying cause.
 
+## Task log content
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- release task log --config ./config.json --release-id 1492 --environment-id 1499 --deployment-id 1506 --task-id 12 --token-prompt --output table --read-only --limit 100
+```
+
+The command first expands release tasks to resolve the requested environment,
+deployment and task to exactly one phase ID. Missing metadata or ambiguous matches
+fail before the log request. Task summaries now include phaseId in JSON. The log
+URL is constructed from validated IDs; returned logUrl fields are never followed.
+
+Get Task Log returns UTF-8 text/plain. JSON output contains context and lines; table
+output prints escaped lines. The active credential is redacted from the full text
+before splitting into lines. Other secrets in logs are not guaranteed to be redacted.
+HTML, invalid UTF-8, unexpected continuations and redirects are refused. Each request
+has a 4 MiB response ceiling and the existing bounded read retry/deadline policy.
+Metadata resolution is bounded by response size; --limit/--all bounds displayed lines.
+
+--start-line and --end-line pass nonnegative service positions unchanged. Any explicit
+range marks full-log completeness unknown; local truncation marks it partial.
+--require-complete retains the lines and returns exit 10 in either case. No log file
+is written, and no deployment actions occur. Mock tests cover phase resolution,
+routes, ranges, limits, invalid content and safe output. Live verification is pending.
+
 References:
 
 - [Releases List](https://learn.microsoft.com/en-us/rest/api/azure/devops/release/releases/list?view=azure-devops-rest-7.1)
 - [Get Release](https://learn.microsoft.com/en-us/rest/api/azure/devops/release/releases/get-release?view=azure-devops-rest-7.1)
+- [Get Task Log](https://learn.microsoft.com/en-us/rest/api/azure/devops/release/releases/get-task-log?view=azure-devops-rest-7.1)

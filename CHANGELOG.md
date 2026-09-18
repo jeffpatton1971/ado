@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add release task log with phase resolution from expanded task metadata, bounded
+  UTF-8 plain-text reads, optional service line ranges and safe terminal/JSON output.
 - Record user-reported live task inspection for release 1492/deployment 1506:
   task 12 (Setting up 200compute) failed; ten task records were returned.
 - Add release tasks with expanded deployment task results, attempt/phase/job context,

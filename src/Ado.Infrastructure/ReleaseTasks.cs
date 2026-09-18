@@ -68,7 +68,7 @@ public sealed partial class ReleasesClient
                                 lineCount = number;
                             }
                             var item = new ReleaseTaskInfo(taskId, releaseId, environmentId, stepId, deploymentId, attempt,
-                                phaseName, jobId, jobName, Text(task, "name", 1024), Text(task, "status", 64), lineCount);
+                                phaseName, jobId, jobName, Text(task, "name", 1024), Text(task, "status", 64), lineCount, OptionalPositive(phase, "phaseId"));
                             count++;
                             if (items.Count < limit) items.Add(item);
                         }

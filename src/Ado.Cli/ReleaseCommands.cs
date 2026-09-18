@@ -5,6 +5,25 @@ namespace Ado.Cli;
 
 internal static class ReleaseCommands
 {
+    public static async Task<int> TaskLogAsync(ReleasesClient client, ServiceOptions options, int limit,
+        TextWriter output, TextWriter error, CancellationToken cancellationToken)
+    {
+        var result = await client.TaskLogAsync(options.ReleaseId!.Value, options.EnvironmentId!.Value, options.DeploymentId!.Value,
+            options.TaskId!.Value, options.StartLine, options.EndLine, limit, cancellationToken);
+        bool incomplete = result.Meta.Completeness != "complete";
+        if (options.Json)
+        {
+            if (options.RequireComplete && incomplete) await OutputWriter.PartialValueAsync(output, result.Data, result.Meta);
+            else await OutputWriter.SuccessAsync(output, result.Data, true, result.Meta);
+        }
+        else
+        {
+            foreach (string line in result.Data.Lines) await output.WriteLineAsync(OutputWriter.TerminalSafe(line));
+            if (incomplete) await error.WriteLineAsync("warning: Log output is limited or a line range was requested; inspect JSON metadata. There is no continuation token.");
+        }
+        return options.RequireComplete && incomplete ? (int)ExitCode.Partial : 0;
+    }
+
     public static async Task<int> ReadAsync(ReleasesClient client, ServiceOptions options, int top, int limit,
         TextWriter output, TextWriter error, CancellationToken cancellationToken)
     {

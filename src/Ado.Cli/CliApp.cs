@@ -156,6 +156,14 @@ public static class CliApp
         release.Subcommands.Add(releaseApprovals);
         release.Subcommands.Add(releaseDeployments);
         release.Subcommands.Add(releaseTasks);
+        var releaseTask = new Command("task", "Inspect classic release task content.");
+        var releaseTaskLog = new Command("log", "Read bounded plain-text logs for an unambiguously resolved release task.");
+        var environmentId = new Option<int?>("--environment-id") { Description = "Release environment instance ID." };
+        var deploymentId = new Option<int?>("--deployment-id") { Description = "Deployment ID returned by release deployments/tasks." };
+        var taskId = new Option<int?>("--task-id") { Description = "Task ID returned by release tasks." };
+        foreach (var option in new Option[] { releaseId, environmentId, deploymentId, taskId, startLine, endLine, all, requireComplete }) releaseTaskLog.Options.Add(option);
+        releaseTask.Subcommands.Add(releaseTaskLog);
+        release.Subcommands.Add(releaseTask);
         root.Subcommands.Add(release);
         var auth = new Command("auth", "Check access using the selected credential.");
         var check = new Command("check", "Test project endpoint access; other services are not checked.");
@@ -181,7 +189,7 @@ public static class CliApp
             if (args.Length == 0 || parsed.Action is System.CommandLine.Help.HelpAction)
             {
                 if (jsonOutput)
-                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build timeline", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download", "release list", "release get", "release environments", "release approvals", "release deployments", "release tasks" } }, true);
+                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build timeline", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download", "release list", "release get", "release environments", "release approvals", "release deployments", "release tasks", "release task log" } }, true);
                 else
                 {
                     var helpArgs = args.Length == 0 ? new[] { "--help" } : args;
@@ -211,7 +219,8 @@ public static class CliApp
                 : selectedCommand == releaseEnvironments ? "release environments"
                 : selectedCommand == releaseApprovals ? "release approvals"
                 : selectedCommand == releaseDeployments ? "release deployments"
-                : selectedCommand == releaseTasks ? "release tasks" : null;
+                : selectedCommand == releaseTasks ? "release tasks"
+                : selectedCommand == releaseTaskLog ? "release task log" : null;
             if (selectedCommand != show && serviceCommand is null)
                 throw new AdoException("command_required", "Choose a command. Use ado --help for supported syntax.", ExitCode.Usage);
 
@@ -240,7 +249,8 @@ public static class CliApp
                         parsed.GetValue(confirm), parsed.GetValue(refName), parsed.GetValue(parametersFile), parsed.GetValue(variablesFile), parsed.GetValue(showYaml),
                         parsed.GetValue(buildId), new(parsed.GetValue(definitionId), parsed.GetValue(buildStatus), parsed.GetValue(buildResult), parsed.GetValue(branch)),
                         parsed.GetValue(logId), parsed.GetValue(startLine), parsed.GetValue(endLine), parsed.GetValue(artifactName),
-                        parsed.GetValue(destination), parsed.GetValue(maxBytes), parsed.GetValue(downloadTimeout), parsed.GetValue(releaseId), parsed.GetValue(releaseDefinitionId)),
+                        parsed.GetValue(destination), parsed.GetValue(maxBytes), parsed.GetValue(downloadTimeout), parsed.GetValue(releaseId), parsed.GetValue(releaseDefinitionId),
+                        parsed.GetValue(environmentId), parsed.GetValue(deploymentId), parsed.GetValue(taskId)),
                     output, error, input ?? Console.In, environment, testHandler, testNativeProvider, cancellationToken);
             }
             if (parsed.GetValue(effective))
