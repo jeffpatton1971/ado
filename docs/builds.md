@@ -289,6 +289,37 @@ for that snapshot, not additional timeline requests. Live cross-timeline/retry
 traversal and JSON history verification remain pending. This command reads
 history and never retries or starts a pipeline execution.
 
+## Consolidated diagnosis
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- build diagnose --config ./config.json --build-id 18722 --token-prompt --output table --read-only --include-history --limit 100
+```
+
+build diagnose also accepts --run-url. It combines one build-detail read with the
+bounded timeline reader; --include-history opts into reference traversal. The
+operation deadline covers both phases. The build read adds at most 4 MiB to the
+timeline reader's 64 MiB history ceiling. --limit/--all bounds scanned timeline
+records, not just displayed findings. No log content is retrieved or persisted.
+
+JSON data contains build, loadedRecords, findings and limitations. Each finding
+retains the safe timeline record, category, attemptContext and logAvailability.
+Categories distinguish failed_task, failed_container, skipped, canceled_or_abandoned
+and succeeded_with_issues. Only an exact previous-attempt reference labels a record
+referenced_previous_attempt; not_identified_as_previous does not assert that a
+record is current or latest. Unavailable logs are explicitly identified, while a
+log reference alone does not prove the content exists or is accessible.
+
+Use build log get with the diagnosis's build ID and a selected log ID (for this
+sample, 21). Skips and cancellations are not asserted to be caused by a particular
+failure. An empty findings array does not prove tests or deployment succeeded.
+The build's sourceVersion is not complete shared-template provenance. Build and
+timeline reads are separate snapshots. Incomplete timeline metadata is propagated;
+--require-complete returns exit 10 with retained diagnosis. Otherwise exit 0 means
+inspection succeeded even when the inspected build failed. Service errors remain
+errors; root-cause conclusions are not generated. Mock tests cover outcome grouping,
+exact retry references, missing logs, partial JSON retention and terminal/credential
+escaping. Live diagnosis verification remains pending.
+
 ## Verification
 
 Mocked tests cover routes, encoding, filters, opaque pagination, page/item bounds,

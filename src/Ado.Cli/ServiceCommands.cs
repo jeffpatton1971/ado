@@ -181,6 +181,9 @@ internal static class ServiceCommands
                 return await BuildArtifactCommands.ReadAsync(new BuildArtifactsClient(transport, organization, profile.Project!), options, limit, output, error, deadline.Token);
             if (options.Command == "build timeline")
                 return await BuildTimelineCommands.ReadAsync(new BuildTimelineClient(transport, organization, profile.Project!), options, limit, output, error, deadline.Token);
+            if (options.Command == "build diagnose")
+                return await BuildDiagnosisCommands.ReadAsync(new BuildsClient(transport, organization, profile.Project!),
+                    new BuildTimelineClient(transport, organization, profile.Project!), options, limit, output, error, deadline.Token);
             if (options.Command is "build logs" or "build log get")
                 return await BuildLogCommands.ReadAsync(new BuildLogsClient(transport, organization, profile.Project!), options, limit, output, error, deadline.Token);
             if (buildCommand)

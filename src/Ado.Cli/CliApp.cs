@@ -99,6 +99,9 @@ public static class CliApp
         var buildTimeline = new Command("timeline", "Inspect jobs/tasks, their results and log IDs in the default build timeline.");
         var includeHistory = new Option<bool>("--include-history") { Description = "Follow bounded sub-timeline and previous-attempt references." };
         buildTimeline.Options.Add(includeHistory);
+        var buildDiagnose = new Command("diagnose", "Combine build details and timeline findings without inferring root cause or retrieving raw logs.");
+        buildDiagnose.Options.Add(includeHistory);
+        build.Subcommands.Add(buildDiagnose);
         var buildLog = new Command("log", "Read individual build logs.");
         var buildLogGet = new Command("get", "Read bounded log content; terminal controls are escaped.");
         var logId = new Option<int?>("--log-id") { Description = "Positive log ID returned by build logs." };
@@ -111,7 +114,7 @@ public static class CliApp
         var branch = new Option<string>("--branch") { Description = "Exact source branch, typically refs/heads/main." };
         foreach (var option in new Option[] { top, all, continuation, requireComplete, definitionId, buildStatus, buildResult, branch }) buildList.Options.Add(option);
         buildGet.Options.Add(buildId);
-        foreach (var command in new[] { buildLogs, buildLogGet, buildTimeline })
+        foreach (var command in new[] { buildLogs, buildLogGet, buildTimeline, buildDiagnose })
             foreach (var option in new Option[] { buildId, all, requireComplete }) command.Options.Add(option);
         foreach (var option in new Option[] { logId, startLine, endLine }) buildLogGet.Options.Add(option);
         buildLog.Subcommands.Add(buildLogGet);
@@ -137,7 +140,7 @@ public static class CliApp
         buildArtifact.Subcommands.Add(buildArtifactGet);
         buildArtifact.Subcommands.Add(buildArtifactDownload);
         var runUrl = new Option<string>("--run-url") { Description = "Azure DevOps build results URL; must match selected context and any --build-id." };
-        foreach (var command in new[] { buildGet, buildTimeline, buildLogs, buildLogGet, buildArtifactList, buildArtifactGet, buildArtifactDownload })
+        foreach (var command in new[] { buildGet, buildTimeline, buildDiagnose, buildLogs, buildLogGet, buildArtifactList, buildArtifactGet, buildArtifactDownload })
             command.Options.Add(runUrl);
         build.Subcommands.Add(buildArtifact);
         root.Subcommands.Add(build);
@@ -195,7 +198,7 @@ public static class CliApp
             if (args.Length == 0 || parsed.Action is System.CommandLine.Help.HelpAction)
             {
                 if (jsonOutput)
-                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build timeline", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download", "release list", "release get", "release environments", "release approvals", "release deployments", "release tasks", "release task log" } }, true);
+                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build diagnose", "build timeline", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download", "release list", "release get", "release environments", "release approvals", "release deployments", "release tasks", "release task log" } }, true);
                 else
                 {
                     var helpArgs = args.Length == 0 ? new[] { "--help" } : args;
@@ -219,6 +222,7 @@ public static class CliApp
                 : selectedCommand == buildList ? "build list" : selectedCommand == buildGet ? "build get"
                 : selectedCommand == buildLogs ? "build logs" : selectedCommand == buildLogGet ? "build log get"
                 : selectedCommand == buildTimeline ? "build timeline"
+                : selectedCommand == buildDiagnose ? "build diagnose"
                 : selectedCommand == buildArtifactList ? "build artifact list" : selectedCommand == buildArtifactGet ? "build artifact get"
                 : selectedCommand == buildArtifactDownload ? "build artifact download"
                 : selectedCommand == releaseList ? "release list" : selectedCommand == releaseGet ? "release get"

@@ -29,7 +29,8 @@ classic-release expansion and mutation work follow the priority order below.
 ## M1: authentication and ranks 1–4
 
 The active slice is M1.1. URL input and bounded history traversal are implemented;
-consolidated failure diagnostics are next.
+consolidated findings are implemented; live diagnosis and end-to-end automation
+verification remain open.
 Deliver each slice in small tested commits, then update this checklist and capability
 evidence. Proposed work below is not currently supported command syntax.
 
@@ -41,7 +42,9 @@ a failed build task and read its error. Build commands also accept supported run
 Attempt numbers, stable identifiers, timestamps and safe previous-attempt/sub-timeline
 references are now preserved in JSON; tables show order, parent and attempt context.
 Optional --include-history traverses referenced timelines within shared bounds.
-Missing: a consolidated diagnostic workflow and live retry-history verification.
+build diagnose combines build details with categorized outcomes and exact prior-attempt
+references. Targeted log content still uses an explicit build log get command.
+Missing: live diagnosis/retry-history and end-to-end automation verification.
 
 - [x] Accept supported Azure DevOps run URLs directly, including a run link obtained
   from a GitHub check; parse locally, validate host/path/IDs and reject conflicts
@@ -60,6 +63,9 @@ Missing: a consolidated diagnostic workflow and live retry-history verification.
 - [ ] Identify failed tasks and their targeted logs; distinguish failures from
   skipped/cancelled downstream work and earlier retry attempts. Label causal
   interpretation as inference when service evidence cannot establish it.
+  build diagnose now reports categories, exact previous-attempt matches and log IDs;
+  it does not infer causality or fetch raw logs. Mock coverage passes, live acceptance
+  remains pending.
 - [ ] Verify a URL-to-failure workflow through JSON/non-interactive/read-only mode,
   including missing permission, absent logs, retries and truncated output.
 

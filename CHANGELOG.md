@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add build diagnose to combine build/source details with categorized timeline
+  findings, exact earlier-attempt references and targeted log IDs. Preserve partial
+  evidence and limitations without fetching raw logs or asserting root cause.
+
 - Record user-reported --include-history compatibility on build 18722: one
   displayed timeline, attempt 1, no previous references and no completeness warning.
   Live traversal across referenced timelines remains unverified.
