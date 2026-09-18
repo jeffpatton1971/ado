@@ -151,9 +151,10 @@ performs these metadata reads. ZIP download is a separate command below; archive
 
 `build artifact download` requires --build-id, --artifact-name and --destination (a new
 local file, not a directory). It first checks metadata and accepts Container and
-PipelineArtifact resource types. It requests application/zip from the documented Build
-Get Artifact endpoint. It does not follow the metadata's downloadUrl or guess resource
-protocols. If the service does not support ZIP for that output, the command fails safely.
+PipelineArtifact resource types. Container downloads request application/zip from Build
+Get Artifact; PipelineArtifact downloads resolve a signed URL through Pipelines Artifacts
+Get. It does not follow the metadata's downloadUrl. If the service does not return
+supported ZIP content, the command fails safely.
 
 PowerShell example using the output already discovered, outside the repository:
 
@@ -188,6 +189,13 @@ deadline also applies (300 seconds by default), including metadata/credential wo
 Interrupted, oversized, partial-HTTP, compressed-HTTP, HTML/JSON or malformed ZIP responses
 do not publish a completed file. Failure does not automatically retry or resume content.
 
+For PipelineArtifact outputs, the CLI reads the build to obtain its definition ID,
+then calls Pipelines Artifacts Get for that pipeline and run (the build ID), requesting
+$expand=signedContent. It verifies the artifact name and expiry before downloading
+the returned URL without credentials. Missing, malformed or expired signed content
+fails without falling back to forwarding the PAT. Container outputs retain the Build
+Artifacts ZIP endpoint. Resource.downloadUrl is not used in either flow.
+
 Authentication is sent only to the exact constructed dev.azure.com organization/project
 endpoint. Up to five redirects may target HTTPS port 443 artifact-storage hosts under
 .vsblob.vsassets.io, .vsblob.visualstudio.com, .artifacts.visualstudio.com, .blob.core.windows.net or
@@ -216,14 +224,20 @@ identity checks, safe field selection, output bounds and CLI behavior. The user 
 an empty output list for build 18722, two PipelineArtifact outputs for 18522, and get by
 name for CompiledOutputs (17112). A user-run download of that output was blocked by
 redirect validation for artprodcus3.artifacts.visualstudio.com. That service suffix is
-now allowed without forwarding credentials; successful live transfer remains unverified. Tests cover header
+now allowed without forwarding credentials. The next attempt redirected to
+spsprodcus2.vssps.visualstudio.com for sign-in and was also blocked. PipelineArtifact
+downloads now use signedContent; successful live transfer remains unverified. Tests cover header
 isolation, unsafe redirects and safe hostname diagnostics, redirect bounds,
 byte limits, interruption cleanup, timeouts, ZIP envelope checks and overwrite refusal.
+Signed-content tests cover the pipeline/run route, credential isolation, missing or
+expired content, mismatched artifact/build identities and blocked sign-in redirects.
 The synthetic symlink test skipped locally because the Windows session cannot create
 symlinks; it remains part of the cross-platform suite.
 
 Official endpoint references, checked before implementation:
 
+- [Pipelines Artifacts Get and signedContent](https://learn.microsoft.com/en-us/rest/api/azure/devops/pipelines/artifacts/get?view=azure-devops-rest-7.1)
+- [Pipeline definition and run/build IDs](https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/download-pipeline-artifact-v2?view=azure-pipelines)
 - [Builds List](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/list?view=azure-devops-rest-7.1)
 - [Builds Get](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get?view=azure-devops-rest-7.1)
 - [Get Build Logs](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get-build-logs?view=azure-devops-rest-7.1)

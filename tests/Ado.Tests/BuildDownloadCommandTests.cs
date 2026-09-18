@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Ado.Cli;
+using Ado.Infrastructure.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Ado.Tests;
@@ -7,6 +8,13 @@ namespace Ado.Tests;
 [TestClass]
 public sealed class BuildDownloadCommandTests
 {
+    [TestMethod]
+    public void SignedArtifactRouteEncodesNamesAndBindsProject()
+    {
+        var uri = EndpointBuilder.PipelineArtifact("example", "My Project", 12, 34, "drop/a&b?#");
+        Assert.AreEqual("https://dev.azure.com/example/My%20Project/_apis/pipelines/12/runs/34/artifacts?api-version=7.1&artifactName=drop%2Fa%26b%3F%23&%24expand=signedContent", uri.AbsoluteUri);
+    }
+
     [TestMethod]
     public async Task DryRunDoesNotLookupCredentialsOrCreateFiles()
     {
@@ -21,17 +29,90 @@ public sealed class BuildDownloadCommandTests
     }
 
     [TestMethod]
-    public async Task ReadOnlyAllowsDownloadAfterMetadataAndWritesExactDestination()
+    [DataRow("Container")]
+    [DataRow("PipelineArtifact")]
+    public async Task ReadOnlyAllowsDownloadAfterMetadataAndWritesExactDestination(string resourceType)
     {
         using var directory = new DownloadDirectory();
-        using var handler = new TransportTests.FakeHandler(request => request.Headers.Accept.Single().MediaType == "application/json"
-            ? TransportTests.Json("""{"id":7,"name":"drop","resource":{"type":"PipelineArtifact","downloadUrl":"https://evil.invalid/secret-sentinel"}}""")
-            : BuildDownloadTests.Content(BuildDownloadTests.Zip()));
+        using var handler = new TransportTests.FakeHandler(request =>
+        {
+            if (request.RequestUri!.Host == "dev.azure.com")
+            {
+                Assert.IsNotNull(request.Headers.Authorization);
+                if (request.RequestUri.AbsolutePath.EndsWith("/builds/34", StringComparison.Ordinal))
+                    return TransportTests.Json("""{"id":34,"definition":{"id":12}}""");
+                if (request.RequestUri.AbsolutePath.Contains("/pipelines/", StringComparison.Ordinal))
+                {
+                    Assert.AreEqual("https://dev.azure.com/example/Project/_apis/pipelines/12/runs/34/artifacts?api-version=7.1&artifactName=drop&%24expand=signedContent", request.RequestUri.AbsoluteUri);
+                    return SignedContent();
+                }
+                if (request.Headers.Accept.Single().MediaType == "application/json")
+                    return TransportTests.Json(JsonSerializer.Serialize(new { id = 7, name = "drop", resource = new { type = resourceType, downloadUrl = "https://evil.invalid/secret-sentinel" } }));
+                Assert.AreEqual("Container", resourceType);
+            }
+            else
+            {
+                Assert.AreEqual("artprodcus3.artifacts.visualstudio.com", request.RequestUri.Host);
+                Assert.IsNull(request.Headers.Authorization);
+                Assert.IsFalse(request.Headers.Contains("Cookie"));
+                Assert.IsFalse(request.Headers.Contains("X-TFS-FedAuthRedirect"));
+                Assert.AreEqual("?sig=secret-sentinel", request.RequestUri.Query);
+            }
+            return BuildDownloadTests.Content(BuildDownloadTests.Zip());
+        });
         var result = await RunAsync(directory.Target, [], handler);
         Assert.AreEqual(0, result.Exit, result.Output);
         Assert.IsTrue(File.Exists(directory.Target));
-        Assert.AreEqual(2, handler.Calls);
+        Assert.AreEqual(resourceType == "Container" ? 2 : 4, handler.Calls);
         Assert.IsFalse(result.Output.Contains("secret-sentinel", StringComparison.Ordinal));
+    }
+
+    private static System.Net.Http.HttpResponseMessage SignedContent(string name = "drop",
+        string url = "https://artprodcus3.artifacts.visualstudio.com/content?sig=secret-sentinel",
+        string expires = "2099-01-01T00:00:00Z") => TransportTests.Json(JsonSerializer.Serialize(new
+        { name, signedContent = new { url, signatureExpires = expires } }));
+
+    [TestMethod]
+    [DataRow("wrongName")]
+    [DataRow("expired")]
+    [DataRow("missing")]
+    [DataRow("unsafeHost")]
+    [DataRow("identityRedirect")]
+    [DataRow("wrongBuild")]
+    public async Task SignedContentFailuresNeverPublishOrForwardCredentials(string mode)
+    {
+        using var directory = new DownloadDirectory();
+        int contentCalls = 0;
+        using var handler = new TransportTests.FakeHandler(request =>
+        {
+            if (request.RequestUri!.Host != "dev.azure.com")
+            {
+                Assert.AreEqual("identityRedirect", mode);
+                Assert.AreEqual("artprodcus3.artifacts.visualstudio.com", request.RequestUri.Host);
+                Assert.IsNull(request.Headers.Authorization);
+                contentCalls++;
+                return new(System.Net.HttpStatusCode.Redirect)
+                { Headers = { Location = new("https://spsprodcus2.vssps.visualstudio.com/signin?secret-sentinel") } };
+            }
+            if (request.RequestUri.AbsolutePath.EndsWith("/builds/34", StringComparison.Ordinal))
+                return TransportTests.Json(mode == "wrongBuild" ? """{"id":35,"definition":{"id":12}}""" : """{"id":34,"definition":{"id":12}}""");
+            if (!request.RequestUri.AbsolutePath.Contains("/pipelines/", StringComparison.Ordinal))
+                return TransportTests.Json("""{"id":7,"name":"drop","resource":{"type":"PipelineArtifact"}}""");
+            return mode switch
+            {
+                "wrongName" => SignedContent(name: "other"),
+                "expired" => SignedContent(expires: "2000-01-01T00:00:00Z"),
+                "missing" => TransportTests.Json("""{"name":"drop"}"""),
+                "unsafeHost" => SignedContent(url: "https://evil.invalid/secret-sentinel"),
+                _ => SignedContent()
+            };
+        });
+        var result = await RunAsync(directory.Target, [], handler);
+        Assert.AreNotEqual(0, result.Exit);
+        Assert.AreEqual(mode == "identityRedirect" ? 1 : 0, contentCalls);
+        Assert.AreEqual(0, Directory.GetFiles(directory.Root).Length);
+        Assert.IsFalse(result.Output.Contains("secret-sentinel", StringComparison.Ordinal));
+        Assert.AreEqual(mode == "wrongBuild" ? 2 : mode == "identityRedirect" ? 4 : 3, handler.Calls);
     }
 
     [TestMethod]

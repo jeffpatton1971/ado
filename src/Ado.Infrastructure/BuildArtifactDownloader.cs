@@ -29,12 +29,17 @@ public sealed class BuildArtifactDownloader(HttpClient serviceClient, HttpClient
     }
 
     public async Task<BuildOutputDownload> DownloadAsync(int buildId, string artifactName, DownloadTarget target,
-        long maxBytes, int timeoutSeconds, CancellationToken cancellationToken)
+        long maxBytes, int timeoutSeconds, CancellationToken cancellationToken, Uri? signedContent = null)
     {
         if (maxBytes <= 0 || timeoutSeconds <= 0 || timeoutSeconds > 86400)
             throw new AdoException("invalid_download_bounds", "Download byte limit and timeout must be positive; timeout cannot exceed one day.", ExitCode.Usage);
         var uri = EndpointBuilder.BuildArtifact(Operations.BuildArtifactGet, organization, project, buildId, artifactName);
         EndpointBuilder.ValidateDestination(uri, ServiceHost.Core, organization, project);
+        if (signedContent is not null)
+        {
+            ValidateRedirect(signedContent);
+            uri = signedContent;
+        }
         target.Check();
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
@@ -47,13 +52,14 @@ public sealed class BuildArtifactDownloader(HttpClient serviceClient, HttpClient
                 if (hop > 0) ValidateRedirect(uri);
                 using var request = new HttpRequestMessage(HttpMethod.Get, uri);
                 request.Headers.Accept.ParseAdd("application/zip");
-                if (hop == 0)
+                bool authenticatedServiceRequest = hop == 0 && signedContent is null;
+                if (authenticatedServiceRequest)
                 {
                     authentication.Apply(request);
                     request.Headers.Add("X-TFS-FedAuthRedirect", "Suppress");
                 }
                 // The content client has no cookies/default credentials and never receives authentication.
-                using var response = await (hop == 0 ? serviceClient : contentClient).SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+                using var response = await (authenticatedServiceRequest ? serviceClient : contentClient).SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
                 if (response.StatusCode is HttpStatusCode.MovedPermanently or HttpStatusCode.Redirect or HttpStatusCode.SeeOther or HttpStatusCode.TemporaryRedirect or HttpStatusCode.PermanentRedirect)
                 {
                     if (hop == 5 || response.Headers.Location is not { } location) throw Failure();

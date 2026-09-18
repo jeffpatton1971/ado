@@ -40,7 +40,10 @@ reported a successful 26-log index and content retrieval for log 3 of build 1872
 Build-output metadata list/get also have user-reported live success for build 18522,
 including CompiledOutputs (17112). ZIP download tests use generated in-memory archives
 and mocked HTTP only, covering redirect credential isolation, bounds, interruption,
-cleanup, file conflicts and local dry-run. No live download has been performed.
+cleanup, file conflicts and local dry-run. User-run downloads reached the artifact
+service but were blocked on its sign-in redirect. PipelineArtifact downloads now
+request signedContent; tests cover credential isolation, expiry and identity checks.
+Successful live download remains unverified.
 The download symlink test skipped in the current Windows session because creating a
 synthetic symlink requires unavailable privileges; cross-platform execution remains pending.
 

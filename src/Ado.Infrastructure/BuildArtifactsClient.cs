@@ -40,6 +40,24 @@ public sealed class BuildArtifactsClient(ServiceTransport transport, string orga
         return new([Parse(value, buildId)], new(Organization: organization, Project: project, RequestId: response.RequestId));
     }
 
+    public async Task<Uri> GetSignedContentAsync(int buildId, string artifactName, CancellationToken cancellationToken)
+    {
+        var build = await new BuildsClient(transport, organization, project).GetAsync(buildId, cancellationToken);
+        using var response = await transport.GetAsync(Operations.PipelineArtifactSignedContent,
+            EndpointBuilder.PipelineArtifact(organization, project, build.Items[0].DefinitionId, buildId, artifactName), cancellationToken, project);
+        var value = response.Document.RootElement;
+        if (response.ContinuationToken is not null || value.ValueKind != JsonValueKind.Object
+            || Text(value, "name", 1024) != artifactName
+            || !value.TryGetProperty("signedContent", out var signed) || signed.ValueKind != JsonValueKind.Object
+            || !signed.TryGetProperty("signatureExpires", out var expiry) || expiry.ValueKind != JsonValueKind.String
+            || !expiry.TryGetDateTimeOffset(out var expires) || expires <= DateTimeOffset.UtcNow
+            || !Uri.TryCreate(Text(signed, "url", 16384), UriKind.Absolute, out var uri))
+            throw new AdoException("invalid_signed_content", "The service did not return matching, unexpired signed artifact content.", ExitCode.Transient);
+        // Keep the capability URL private to the download path; never include it in output.
+        BuildArtifactDownloader.ValidateStorageDestination(uri);
+        return uri;
+    }
+
     private BuildOutputArtifactInfo Parse(JsonElement value, int buildId)
     {
         if (value.ValueKind != JsonValueKind.Object || !value.TryGetProperty("id", out var id) || id.ValueKind != JsonValueKind.Number

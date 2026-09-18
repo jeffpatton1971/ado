@@ -151,10 +151,13 @@ internal static class ServiceCommands
                 var metadata = await new BuildArtifactsClient(transport, organization, profile.Project!).GetAsync(options.BuildId!.Value, options.ArtifactName!, deadline.Token);
                 if (metadata.Items[0].ResourceType is not ("Container" or "PipelineArtifact"))
                     throw new AdoException("unsupported_artifact_type", "ZIP download is currently supported only for Container and PipelineArtifact build outputs.", ExitCode.Safety);
+                Uri? signedContent = metadata.Items[0].ResourceType == "PipelineArtifact"
+                    ? await new BuildArtifactsClient(transport, organization, profile.Project!).GetSignedContentAsync(options.BuildId.Value, options.ArtifactName!, deadline.Token)
+                    : null;
                 using var downloadService = testHandler is null ? BuildArtifactDownloader.CreateClient() : new HttpClient(testHandler, false) { Timeout = Timeout.InfiniteTimeSpan };
                 using var contentClient = testHandler is null ? BuildArtifactDownloader.CreateClient() : new HttpClient(testHandler, false) { Timeout = Timeout.InfiniteTimeSpan };
                 var downloadResult = await new BuildArtifactDownloader(downloadService, contentClient, authentication, organization, profile.Project!)
-                    .DownloadAsync(options.BuildId.Value, options.ArtifactName!, downloadTarget, maxBytes, downloadSeconds, deadline.Token);
+                    .DownloadAsync(options.BuildId.Value, options.ArtifactName!, downloadTarget, maxBytes, downloadSeconds, deadline.Token, signedContent);
                 await OutputWriter.SuccessAsync(output, downloadResult, options.Json, new(Organization: organization, Project: profile.Project));
                 return 0;
             }

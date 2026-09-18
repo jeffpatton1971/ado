@@ -156,6 +156,18 @@ public static partial class EndpointBuilder
         return new UriBuilder("https", Host(operation.Service)) { Path = path, Query = query }.Uri;
     }
 
+    public static Uri PipelineArtifact(string organization, string project, int pipelineId, int runId, string artifactName)
+    {
+        // Reuse the input validation for artifact names and pipeline/run identities.
+        _ = BuildArtifact(Operations.BuildArtifactGet, organization, project, runId, artifactName);
+        var run = Pipeline(Operations.PipelineRunGet, organization, project, pipelineId, runId);
+        return new UriBuilder(run)
+        {
+            Path = run.AbsolutePath + "/artifacts",
+            Query = "api-version=7.1&artifactName=" + Uri.EscapeDataString(artifactName) + "&%24expand=signedContent"
+        }.Uri;
+    }
+
     public static void ValidateDestination(Uri uri, ServiceHost service, string organization, string? project = null)
     {
         ValidateOrganization(organization);

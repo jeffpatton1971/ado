@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Resolve PipelineArtifact downloads through the Pipelines signedContent API, using
+  the build's definition ID and an unexpired URL. The PAT stays on dev.azure.com;
+  identity-service redirects remain blocked.
 - Allow HTTPS artifact downloads through *.artifacts.visualstudio.com, including the
   user-observed artprodcus3 host, while keeping credentials isolated on every redirect.
 - Include a bounded, credential-redacted hostname when an artifact download redirect
