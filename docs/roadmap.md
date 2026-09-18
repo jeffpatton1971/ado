@@ -163,7 +163,9 @@ with explicit unavailable states; it does not infer template usage or fetch curr
 ### M1.4 — Azure Artifacts feeds and packages (rank 4)
 
 Feed list/get is implemented for explicit project or organization scope, with bounded
-output and allowlisted identity fields. Live verification is pending. Package/version
+output and allowlisted identity fields. Project feed list is verified live for
+rseng/impldevmpc (`testing-upstream`); organization scope and feed get remain pending.
+Package/version
 lookup, exact NuGet download and structured package inspection are not implemented yet.
 
 - [ ] List/get feeds, packages and exact versions, supporting applicable organization

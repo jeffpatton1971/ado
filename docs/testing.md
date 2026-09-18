@@ -141,7 +141,12 @@ mock-tested only; this does not verify PR or shared-template provenance.
 Feed list/get mocks verify project and organization routes, allowlisted identity,
 project association, validation before credentials, partial JSON with exit 10,
 HTTP 401/403/404 errors, mismatched feed/project rejection, credential redaction
-and terminal escaping. Feed live verification is pending. See [feed syntax](feeds.md).
+and terminal escaping. On 2026-09-18 the user verified project-scoped feed list
+in rseng/impldevmpc with limit 100: `testing-upstream`, ID
+`ad52ea46-c29f-4c9c-9b36-600181eb40da`, scope project, project impldevmpc.
+The user identified `automation` as an organization-level feed; its API retrieval
+has not yet been verified. Organization listing, feed get and live JSON remain
+pending. See [feed syntax](feeds.md).
 
 Live read-only tests require an explicitly authorized organization/project. Remote
 mutation tests require separate approval of exact disposable target, effect/cost,

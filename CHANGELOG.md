@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record live project feed discovery for testing-upstream in rseng/impldevmpc;
+  automation was identified by the user as an organization-scoped feed.
+
 - Add read-only feed list/get on the Azure Artifacts host, with explicit project or
   organization scope, bounded allowlisted output and honest non-paged truncation.
 

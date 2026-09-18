@@ -32,7 +32,10 @@ An empty listing does not prove nonexistence. HTTP authentication/permission/not
 responses retain the CLI's error categories; a service-masked 404 cannot distinguish
 missing access from a missing feed. The documented read scope is `vso.packaging`.
 Native credentials, external Entra tokens, cancellation and JSON/non-interactive behavior
-use the existing transport and authentication path. Live verification is pending.
+use the existing transport and authentication path. The user verified project list
+for rseng/impldevmpc (`testing-upstream`). The user's `automation` feed is organization
+scoped, so select `--scope organization` to retrieve it. Organization listing and
+feed get remain pending live verification.
 
 References: [list feeds](https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/feed-management/get-feeds?view=azure-devops-rest-7.1),
 [get feed](https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/feed-management/get-feed?view=azure-devops-rest-7.1).
