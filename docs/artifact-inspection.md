@@ -134,4 +134,9 @@ validate package semantics. Expected archive hash comparison is opt-in.
 Tests cover selected bytes/digests, dry-run, overwrite refusal, unsafe archives,
 missing/directory entries, hash mismatch and temporary cleanup after unsupported
 compression. The command reuses inspection's bound tests and the download target's
-path checks. Live selected extraction remains pending.
+path checks. On 2026-09-18 the user verified extraction of
+CompiledOutputs/src/plugin.json from the build 18522 archive to a new local file:
+527 bytes, dryRun:false and written:true. The reported archive and member digests
+matched the preceding inspections. This is a user-reported successful write;
+independent destination rehash, live overwrite refusal and live dry-run remain
+unverified (synthetic tests cover those behaviors).

@@ -103,7 +103,9 @@ is implemented with shared validation and no-overwrite publication.
   expanded bytes and execution time; clean up interrupted temporary output.
   artifact extract now writes one exact member to an explicit destination, with
   full archive validation, shared bounds, temporary cleanup and no overwrite.
-  Mock coverage passes; live extraction and broader platform validation remain open.
+  Mock coverage passes; the user reported successful plugin.json extraction from
+  build 18522 (527 bytes, matching prior digests, written:true). Broader platform
+  validation and live failure-path/dry-run checks remain open.
   Bulk directory-tree extraction is not implemented.
 - [ ] Produce a minimal sanitized evidence manifest identifying the selected
   run/artifact/files, digests and limitations. No automatic raw-log retention.

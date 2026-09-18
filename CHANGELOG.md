@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record user-reported successful extraction of plugin.json from build 18522:
+  527 bytes written with archive/member hashes matching earlier inspections.
+
 - Add artifact extract for one exact member to an explicit new file, reusing
   archive validation/bounds and destination checks, with temporary publication,
   no overwrite, hashes and a no-write local dry-run.
