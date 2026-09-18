@@ -30,7 +30,9 @@ but returns exit 10. An empty complete list succeeds. Get validates the requeste
 service. No create, deploy, approve or cancel commands are implemented here.
 
 Mock tests cover routing, pagination, redaction, project/definition/release identity,
-invalid continuations and CLI output. Live verification remains pending.
+invalid continuations and CLI output. The user verified live listing in impldevmpc:
+20 releases were returned with a truncation warning, including release 1492 from
+definition 20. Individual release retrieval and continuation resume remain unverified.
 
 References:
 

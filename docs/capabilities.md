@@ -30,7 +30,7 @@ agent has not accessed the live organization or submitted runs.
 | build artifact list | dev.azure.com | Build Artifacts 7.1 | Read metadata | None; local output bound | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
 | build artifact get | dev.azure.com | Build Artifacts 7.1 | Read metadata | None | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
 | build artifact download | dev.azure.com plus validated storage redirects | Build / Pipelines Artifacts 7.1 (signedContent for PipelineArtifact) | Remote read, explicit local file write | None; bounded ZIP stream | Local plan, no writes/network | Explicit destination; no overwrite | vso.build; content credentials isolated | Mock verified; user verified PipelineArtifact download and external extraction (build 18522); Container live verification pending |
-| release list | vsrm.dev.azure.com | Release 7.1 | Read | Numeric header continuation | N/A | None | vso.release | Mock HTTP verified; live pending |
+| release list | vsrm.dev.azure.com | Release 7.1 | Read | Numeric header continuation | N/A | None | vso.release | Mock HTTP verified; user-reported live listing success; resume pending |
 | release get | vsrm.dev.azure.com | Release 7.1 | Read | None | N/A | None | vso.release | Mock HTTP verified; live pending |
 
 Output schema starts at version 1. Azure DevOps Services only.

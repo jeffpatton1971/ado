@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Record user-reported live classic release listing with a bounded 20-item result
+  and truncation warning; individual release retrieval remains unverified.
 - Add classic release list/get on the Release service host, with numeric pagination,
   a definition filter, safe metadata output and read-only support.
 - Record user-reported successful build timeline retrieval for build 18722,
