@@ -29,6 +29,11 @@ jobs:
           global-json-file: global.json
       - run: dotnet restore Ado.slnx --locked-mode
       - run: dotnet build Ado.slnx --no-restore --configuration Release
+      - name: Use canonical macOS temporary directory for filesystem safety tests
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          python3 -c 'import os; print("TMPDIR=" + os.path.realpath(os.environ["RUNNER_TEMP"]))' >> "$GITHUB_ENV"
       - run: dotnet test Ado.slnx --no-build --configuration Release --logger trx --results-directory artifacts/test-results
       - run: dotnet format Ado.slnx --no-restore --verify-no-changes
       - run: dotnet list Ado.slnx package --vulnerable --include-transitive
@@ -62,4 +67,4 @@ jobs:
         with:
           global-json-file: global.json
       - name: Cross-compile only (does not claim runtime verification)
-        run: dotnet publish src/Ado.Cli --configuration Release --runtime ${{ matrix.rid }} --self-contained true --output artifacts/${{ matrix.rid }} -p:PackAsTool=false -p:RestorePackagesWithLockFile=false
+        run: dotnet publish src/Ado.Cli --configuration Release --runtime ${{ matrix.rid }} --self-contained true --output artifacts/${{ matrix.rid }} -p:PackAsTool=false -p:NuGetLockFilePath=obj/publish-packages.lock.json

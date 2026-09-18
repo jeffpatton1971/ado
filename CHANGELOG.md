@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fix first hosted CI failures: use generated publish lock files instead of disabling
+  lock files, and canonicalize macOS test temporary paths without weakening symlink checks.
+
 - Complete synthetic exact-source acceptance for identical build names, different
   commits, repeated matching runs and bounded scans; retain separate retry-history
   validation and explicit live-coverage gaps.
