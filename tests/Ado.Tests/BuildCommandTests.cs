@@ -108,6 +108,54 @@ public sealed class BuildCommandTests
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ExactSourceKeepsDistinctMatchingRunsWithoutSubstitutingSuccessfulNames(bool bounded)
+    {
+        string sha = new('a', 40);
+        object Row(int id, string source, string result) => new
+        {
+            id,
+            definition = new { id = 12, name = "Identical pipeline name" },
+            buildNumber = "Identical build name",
+            sourceVersion = source,
+            status = "completed",
+            result,
+            sourceBranch = "refs/heads/main",
+            repository = new { id = "owner/repo", type = "GitHub" }
+        };
+        int calls = 0;
+        using var handler = new TransportTests.FakeHandler(request =>
+        {
+            calls++;
+            Assert.AreEqual(HttpMethod.Get, request.Method);
+            foreach (string filter in new[] { "definitions=12", "repositoryId=owner%2Frepo", "repositoryType=GitHub", "branchName=refs%2Fheads%2Fmain" })
+                StringAssert.Contains(request.RequestUri!.Query, filter);
+            if (calls == 2) StringAssert.Contains(request.RequestUri!.Query, "continuationToken=second");
+            object[] rows = calls == 1
+                ? [Row(40, new string('b', 40), "succeeded"), Row(41, sha, "failed")]
+                : [Row(42, sha, "succeeded"), Row(43, new string('c', 40), "succeeded")];
+            var response = TransportTests.Json(JsonSerializer.Serialize(new { value = rows }));
+            if (calls == 1) response.Headers.Add("x-ms-continuationtoken", "second");
+            return response;
+        });
+        var result = await RunAsync(["list", "--definition-id", "12", "--repository-id", "owner/repo", "--repository-type", "GitHub",
+            "--branch", "refs/heads/main", "--source-sha", sha, "--top", "2", "--limit", bounded ? "2" : "4", "--require-complete"], handler);
+        Assert.AreEqual(bounded ? 10 : 0, result.Exit, result.Output);
+        Assert.AreEqual(bounded ? 1 : 2, calls);
+        using var json = JsonDocument.Parse(result.Output);
+        var rows = json.RootElement.GetProperty("data").EnumerateArray().ToArray();
+        CollectionAssert.AreEqual(bounded ? new[] { 41 } : new[] { 41, 42 }, rows.Select(row => row.GetProperty("id").GetInt32()).ToArray());
+        Assert.AreEqual("failed", rows[0].GetProperty("result").GetString());
+        if (!bounded) Assert.AreEqual("succeeded", rows[1].GetProperty("result").GetString());
+        Assert.IsTrue(rows.All(row => row.GetProperty("sourceVersion").GetString() == sha));
+        var metadata = json.RootElement.GetProperty("meta");
+        Assert.AreEqual(bounded ? 2 : 4, metadata.GetProperty("scannedCount").GetInt32());
+        Assert.AreEqual(bounded ? "partial" : "complete", metadata.GetProperty("completeness").GetString());
+        Assert.AreEqual(bounded ? "second" : null, metadata.GetProperty("continuationToken").GetString());
+    }
+
+    [TestMethod]
     [DataRow("other/repo", "GitHub")]
     [DataRow(null, "GitHub")]
     [DataRow("owner/repo", "TfsGit")]

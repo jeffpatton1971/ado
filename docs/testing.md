@@ -1,5 +1,13 @@
 # Verification and CI
 
+Exact-source acceptance includes a two-page fixture with identical pipeline/build
+names, successful builds of other commits and failed/successful runs of the selected
+commit. Only the exact SHA matches survive, retaining distinct build IDs and results.
+The bounded variant returns partial data, scan count and continuation with exit 10.
+This does not infer that separate build IDs are retry attempts: intra-build retries
+are covered by timeline-history and diagnostic-workflow reference tests. Actual
+live retry fixtures remain outstanding.
+
 Repository-filter acceptance: ordinary build searches now reject wrong or missing
 returned repository IDs/types, including a successful build with the requested SHA.
 Four CLI regression cases exercise this through the JSON error contract. Existing

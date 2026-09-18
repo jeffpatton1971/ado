@@ -1,5 +1,10 @@
 # Capability matrix
 
+Exact-source acceptance tests verify that identical names and successful outcomes
+cannot substitute a different commit, and that separate matching runs retain their
+IDs/results. Bounded scans stay partial and resumable. Retry attempt identities use
+timeline references, not build-name or result heuristics.
+
 Build repository filters validate returned repository ID/type for ordinary searches
 as well as PR queries. A matching source SHA alone cannot satisfy a repository-scoped
 query if service metadata reports a different or missing repository identity.

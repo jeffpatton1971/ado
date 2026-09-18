@@ -169,12 +169,18 @@ with explicit unavailable states; it does not infer template usage or fetch curr
   mark unavailable provenance unknown rather than substituting current HEAD.
   RunRepositoryProvenanceTests verifies reported resources and unavailable states
   without current-branch requests; user verified reported resources for run 18722.
-- [ ] Verify that similarly named successful runs, different commits and retry
+- [x] Verify that similarly named successful runs, different commits and retry
   attempts cannot silently satisfy an exact-source query.
   Ordinary repository filters now validate returned repository ID/type as PR queries
   already did. Regression cases reject wrong/missing identities even with the
   requested SHA and a successful result. Existing tests cover SHA mismatch, unknown
   source versions, bounded continuation and PR head-versus-merge distinctions.
+  New two-page acceptance cases use identical pipeline/build names: successful
+  different-SHA builds are excluded, while failed and successful runs of the exact
+  SHA retain distinct build IDs and outcomes. A bounded scan stays partial and
+  resumable instead of substituting a successful match. Timeline/history and
+  diagnostic workflow tests separately preserve exact attempt references; live
+  retry-history validation remains open under M1.1.
 
 ### M1.4 — Azure Artifacts feeds and packages (rank 4)
 
