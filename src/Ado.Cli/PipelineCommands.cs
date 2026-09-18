@@ -19,8 +19,20 @@ internal static class PipelineCommands
         var runs = options.Command == "pipeline runs"
             ? await client.RunsAsync(options.PipelineId!.Value, limit, cancellationToken)
             : await client.RunGetAsync(options.PipelineId!.Value, options.RunId!.Value, cancellationToken);
-        return await PresentAsync(runs, options, output, error, "RUN ID  PIPELINE ID  NAME  STATE  RESULT",
+        int exit = await PresentAsync(runs, options, output, error, "RUN ID  PIPELINE ID  NAME  STATE  RESULT",
             item => $"{item.Id}  {item.PipelineId}  {OutputWriter.TerminalSafe(item.Name ?? "")}  {OutputWriter.TerminalSafe(item.State ?? "")}  {OutputWriter.TerminalSafe(item.Result ?? "")}");
+        if (!options.Json && options.Command == "pipeline run get" && runs.Items[0].RepositoryProvenance is { } provenance)
+        {
+            await output.WriteLineAsync($"REPOSITORY PROVENANCE {provenance.Status}");
+            if (provenance.Repositories is { Count: > 0 })
+            {
+                await output.WriteLineAsync("ALIAS  TYPE  REF  VERSION");
+                foreach (var repository in provenance.Repositories)
+                    await output.WriteLineAsync($"{OutputWriter.TerminalSafe(repository.Alias)}  {OutputWriter.TerminalSafe(repository.Type ?? "unknown")}  {OutputWriter.TerminalSafe(repository.RefName ?? "unknown")}  {OutputWriter.TerminalSafe(repository.Version ?? "unknown")}");
+            }
+            foreach (var note in provenance.Limitations) await output.WriteLineAsync("note: " + note);
+        }
+        return exit;
     }
 
     private static async Task<int> PresentAsync<T>(CollectionResult<T> result, ServiceOptions options, TextWriter output,

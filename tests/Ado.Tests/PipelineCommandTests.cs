@@ -61,7 +61,36 @@ public sealed class PipelineCommandTests
         Assert.AreEqual(JsonValueKind.Null, json.RootElement.GetProperty("meta").GetProperty("continuationToken").ValueKind);
     }
 
-    private static async Task<(int Exit, string Output)> RunAsync(string[] args, HttpMessageHandler handler)
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task RunGetPresentsRepositoryVersionsAndEscapesServiceControls(bool jsonOutput)
+    {
+        using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json("""
+            {"id":34,"pipeline":{"id":12},"resources":{"repositories":{
+              "shared\u001b[31m":{"repository":{"type":"azureReposGit"},"refName":"refs/heads/main","version":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+            }}}
+            """));
+        var result = await RunAsync(["pipeline", "run", "get", "--pipeline-id", "12", "--run-id", "34"], handler, jsonOutput);
+        Assert.AreEqual(0, result.Exit, result.Output);
+        if (jsonOutput)
+        {
+            using var json = JsonDocument.Parse(result.Output);
+            var provenance = json.RootElement.GetProperty("data").GetProperty("repositoryProvenance");
+            Assert.AreEqual("reported_versions", provenance.GetProperty("status").GetString());
+            Assert.AreEqual(new string('a', 40), provenance.GetProperty("repositories")[0].GetProperty("version").GetString());
+        }
+        else
+        {
+            StringAssert.Contains(result.Output, "REPOSITORY PROVENANCE reported_versions");
+            StringAssert.Contains(result.Output, "shared\\u001b[31m");
+            Assert.IsFalse(result.Output.Contains('\u001b'));
+            StringAssert.Contains(result.Output, new string('a', 40));
+        }
+        Assert.AreEqual(1, handler.Calls);
+    }
+
+    private static async Task<(int Exit, string Output)> RunAsync(string[] args, HttpMessageHandler handler, bool json = true)
     {
         string path = Path.GetTempFileName();
         try
@@ -69,7 +98,7 @@ public sealed class PipelineCommandTests
             await File.WriteAllTextAsync(path, """{"defaultProfile":"test","profiles":{"test":{"organization":"example","project":"Backend Project"}}}""");
             using var output = new StringWriter();
             using var error = new StringWriter();
-            int exit = await CliApp.RunAsync([.. args, "--config", path, "--json", "--read-only", "--non-interactive"], output, error,
+            int exit = await CliApp.RunAsync([.. args, "--config", path, "--output", json ? "json" : "table", "--read-only", "--non-interactive"], output, error,
                 environment: key => key == "ADO_TOKEN" ? "synthetic" : null, testHandler: handler);
             return (exit, output.ToString());
         }

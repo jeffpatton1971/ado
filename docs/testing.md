@@ -74,6 +74,12 @@ active OS approval dialog. This is documented rather than claiming universal can
 or release readiness. Linux passes a cancellable to libsecret and suppresses unlock in
 non-interactive mode.
 
+Run repository provenance tests cover multiple reported revisions, missing and empty
+resources, missing versions, duplicate aliases, malformed values, credential redaction,
+omission of sensitive payload fields, JSON/table output and terminal escaping.
+The single mocked run GET is the only request; no current repository/definition read
+is used to manufacture historical provenance. Live verification remains pending.
+
 Build discovery tests cover repository query encoding, full-SHA validation before
 credential lookup, exact case-insensitive source matching, nonmatching scan limits,
 continuation resumption, retained partial JSON and missing-source completeness.

@@ -66,6 +66,22 @@ credential lookup. Mocked URL routing/rejection verified; the user verified a li
 timeline read using the modern run URL for build 18722. Other URL-command combinations
 and the legacy host remain mock-tested only.
 
+Pipeline run get includes `repositoryProvenance` in JSON and a repository table.
+It allowlists run resource alias, repository type, ref and version from the
+[Run Get response](https://learn.microsoft.com/en-us/rest/api/azure/devops/pipelines/runs/get?view=azure-devops-rest-7.1).
+Status is `unavailable` when resources/repositories are absent or null,
+`no_resources_reported` for an empty map, `versions_unavailable` if any version is
+missing/blank, or `reported_versions` when each reported resource has a version.
+These statuses describe reported fields, not verified or exhaustive provenance.
+Envelope completeness still describes retrieval of the run, not provenance coverage.
+Aliases are not global repository IDs; versions are not independently verified.
+No current definition, branch HEAD, raw resource URLs, variables or expanded YAML
+are fetched or exposed. This does not prove every template revision or checkout,
+nor map PR head commits to merge commits. Run listings retain their compact projection.
+Repository maps are bounded to 1,000 entries and the existing 4 MiB response bound;
+malformed or oversized maps fail rather than silently dropping resources.
+Mock HTTP and CLI output tests cover this addition; live verification is pending.
+
 Build list supports server-side `--repository-id` and `--repository-type` filters
 (for example `TfsGit`). `--source-sha` accepts a full 40-character Git SHA and matches
 the reported build source version locally, case-insensitively. With this flag,

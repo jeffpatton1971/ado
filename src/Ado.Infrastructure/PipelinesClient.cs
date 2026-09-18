@@ -99,7 +99,40 @@ public sealed class PipelinesClient(ServiceTransport transport, string organizat
             EndpointBuilder.Pipeline(Operations.PipelineRunGet, organization, project, pipelineId, runId), cancellationToken, project);
         var run = ParseRun(response.Document.RootElement, pipelineId);
         if (run.Id != runId) throw Invalid();
+        run = run with { RepositoryProvenance = ParseRepositoryProvenance(response.Document.RootElement) };
         return new([run], Meta(response.RequestId));
+    }
+
+    private RunRepositoryProvenance ParseRepositoryProvenance(JsonElement value)
+    {
+        string[] limitations = [
+            "Repository versions are reported by this run; current branches and definitions were not queried.",
+            "Aliases identify run resources, not globally unique repositories. Versions are service-reported and were not independently verified.",
+            "This does not establish every template revision or checkout used by the run, or map PR head commits to merge commits."
+        ];
+        if (!value.TryGetProperty("resources", out var resources) || resources.ValueKind == JsonValueKind.Null)
+            return new("unavailable", null, limitations);
+        if (resources.ValueKind != JsonValueKind.Object) throw Invalid();
+        if (!resources.TryGetProperty("repositories", out var repositories) || repositories.ValueKind == JsonValueKind.Null)
+            return new("unavailable", null, limitations);
+        if (repositories.ValueKind != JsonValueKind.Object) throw Invalid();
+        var items = new List<RunRepositoryResource>();
+        var aliases = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var property in repositories.EnumerateObject())
+        {
+            if (items.Count >= 1000 || string.IsNullOrWhiteSpace(property.Name) || property.Name.Length > 1024
+                || !aliases.Add(property.Name) || property.Value.ValueKind != JsonValueKind.Object) throw Invalid();
+            string? type = null;
+            if (property.Value.TryGetProperty("repository", out var repository) && repository.ValueKind != JsonValueKind.Null)
+            {
+                if (repository.ValueKind != JsonValueKind.Object) throw Invalid();
+                type = Text(repository, "type", 64);
+            }
+            items.Add(new(transport.Redact(property.Name), type, Text(property.Value, "refName", 2048), Text(property.Value, "version", 1024)));
+        }
+        string status = items.Count == 0 ? "no_resources_reported"
+            : items.Any(item => string.IsNullOrWhiteSpace(item.Version)) ? "versions_unavailable" : "reported_versions";
+        return new(status, items, limitations);
     }
 
     private ResultMetadata Meta(string? requestId, string? continuation = null, string? reason = null, int? scanned = null) => new(
@@ -134,7 +167,8 @@ public sealed class PipelinesClient(ServiceTransport transport, string organizat
             if (field.ValueKind != JsonValueKind.String || !field.TryGetDateTimeOffset(out var result)) throw Invalid();
             return result;
         }
-        // Deliberately omit variables, templateParameters, resources, URLs and finalYaml.
+        // List rows omit resources. Run get adds an allowlisted repository projection separately.
+        // Variables, templateParameters, URLs and finalYaml are never included here.
         return new(id, Text(value, "name", 1024), pipelineId, Text(value, "state", 64), Text(value, "result", 64), Date("createdDate"), Date("finishedDate"));
     }
 
