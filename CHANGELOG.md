@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record live Core 2.8.0 resolution: incomplete bounded inventory refusal followed
+  by successful exact metadata resolution with --all.
+
 - Audit M1 source-provenance and package acceptance against live and synthetic
   evidence; document supported provenance limits and add NuGet manifest/binary
   member inspection coverage without network access or assembly execution.

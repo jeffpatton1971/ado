@@ -230,6 +230,10 @@ version lookup and is not an additional M1 acceptance gate.
   scope/format combinations are coverage limits, not missing command implementations.
 - [ ] Resolve Core, YAML, JSON and other requested dependency versions to exact
   package identities; distinguish not found, inaccessible and incomplete searches.
+  JSON 1.1.0 and Rackspace.BAT.Core.Abstractions 2.8.0 are user-verified in
+  automation. Core resolution with --limit 100 refused incomplete version evidence;
+  --all then resolved the exact version. YAML package name/version remains to be
+  selected and verified. Resolution is metadata evidence, not download permission.
 - [x] Download an exact NuGet package with credential isolation, explicit destination,
   byte/time bounds, no overwrite and reported digest.
   Implemented as package download using the documented 7.1-preview.1 content route,

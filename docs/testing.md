@@ -312,6 +312,14 @@ reads through the resolver; standalone version commands were subsequently verifi
 as recorded above. Live JSON remains unverified. Resolution itself downloads no
 package and does not prove downloadability or compatibility.
 
+The user also verified Rackspace.BAT.Core.Abstractions 2.8.0 in the organization-scoped
+automation feed. With --limit 100, resolution returned version_search_incomplete
+without asserting a match. Retrying with --all succeeded: package ID
+`0602c6b1-d194-436f-9918-715e051390e3`, version ID
+`5104d1e4-a3c3-40e8-b44d-f9da94bfd915`, version 2.8.0. This verifies live bounded
+refusal followed by exact metadata resolution within configured ceilings, not
+package download, compatibility or dependency closure.
+
 NuGetInspectionTests also constructs a package containing plugin.json and a binary
 DLL entry with invalid UTF-8. Exact selection through the JSON/non-interactive CLI
 verifies member lengths and hashes, complete metadata and omitted text, with no
