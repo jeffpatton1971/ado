@@ -126,8 +126,9 @@ is implemented with shared validation and no-overwrite publication.
 
 ### M1.3 — Run discovery and exact source provenance (rank 3)
 
-Available: pipeline run history; build filters for definition, branch, status and
-result; build JSON includes source branch and source version. These do not establish
+Available: pipeline run history; build filters for definition, branch, status,
+result and repository ID/type; bounded exact source SHA filtering with scan counts
+and resumable continuation. Build JSON includes source branch and source version. These do not establish
 all repository, PR or shared-template revisions used by a run.
 
 - [ ] Discover runs by repository, branch, exact SHA, PR and pipeline, using

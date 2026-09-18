@@ -2,10 +2,16 @@ using Ado.Domain;
 
 namespace Ado.Application;
 
-public sealed record BuildFilters(int? DefinitionId = null, string? Status = null, string? Result = null, string? Branch = null)
+public sealed record BuildFilters(int? DefinitionId = null, string? Status = null, string? Result = null, string? Branch = null,
+    string? RepositoryId = null, string? RepositoryType = null, string? SourceSha = null)
 {
     public void Validate()
     {
+        foreach (var value in new[] { RepositoryId, RepositoryType })
+            if (value is not null && (string.IsNullOrWhiteSpace(value) || value.Length > 1024 || value.Any(char.IsControl)))
+                throw new AdoException("invalid_repository_filter", "Repository filters must be nonempty, at most 1024 characters and contain no control characters.", ExitCode.Usage);
+        if (SourceSha is not null && (SourceSha.Length != 40 || !SourceSha.All(Uri.IsHexDigit)))
+            throw new AdoException("invalid_source_sha", "--source-sha requires a full 40-character Git SHA.", ExitCode.Usage);
         if (DefinitionId is <= 0)
             throw new AdoException("invalid_definition", "--definition-id must be positive.", ExitCode.Usage);
         if (Status is not (null or "none" or "inProgress" or "completed" or "cancelling" or "postponed" or "notStarted" or "all"))

@@ -112,6 +112,8 @@ public static partial class EndpointBuilder
             Add("statusFilter", filters.Status);
             Add("resultFilter", filters.Result);
             Add("branchName", filters.Branch);
+            Add("repositoryId", filters.RepositoryId);
+            Add("repositoryType", filters.RepositoryType);
             Add("queryOrder", "queueTimeDescending");
         }
         else throw new AdoException("unsupported_operation", "This endpoint is not registered.", ExitCode.Usage);

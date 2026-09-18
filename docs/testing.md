@@ -74,6 +74,11 @@ active OS approval dialog. This is documented rather than claiming universal can
 or release readiness. Linux passes a cancellable to libsecret and suppresses unlock in
 non-interactive mode.
 
+Build discovery tests cover repository query encoding, full-SHA validation before
+credential lookup, exact case-insensitive source matching, nonmatching scan limits,
+continuation resumption, retained partial JSON and missing-source completeness.
+Repository/SHA discovery has not yet been verified against a live service.
+
 Live read-only tests require an explicitly authorized organization/project. Remote
 mutation tests require separate approval of exact disposable target, effect/cost,
 cleanup and reconciliation plan. No live test is automatically invoked by CI.

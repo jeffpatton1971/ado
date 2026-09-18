@@ -16,10 +16,11 @@ public sealed class BuildsClient(ServiceTransport transport, string organization
         var seen = new HashSet<string>(StringComparer.Ordinal);
         if (continuation is not null) seen.Add(continuation);
         string? next = continuation, requestId = null, reason = null;
-        int bytes = 0;
+        int bytes = 0, scanned = 0;
+        bool sourceUnavailable = false;
         for (int page = 0; page < 100; page++)
         {
-            int top = Math.Min(pageSize, limit - items.Count);
+            int top = Math.Min(pageSize, limit - scanned);
             using var response = await transport.GetAsync(Operations.BuildList,
                 EndpointBuilder.Build(Operations.BuildList, organization, project, top: top, continuation: next, filters: filters), cancellationToken, project);
             var values = response.Document.RootElement;
@@ -29,21 +30,25 @@ public sealed class BuildsClient(ServiceTransport transport, string organization
             {
                 var build = Parse(value);
                 if (filters.DefinitionId is { } id && build.DefinitionId != id) throw Invalid();
-                items.Add(build);
+                scanned++;
+                if (filters.SourceSha is not null && string.IsNullOrEmpty(build.SourceVersion)) sourceUnavailable = true;
+                if (filters.SourceSha is null || string.Equals(build.SourceVersion, filters.SourceSha, StringComparison.OrdinalIgnoreCase))
+                    items.Add(build);
             }
             bytes += response.Bytes;
             requestId = response.RequestId;
             next = response.ContinuationToken;
             if (next is null) break;
             if (!seen.Add(next)) throw Invalid();
-            if (items.Count >= limit || page == 99 || bytes >= 64 * 1024 * 1024)
+            if (scanned >= limit || page == 99 || bytes >= 64 * 1024 * 1024)
             {
-                reason = items.Count >= limit ? "item_limit" : page == 99 ? "page_limit" : "byte_limit";
+                reason = scanned >= limit ? (filters.SourceSha is null ? "item_limit" : "scan_limit") : page == 99 ? "page_limit" : "byte_limit";
                 break;
             }
         }
         return new(items, new(Organization: organization, Project: project, RequestId: requestId, ContinuationToken: next,
-            Truncated: reason is not null, Completeness: reason is null ? "complete" : "partial", TruncationReason: reason, ScannedCount: items.Count));
+            Truncated: reason is not null, Completeness: reason is not null ? "partial" : sourceUnavailable ? "unknown" : "complete",
+            TruncationReason: reason ?? (sourceUnavailable ? "source_version_unavailable" : null), ScannedCount: scanned));
     }
 
     public async Task<CollectionResult<BuildInfo>> GetAsync(int buildId, CancellationToken cancellationToken)

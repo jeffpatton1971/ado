@@ -66,6 +66,17 @@ credential lookup. Mocked URL routing/rejection verified; the user verified a li
 timeline read using the modern run URL for build 18722. Other URL-command combinations
 and the legacy host remain mock-tested only.
 
+Build list supports server-side `--repository-id` and `--repository-type` filters
+(for example `TfsGit`). `--source-sha` accepts a full 40-character Git SHA and matches
+the reported build source version locally, case-insensitively. With this flag,
+`--limit` bounds builds scanned, not matching rows. JSON `scannedCount`, completeness
+and continuation describe the searched segment; resume with every original filter.
+A scan limit can yield zero matches with partial completeness. Missing source versions
+make completeness unknown. `--require-complete` returns exit 10 for incomplete searches.
+This does not match PR head commits against merge commits or discover template revisions.
+The repository/SHA additions are mock-tested; live verification is pending.
+See the [Build List API](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/list?view=azure-devops-rest-7.1).
+
 Run start supports local previews, exact confirmation, single-attempt POST and uncertain-write
 reporting. Server-side YAML preview is separate from local dry-run and requires explicit
 --show-yaml to include expanded content. Scope labels above are endpoint documentation identifiers, not Entra

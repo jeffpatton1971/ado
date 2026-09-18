@@ -19,10 +19,14 @@ internal static class BuildCommands
         }
         else
         {
+            if (options.BuildFilters?.SourceSha is not null)
+                await output.WriteLineAsync($"SCANNED {result.Meta.ScannedCount}  MATCHED {result.Items.Count}  COMPLETENESS {result.Meta.Completeness}");
             await output.WriteLineAsync("BUILD ID  DEFINITION ID  NUMBER  STATUS  RESULT  BRANCH");
             foreach (var item in result.Items)
                 await output.WriteLineAsync($"{item.Id}  {item.DefinitionId}  {OutputWriter.TerminalSafe(item.BuildNumber ?? "")}  {OutputWriter.TerminalSafe(item.Status ?? "")}  {OutputWriter.TerminalSafe(item.Result ?? "")}  {OutputWriter.TerminalSafe(item.SourceBranch ?? "")}");
-            if (incomplete) await error.WriteLineAsync("warning: Results are truncated; JSON includes the continuation token. Resume with the same filters.");
+            if (incomplete) await error.WriteLineAsync(result.Meta.Truncated
+                ? "warning: Results are truncated; JSON includes the continuation token. Resume with the same filters."
+                : "warning: Source versions are unavailable for some scanned builds; exact-source search completeness is unknown.");
         }
         return options.RequireComplete && incomplete ? (int)ExitCode.Partial : 0;
     }

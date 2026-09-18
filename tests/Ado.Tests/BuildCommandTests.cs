@@ -44,6 +44,9 @@ public sealed class BuildCommandTests
     [DataRow("list", "--status", "canceling")]
     [DataRow("list", "--result", "success")]
     [DataRow("list", "--branch", " ")]
+    [DataRow("list", "--source-sha", "abc123")]
+    [DataRow("list", "--repository-id", " ")]
+    [DataRow("list", "--repository-type", "bad\nvalue")]
     [DataRow("list", "--top", "0")]
     [DataRow("list", "--continuation-token", "bad\nvalue")]
     public async Task InvalidInputsFailBeforeCredentialAcquisition(string command, string flag, string value)
@@ -60,6 +63,48 @@ public sealed class BuildCommandTests
         using var handler = new TransportTests.FakeHandler(_ => throw new AssertFailedException());
         Assert.AreEqual(2, (await RunAsync(["get"], handler, token: false)).Exit);
         Assert.AreEqual(0, handler.Calls);
+    }
+
+    [TestMethod]
+    public async Task ExactSourceSearchCanBeEmptyAndPartialThenResume()
+    {
+        string sha = new('a', 40);
+        int calls = 0;
+        using var handler = new TransportTests.FakeHandler(request =>
+        {
+            calls++;
+            StringAssert.Contains(request.RequestUri!.Query, "repositoryId=repo%26id");
+            StringAssert.Contains(request.RequestUri.Query, "repositoryType=TfsGit");
+            Assert.IsFalse(request.RequestUri.Query.Contains("source", StringComparison.OrdinalIgnoreCase));
+            if (calls == 2) StringAssert.Contains(request.RequestUri.Query, "continuationToken=next");
+            var response = TransportTests.Json(JsonSerializer.Serialize(new { value = new[] { new { id = calls, definition = new { id = 12 }, sourceVersion = calls == 1 ? new string('b', 40) : sha.ToUpperInvariant() } } }));
+            if (calls == 1) response.Headers.Add("x-ms-continuationtoken", "next");
+            return response;
+        });
+        string[] args = ["list", "--source-sha", sha, "--repository-id", "repo&id", "--repository-type", "TfsGit", "--limit", "1", "--require-complete"];
+        var first = await RunAsync(args, handler);
+        Assert.AreEqual(10, first.Exit, first.Output);
+        using var firstJson = JsonDocument.Parse(first.Output);
+        Assert.AreEqual(0, firstJson.RootElement.GetProperty("data").GetArrayLength());
+        var meta = firstJson.RootElement.GetProperty("meta");
+        Assert.AreEqual(1, meta.GetProperty("scannedCount").GetInt32());
+        Assert.AreEqual("scan_limit", meta.GetProperty("truncationReason").GetString());
+        Assert.AreEqual("next", meta.GetProperty("continuationToken").GetString());
+        var second = await RunAsync([.. args, "--continuation-token", "next"], handler);
+        Assert.AreEqual(0, second.Exit, second.Output);
+        using var secondJson = JsonDocument.Parse(second.Output);
+        Assert.AreEqual(2, secondJson.RootElement.GetProperty("data")[0].GetProperty("id").GetInt32());
+    }
+
+    [TestMethod]
+    public async Task MissingSourceVersionDoesNotClaimExhaustiveSearch()
+    {
+        using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json("{\"value\":[" + Build + "]}"));
+        var result = await RunAsync(["list", "--source-sha", new string('a', 40), "--require-complete"], handler);
+        Assert.AreEqual(10, result.Exit, result.Output);
+        using var json = JsonDocument.Parse(result.Output);
+        Assert.AreEqual("unknown", json.RootElement.GetProperty("meta").GetProperty("completeness").GetString());
+        Assert.AreEqual("source_version_unavailable", json.RootElement.GetProperty("meta").GetProperty("truncationReason").GetString());
     }
 
     [TestMethod]
