@@ -190,7 +190,7 @@ do not publish a completed file. Failure does not automatically retry or resume 
 
 Authentication is sent only to the exact constructed dev.azure.com organization/project
 endpoint. Up to five redirects may target HTTPS port 443 artifact-storage hosts under
-.vsblob.vsassets.io, .vsblob.visualstudio.com, .blob.core.windows.net or
+.vsblob.vsassets.io, .vsblob.visualstudio.com, .artifacts.visualstudio.com, .blob.core.windows.net or
 .dedup.microsoft.com. Every hop is validated; IP literals, userinfo, fragments and other
 hosts are refused. Redirected content uses a separate client with no authorization,
 cookies, default credentials or referrer. Signed URLs and remote error bodies are never
@@ -215,7 +215,8 @@ agent has made no live requests. Build-output metadata tests cover routes, name 
 identity checks, safe field selection, output bounds and CLI behavior. The user verified
 an empty output list for build 18722, two PipelineArtifact outputs for 18522, and get by
 name for CompiledOutputs (17112). A user-run download of that output was blocked by
-redirect validation; successful live transfer remains unverified. Tests cover header
+redirect validation for artprodcus3.artifacts.visualstudio.com. That service suffix is
+now allowed without forwarding credentials; successful live transfer remains unverified. Tests cover header
 isolation, unsafe redirects and safe hostname diagnostics, redirect bounds,
 byte limits, interruption cleanup, timeouts, ZIP envelope checks and overwrite refusal.
 The synthetic symlink test skipped locally because the Windows session cannot create

@@ -21,7 +21,10 @@ public sealed class BuildDownloadTests
     { Content = new ByteArrayContent(bytes) { Headers = { ContentType = new("application/zip") } } };
 
     [TestMethod]
-    public async Task RedirectedZipUsesNoCredentialAndPublishesOnlyArchive()
+    [DataRow("store.vsblob.vsassets.io", false)]
+    [DataRow("artprodcus3.artifacts.visualstudio.com", false)]
+    [DataRow("artprodcus3.artifacts.visualstudio.com", true)]
+    public async Task RedirectedZipUsesNoCredentialAndPublishesOnlyArchive(string redirectHost, bool redirectAgain)
     {
         using var directory = new DownloadDirectory();
         byte[] zip = Zip();
@@ -30,13 +33,20 @@ public sealed class BuildDownloadTests
             Assert.AreEqual("Basic", request.Headers.Authorization!.Scheme);
             Assert.AreEqual("application/zip", request.Headers.Accept.Single().MediaType);
             Assert.AreEqual("https://dev.azure.com/example/Project/_apis/build/builds/34/artifacts?api-version=7.1&artifactName=drop", request.RequestUri!.AbsoluteUri);
-            return new(HttpStatusCode.Redirect) { Headers = { Location = new("https://store.vsblob.vsassets.io/content?sig=secret-sentinel") } };
+            return new(HttpStatusCode.Redirect) { Headers = { Location = new($"https://{redirectHost}/content?sig=secret-sentinel") } };
         });
+        int contentCalls = 0;
         using var storage = new TransportTests.FakeHandler(request =>
         {
             Assert.IsNull(request.Headers.Authorization);
             Assert.IsNull(request.Headers.Referrer);
             Assert.IsFalse(request.Headers.Contains("Cookie"));
+            Assert.AreEqual("application/zip", request.Headers.Accept.Single().ToString());
+            Assert.IsFalse(request.Headers.Contains("X-TFS-FedAuthRedirect"));
+            contentCalls++;
+            Assert.AreEqual(contentCalls == 1 ? redirectHost : "store.vsblob.vsassets.io", request.RequestUri!.Host);
+            if (redirectAgain && contentCalls == 1)
+                return new(HttpStatusCode.Redirect) { Headers = { Location = new("https://store.vsblob.vsassets.io/content?sig=secret-sentinel") } };
             return Content(zip);
         });
         using var serviceHttp = new HttpClient(service);
@@ -45,6 +55,7 @@ public sealed class BuildDownloadTests
         var result = await new BuildArtifactDownloader(serviceHttp, contentHttp, auth, "example", "Project")
             .DownloadAsync(34, "drop", DownloadTarget.Validate(directory.Target), 10000, 10, CancellationToken.None);
         Assert.AreEqual(zip.Length, result.Bytes);
+        Assert.AreEqual(redirectAgain ? 2 : 1, contentCalls);
         CollectionAssert.AreEqual(zip, await File.ReadAllBytesAsync(directory.Target));
         Assert.AreEqual(1, Directory.GetFiles(directory.Root).Length);
         Assert.AreEqual(0, Directory.GetDirectories(directory.Root).Length);
@@ -58,6 +69,13 @@ public sealed class BuildDownloadTests
     [DataRow("https://store.blob.core.windows.net:444/file")]
     [DataRow("https://user@store.blob.core.windows.net/file")]
     [DataRow("https://dev.azure.com/other/_apis/build/builds")]
+    [DataRow("https://artprodcus3.artifacts.visualstudio.com.evil.invalid/file")]
+    [DataRow("https://fakeartifacts.visualstudio.com/file")]
+    [DataRow("https://unrelated.visualstudio.com/file")]
+    [DataRow("http://artprodcus3.artifacts.visualstudio.com/file")]
+    [DataRow("https://artprodcus3.artifacts.visualstudio.com:444/file")]
+    [DataRow("https://user@artprodcus3.artifacts.visualstudio.com/file")]
+    [DataRow("https://artprodcus3.artifacts.visualstudio.com/file#fragment")]
     public void UnsafeStorageDestinationsAreRejected(string uri) =>
         Assert.ThrowsExactly<AdoException>(() => BuildArtifactDownloader.ValidateStorageDestination(new(uri)));
 

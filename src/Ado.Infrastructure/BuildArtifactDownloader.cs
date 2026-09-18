@@ -21,7 +21,7 @@ public sealed class BuildArtifactDownloader(HttpClient serviceClient, HttpClient
 
     public static void ValidateStorageDestination(Uri uri)
     {
-        string[] suffixes = [".vsblob.vsassets.io", ".vsblob.visualstudio.com", ".blob.core.windows.net", ".dedup.microsoft.com"];
+        string[] suffixes = [".vsblob.vsassets.io", ".vsblob.visualstudio.com", ".artifacts.visualstudio.com", ".blob.core.windows.net", ".dedup.microsoft.com"];
         if (!uri.IsAbsoluteUri || uri.Scheme != "https" || !uri.IsDefaultPort || uri.UserInfo.Length != 0 || uri.Fragment.Length != 0
             || uri.HostNameType != UriHostNameType.Dns || uri.AbsoluteUri.Length > 16384
             || !suffixes.Any(suffix => uri.Host.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)))

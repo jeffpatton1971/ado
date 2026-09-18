@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Allow HTTPS artifact downloads through *.artifacts.visualstudio.com, including the
+  user-observed artprodcus3 host, while keeping credentials isolated on every redirect.
 - Include a bounded, credential-redacted hostname when an artifact download redirect
   is refused, without exposing signed URLs or changing the storage allowlist.
 - Add build artifact download with an explicit new-file destination, local dry-run,
