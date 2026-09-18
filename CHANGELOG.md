@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add release environments with bounded environment IDs, deployment status and rank,
+  safe output and strict completeness reporting.
 - Record user-reported successful classic release get for release 1492 after
   correcting support for ID-only project references.
 - Accept the documented ID-only project reference in classic release responses

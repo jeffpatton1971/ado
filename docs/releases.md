@@ -1,7 +1,7 @@
 # Classic release inspection
 
-`release list` and `release get` inspect classic Azure DevOps releases, separate from
-YAML pipeline runs and builds. Both require an organization and project and use
+`release list`, `release get` and `release environments` inspect classic Azure DevOps
+releases, separate from YAML pipeline runs and builds. All require an organization and project and use
 the Release API 7.1 on vsrm.dev.azure.com. The documented read scope is vso.release;
 successful Build API reads do not establish release access.
 
@@ -37,6 +37,26 @@ invalid continuations and CLI output. The user verified live listing in impldevm
 20 releases were returned with a truncation warning, including release 1492 from
 definition 20. The user also verified release get for 1492 (Release-58, definition 20,
 status active) after the ID-only project reference fix. Continuation resume remains unverified.
+
+## Environment status
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- release environments --config ./config.json --release-id 1492 --token-prompt --output table --read-only --limit 100
+```
+
+This uses Get Release to return an environment summary: id, releaseId,
+definitionEnvironmentId, name, status and rank. Results retain service order.
+Environment IDs identify instances within a release; definition environment IDs
+identify their templates. Status is the service's environment deployment status.
+Variables, owners, approvals, deployment steps and logs are omitted.
+
+The command makes one bounded GET. --limit and --all control the local item bound,
+not response size; the 4 MiB transport ceiling still applies. There is no continuation
+token. An empty array is complete; missing/null environment arrays fail. Truncation
+is explicit, and --require-complete preserves results but returns exit 10. This
+summarizes current environments, not deployment-attempt history. Mock coverage includes
+identity checks, malformed responses, redaction, terminal escaping and completeness;
+live environment verification remains pending.
 
 References:
 

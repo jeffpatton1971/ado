@@ -18,6 +18,7 @@ public static class Operations
         Pagination = "none",
         Documentation = "https://learn.microsoft.com/en-us/rest/api/azure/devops/release/releases/get-release?view=azure-devops-rest-7.1"
     };
+    public static readonly OperationDescriptor ReleaseEnvironments = ReleaseGet with { Command = "release environments" };
     public static readonly OperationDescriptor ProjectList = new("project list", ServiceHost.Core, "7.1", false,
         false, "none", false, "header continuation / numeric offset", "vso.project",
         "https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/list?view=azure-devops-rest-7.1");
@@ -69,7 +70,7 @@ public static class Operations
     };
     public static readonly OperationDescriptor BuildArtifactDownload = BuildArtifactGet with { Command = "build artifact download", SupportsDryRun = true };
     public static readonly OperationDescriptor PipelineArtifactSignedContent = Pipeline("build artifact download", "artifacts/get", "none");
-    public static IReadOnlyList<OperationDescriptor> All { get; } = [ReleaseList, ReleaseGet, ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet, PipelineRunStart, PipelineRunPreview, BuildList, BuildGet, BuildTimeline, BuildLogs, BuildLogGet, BuildArtifactList, BuildArtifactGet, BuildArtifactDownload];
+    public static IReadOnlyList<OperationDescriptor> All { get; } = [ReleaseList, ReleaseGet, ReleaseEnvironments, ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet, PipelineRunStart, PipelineRunPreview, BuildList, BuildGet, BuildTimeline, BuildLogs, BuildLogGet, BuildArtifactList, BuildArtifactGet, BuildArtifactDownload];
 
     private static OperationDescriptor Pipeline(string command, string endpoint, string pagination) => new(command,
         ServiceHost.Core, "7.1", false, true, "none", false, pagination, "vso.build",

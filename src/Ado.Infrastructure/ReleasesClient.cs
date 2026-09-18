@@ -58,6 +58,39 @@ public sealed class ReleasesClient(ServiceTransport transport, string organizati
         return new([release], new(Organization: organization, Project: project, RequestId: response.RequestId));
     }
 
+    public async Task<CollectionResult<ReleaseEnvironmentInfo>> EnvironmentsAsync(int releaseId, int limit, CancellationToken cancellationToken)
+    {
+        if (limit < 1) throw new AdoException("invalid_limit", "The environment limit must be positive.", ExitCode.Usage);
+        using var response = await transport.GetAsync(Operations.ReleaseEnvironments,
+            EndpointBuilder.Release(Operations.ReleaseGet, organization, project, releaseId), cancellationToken, project);
+        var root = response.Document.RootElement;
+        if (Parse(root).Id != releaseId || response.ContinuationToken is not null
+            || !root.TryGetProperty("environments", out var environments) || environments.ValueKind != JsonValueKind.Array) throw Invalid();
+        var items = new List<ReleaseEnvironmentInfo>();
+        var ids = new HashSet<int>();
+        foreach (var value in environments.EnumerateArray())
+        {
+            if (items.Count >= limit) break;
+            int id = PositiveId(value);
+            if (!ids.Add(id)) throw Invalid();
+            int? returnedReleaseId = OptionalPositive(value, "releaseId");
+            if (returnedReleaseId is not null && returnedReleaseId != releaseId) throw Invalid();
+            items.Add(new(id, releaseId, OptionalPositive(value, "definitionEnvironmentId"),
+                Text(value, "name", 1024), Text(value, "status", 64), OptionalPositive(value, "rank")));
+        }
+        bool truncated = environments.GetArrayLength() > limit;
+        return new(items, new(Organization: organization, Project: project, RequestId: response.RequestId,
+            Truncated: truncated, Completeness: truncated ? "partial" : "complete",
+            TruncationReason: truncated ? "item_limit" : null, ScannedCount: environments.GetArrayLength()));
+    }
+
+    private static int? OptionalPositive(JsonElement value, string name)
+    {
+        if (!value.TryGetProperty(name, out var field) || field.ValueKind == JsonValueKind.Null) return null;
+        if (field.ValueKind != JsonValueKind.Number || !field.TryGetInt32(out int number) || number <= 0) throw Invalid();
+        return number;
+    }
+
     private ReleaseInfo Parse(JsonElement value)
     {
         int id = PositiveId(value);

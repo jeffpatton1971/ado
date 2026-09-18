@@ -9,7 +9,7 @@ Under development; Azure DevOps Server is not supported. See the
 Available commands: `--help`, clean semantic `--version`, `config paths`,
 `config show --effective`, `project list|get|search`, `auth check`, local-only
 `doctor`, `pipeline list|get|runs`, `pipeline run get|start|preview`, `build list|get|logs`,
-`build timeline`, `build log get`, `build artifact list|get|download`, and `release list|get`. Run start and
+`build timeline`, `build log get`, `build artifact list|get|download`, and `release list|get|environments`. Run start and
 server preview include a local dry-run and require exact target confirmation before
 sending their requests. PAT and externally supplied Entra tokens are supported through stdin,
 environment, masked prompt, explicit argument, or native credential references.
