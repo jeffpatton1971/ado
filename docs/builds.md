@@ -236,8 +236,11 @@ reports item_limit first, then sub_timelines_not_loaded, previous_attempts_not_l
 or parent_records_missing. Individual fields retain the other evidence. At most 100
 previous-attempt references per record are accepted. Referenced URLs are never followed.
 Item truncation marks results partial. No automatic causal classification or claim
-that an earlier failure was resolved is made. Attempt metadata additions are mock-tested;
-live verification is pending.
+that an earlier failure was resolved is made. On 2026-09-18 the user verified the
+new table columns against build 18722: displayed records reported attempt 1 and
+zero previous-attempt references, with parent names and available order values.
+The failed golden-request task reported order 18 and log 21. Live retry-history,
+missing-parent and JSON metadata verification remain pending; these have mock coverage.
 --require-complete preserves results but returns exit 10 for either condition.
 Completeness describes this snapshot, not whether the build has finished. Issue
 messages, worker identities and service URLs are omitted. The user verified this command

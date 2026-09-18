@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record user-reported live build timeline parent/order/attempt columns for build
+  18722; all displayed records reported attempt 1 with zero previous references.
+
 - Expose build timeline attempt numbers, stable identifiers, timestamps and safe
   previous-attempt/sub-timeline references in JSON; show parent, order and attempt
   context in tables. Unloaded retry history or missing parents report unknown completeness.

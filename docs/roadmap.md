@@ -51,6 +51,8 @@ Missing: referenced timeline traversal and a consolidated diagnostic workflow.
 - [ ] Preserve stage/job/task hierarchy, ordering, attempts and available timeline
   references with bounded traversal and explicit missing/incomplete metadata.
   Metadata and table context implemented; referenced-history traversal remains open.
+  User verified parent/order and attempt columns on build 18722 (attempt 1, no
+  previous references); live retry-history verification remains outstanding.
 - [ ] Identify failed tasks and their targeted logs; distinguish failures from
   skipped/cancelled downstream work and earlier retry attempts. Label causal
   interpretation as inference when service evidence cannot establish it.

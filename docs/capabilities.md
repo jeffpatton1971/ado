@@ -43,8 +43,9 @@ Output schema starts at version 1. Azure DevOps Services only.
 
 Build timelines include attempt/identifier/time/reference metadata and parent/order
 context. Previous-attempt history and sub-timelines are not fetched. Missing parents
-or unloaded history mark completeness unknown. These additions are mock-tested;
-live verification of the new fields is pending.
+or unloaded history mark completeness unknown. The user verified parent/order and
+attempt columns for build 18722 (attempt 1, zero previous references). Retry-history
+and JSON metadata coverage remain mocked; referenced history is not fetched.
 
 Build get/timeline/logs/log get and artifact list/get/download accept --run-url
 for locally validated Azure DevOps results links. Context conflicts fail before
