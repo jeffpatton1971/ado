@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record passing hosted CI on Windows x64, Linux x64 and macOS Arm64, including
+  packaged CLI execution, plus successful self-contained builds for all six RIDs.
+
 - Fix first hosted CI failures: use generated publish lock files instead of disabling
   lock files, and canonicalize macOS test temporary paths without weakening symlink checks.
 
