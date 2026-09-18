@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Record user-reported successful classic release get for release 1492 after
+  correcting support for ID-only project references.
 - Accept the documented ID-only project reference in classic release responses
   when using a project name; retain explicit name/GUID mismatch checks.
 - Record user-reported live classic release listing with a bounded 20-item result

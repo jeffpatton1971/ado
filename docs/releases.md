@@ -35,7 +35,8 @@ service. No create, deploy, approve or cancel commands are implemented here.
 Mock tests cover routing, pagination, redaction, project/definition/release identity,
 invalid continuations and CLI output. The user verified live listing in impldevmpc:
 20 releases were returned with a truncation warning, including release 1492 from
-definition 20. Individual release retrieval and continuation resume remain unverified.
+definition 20. The user also verified release get for 1492 (Release-58, definition 20,
+status active) after the ID-only project reference fix. Continuation resume remains unverified.
 
 References:
 
