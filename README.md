@@ -375,9 +375,9 @@ Check `meta.completeness`, `truncated`, `continuationToken` and `scannedCount` w
 
 ## Changes and releases
 
-Work proceeds in small commits. [Directory.Build.props](Directory.Build.props) is the authoritative CLI/package version; [CHANGELOG.md](CHANGELOG.md) records changes. Every merge must explicitly decide whether a version change is required. An unpublished development version may span multiple commits.
+Work proceeds in small commits under [repository instructions](AGENTS.md). [Directory.Build.props](Directory.Build.props) is the authoritative CLI/package version; [CHANGELOG.md](CHANGELOG.md) records changes. Every branch merged into `main` with code or documentation changes must include an intentional Semantic Versioning update and matching changelog update before merge. Do not reuse a version for different source states on `main`; an unmerged development branch may span multiple commits before its pre-merge version update.
 
-M1 completion is the intended first tagged-version checkpoint. Before a release, verify version, changelog, package identity, documentation, platform acceptance and that the version has not already been published. Tags and public package/binary publication remain separate explicitly authorized actions. The branch and CI have been pushed; that does not create a release.
+M1 completion is the intended first tagged-version checkpoint. Before a release, verify version, changelog, package identity, documentation, platform acceptance and that the version has not already been published. Tags, GitHub releases, NuGet publication, release-executable uploads and release-workflow dispatch are **human-only**: agents report a candidate source state for a human to release manually. Normal branch pushes and verification CI are separate from releasing. The branch and CI have been pushed; that does not create a release.
 
 ## Official references
 

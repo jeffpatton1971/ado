@@ -38,10 +38,11 @@ Deliver each slice in small tested commits, then update this checklist and capab
 evidence. Unimplemented checklist work below is not supported command syntax.
 
 The user selected completion of M1 (the first group, ranks 1–4 plus day-one gates)
-as the first tagged-version checkpoint. Announce when the gates are met and review
-the version/tag then; do not tag merely because feed commands have been added.
+as the first tagged-version checkpoint. Announce when the gates are met and report
+the candidate version/source state for human review. Under [AGENTS.md](../AGENTS.md),
+only a human may create/push a tag or publish a release; agents must not do so.
 Keep any unavailable live/platform checks explicit rather than silently checking
-them off. Tag publication/pushing remains a separate action.
+them off. Verification CI and local packaging do not authorize a release.
 
 ### M1.1 — Run details, stage/job/task timeline and targeted logs (rank 1)
 

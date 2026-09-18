@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add ado-specific repository instructions covering safety boundaries, verification,
+  mandatory pre-merge version/changelog updates and a human-only release gate;
+  align README and roadmap policy with those instructions.
+
 - Restructure the README around workstation setup, source installation, configuration,
   credential providers, practical workflows, automation and exit codes; refresh package
   documentation and CI status while retaining the exact SDK 10.0.400 pin.
