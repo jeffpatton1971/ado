@@ -99,7 +99,9 @@ is implemented with shared validation and no-overwrite publication.
   Local archive/member digests and expected archive hash comparison are implemented;
   local evidence export is implemented. build artifact evidence now records scoped
   authenticated metadata plus hashes of content downloaded during the operation;
-  mock coverage passes for both types. Live service-backed export remains open.
+  mock coverage passes for both types. The user verified PipelineArtifact export for
+  build 18522/artifact 17112, including source revision and matching member digest.
+  ZIP digest differed from the earlier download; the cause was not established.
 - [ ] Add opt-in safe extraction: reject path traversal, absolute paths, unsafe
   links, duplicate/colliding paths and existing destinations; bound entry count,
   expanded bytes and execution time; clean up interrupted temporary output.
@@ -117,7 +119,8 @@ is implemented with shared validation and no-overwrite publication.
   for plugin.json from build 18522 with matching hashes and no origin labels.
   build artifact evidence records service-observed build and artifact identities
   alongside downloaded hashes, without claiming transactional or publisher provenance.
-  Live service-backed export remains open; names/labels are not claimed secret-free.
+  PipelineArtifact export is user-verified for build 18522; Container live coverage
+  remains open. Names/labels are not claimed secret-free.
 - [ ] Validate both supported artifact types and failure/cleanup cases, recording
   live versus mocked coverage separately.
 

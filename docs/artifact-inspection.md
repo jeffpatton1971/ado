@@ -226,4 +226,18 @@ package semantics and unselected-member integrity remain unverified.
 
 Mock tests cover both artifact types, storage credential isolation, archive hashes,
 metadata association, omitted content/URLs, cleanup on missing selection, no-dispatch
-dry-run and overwrite refusal. Live service-backed evidence remains pending.
+dry-run and overwrite refusal. The user reported successful service-backed export
+on 2026-09-18 for build 18522 (definition 1126, completed/succeeded), artifact 17112
+(CompiledOutputs, PipelineArtifact), source revision
+c965c728a906498c4ce8439fcf4092a388a4c630. The output reported written:true and
+authenticated_metadata_and_download. Live Container evidence and independent output
+readback remain unverified.
+
+The newly downloaded ZIP was 4,455,202 bytes with 270 entries and SHA-256
+4ac5ba22d4accd8961eb905c15cd56b5c15e8e3b0dd2bf2605666701b11f4cbe,
+different from the earlier local ZIP digest. The selected plugin.json member was
+still 527 bytes with SHA-256
+12d40f511ca9bcb1a1e3b30db29c78f1e196c307bed9c2253b67da36399a2f48.
+This establishes a matching selected-member digest across these observations, not
+identical archives or equality of all members. The cause of the archive-byte change
+was not investigated; do not treat the ZIP digest as a stable remote artifact ID.

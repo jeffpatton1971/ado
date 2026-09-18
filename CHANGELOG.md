@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Record user-reported authenticated evidence export for build 18522/artifact 17112,
+  including source revision. The selected member hash matches prior inspection;
+  the downloaded ZIP hash differs, so archive-byte identity is not assumed stable.
+
 - Add build artifact evidence to combine authenticated build/artifact metadata
   with downloaded archive and selected-member hashes. Reuse isolated storage
   downloads, bounded inspection, temporary cleanup and no-overwrite JSON publication.
