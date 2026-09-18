@@ -43,6 +43,9 @@ jobs:
           }
       - name: Create local tool package (no publication)
         run: dotnet pack src/Ado.Cli --configuration Release --no-build --output artifacts/packages
+      - name: Install and verify packaged command (no publication)
+        shell: pwsh
+        run: ./scripts/Test-ToolPackage.ps1
 
   cross-compile:
     runs-on: ubuntu-latest

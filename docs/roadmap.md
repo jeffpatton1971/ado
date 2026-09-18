@@ -212,7 +212,7 @@ version lookup and is not an additional M1 acceptance gate.
 
 | Requirement | Current evidence | Remaining acceptance work |
 |---|---|---|
-| Cross-platform .NET; PowerShell-friendly | SDK pinned to 10.0.400; Windows x64 tests; three-OS CI authored | Execute target-OS checks, native-store checks and installation smoke tests; distinguish cross-compilation from runtime coverage |
+| Cross-platform .NET; PowerShell-friendly | SDK pinned to 10.0.400; Windows x64 tests and isolated packaged-command install/JSON/hash-rejection smoke passed; three-OS CI includes installation checks | Execute Linux/macOS installation and remaining target-OS/native-store checks; distinguish cross-compilation from runtime coverage |
 | Named org/project profiles and run URLs | Profiles and build --run-url implemented; conflict tests pass; live modern-URL timeline read verified | Broaden URL-command/legacy-host live coverage as authorized; unsupported URL forms remain explicit |
 | Authentication diagnostics | Credential providers and HTTP error categories; scoped GET and error-path tests pass; user verified automation feed, build 18722 and artifact-list 18522 probes | Live JSON/non-interactive verification pending; retain ambiguity for masked not-found/public access; probes do not establish content or write permissions |
 | OS PAT stores and Entra | Native adapters and externally supplied Entra tokens; Windows synthetic store test | Validate macOS/Linux stores; document token acquisition/refresh limitations; do not claim automatic Entra login |

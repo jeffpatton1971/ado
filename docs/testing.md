@@ -97,7 +97,8 @@ Windows logon sessions. Existing credential items are never enumerated or read.
 The GitHub workflow builds/tests on Windows, Linux and macOS using SDK 10.0.400
 selected from the exact `global.json` pin. It checks formatting,
 audits direct/transitive dependencies, verifies --version against Directory.Build.props,
-and creates an ephemeral tool package. Separate jobs cross-compile self-contained
+and creates a tool package, then installs and executes it through an isolated
+tool path on each test OS. Separate jobs cross-compile self-contained
 outputs for x64 and Arm64 on all three OS families. Cross-compilation is not execution
 coverage. There is no upload, release, NuGet push or deployment step.
 
@@ -105,9 +106,22 @@ CI action revisions are pinned to official actions/checkout v7 and actions/setup
 v6 commit IDs. They use MIT-licensed GitHub-maintained build-time tooling, not CLI
 runtime dependencies. Update pins deliberately after reviewing upstream changes.
 
-Local installation smoke checks use `dotnet tool install PattonTech.Ado.Cli
---tool-path .tools/ado-smoke --add-source artifacts/packages --version 0.1.0` after
-packing. This directory is ignored and does not alter global PATH or publish the package.
+Run the packaged-command smoke check with PowerShell 7:
+
+```powershell
+dotnet pack src/Ado.Cli --configuration Release --no-build --output artifacts/packages
+./scripts/Test-ToolPackage.ps1
+```
+
+Build Release first. The script reads the version from Directory.Build.props and
+installs only from the local package source, using an isolated NuGet cache and
+tool path. It executes the installed command's version/help, synthetic nuspec
+inspection twice (identical JSON), and expected-hash rejection with exit 7.
+Outputs remain under ignored artifacts/tool-smoke for investigation. The prior
+NUGET_PACKAGES process value is restored. No global PATH change, publication,
+Azure DevOps request, credential access or real config read is involved.
+The installed 0.1.0 command passed these checks locally on Windows x64; the new
+Linux/macOS CI installation checks have not run yet.
 
 This workflow has been authored locally but not run on GitHub because pushing has not
 been authorized. Current local verification is Windows x64. macOS/Linux native keyring

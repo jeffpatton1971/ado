@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add isolated packaged-tool installation smoke checks to three-OS CI; verify
+  installed version/help, deterministic inspection JSON and hash-mismatch exit.
+  Local Windows x64 execution passed; Linux/macOS runs remain pending.
+
 - Record live JSON/non-interactive targeted-log retrieval following build diagnosis,
   with complete output for build 18722/log 21; raw logs are not retained.
 

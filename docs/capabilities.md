@@ -1,5 +1,10 @@
 # Capability matrix
 
+The packaged ado 0.1.0 command was installed and executed locally on Windows x64:
+version/help, deterministic local inspection JSON and hash-mismatch exit behavior
+passed. CI now includes this isolated install check on all three test OSes;
+Linux/macOS execution remains pending. See [verification](testing.md).
+
 Package workflow acceptance tests connect download JSON to local manifest
 inspection and evidence export for direct and storage-redirect transfers. They
 verify hash agreement and rejection of a wrong expected hash without publication.
