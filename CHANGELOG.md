@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Record user-reported successful build timeline retrieval for build 18722,
+  locating the failed task at log 21.
 - Add build timeline with bounded job/task results, parent IDs, error/warning counts
   and log IDs, credential redaction, terminal escaping and strict completeness.
 - Record user-reported successful signed PipelineArtifact download for build 18522,

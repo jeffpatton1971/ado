@@ -24,7 +24,7 @@ agent has not accessed the live organization or submitted runs.
 | pipeline run preview | dev.azure.com | Pipelines Runs 7.1 | POST preview; blocked read-only | None | Local; no credentials/HTTP | Preview-specific exact target | vso.build_execute | Mock HTTP verified; user-reported live success |
 | build list | dev.azure.com | Build 7.1 | Read | Opaque header continuation | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
 | build get | dev.azure.com | Build 7.1 | Read | None | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
-| build timeline | dev.azure.com | Build Timeline 7.1 | Read | Local bound; sub-timelines not fetched | N/A | None | vso.build | Mock HTTP verified; live verification pending |
+| build timeline | dev.azure.com | Build Timeline 7.1 | Read | Local bound; sub-timelines not fetched | N/A | None | vso.build | Mock HTTP verified; user-reported live success (build 18722) |
 | build logs | dev.azure.com | Build Logs 7.1 | Read | None; local output bound | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
 | build log get | dev.azure.com | Build Logs 7.1 | Read | Optional service line range; no continuation | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
 | build artifact list | dev.azure.com | Build Artifacts 7.1 | Read metadata | None; local output bound | N/A | None | vso.build | Mock HTTP verified; user-reported live success |

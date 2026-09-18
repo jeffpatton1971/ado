@@ -228,7 +228,8 @@ bounds. There is no continuation token. Referenced sub-timelines are not fetched
 their presence makes completeness unknown. Item truncation marks results partial.
 --require-complete preserves results but returns exit 10 for either condition.
 Completeness describes this snapshot, not whether the build has finished. Issue
-messages, worker identities and service URLs are omitted. Live verification is pending.
+messages, worker identities and service URLs are omitted. The user verified this command
+against build 18722: it identified the failed task at log 21 with one reported error.
 The endpoint and read scope are documented in [Timeline Get](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/timeline/get?view=azure-devops-rest-7.1).
 
 ## Verification
