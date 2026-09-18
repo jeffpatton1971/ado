@@ -1,0 +1,54 @@
+name: Live read-only integration
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ado-live-integration
+  cancel-in-progress: false
+
+jobs:
+  live:
+    # Never run credential-bearing integration against PR or arbitrary branch code.
+    if: github.ref == 'refs/heads/main'
+    environment: ado-integration
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+      - name: Canonical macOS temporary directory
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          python3 -c 'import os; print("TMPDIR=" + os.path.realpath(os.environ["RUNNER_TEMP"]))' >> "$GITHUB_ENV"
+      - run: dotnet restore Ado.slnx --locked-mode
+      - run: dotnet build Ado.slnx --configuration Release --no-restore
+      - run: dotnet pack src/Ado.Cli --configuration Release --no-build --output artifacts/packages
+      - name: Install and verify package without credentials
+        shell: pwsh
+        run: |
+          ./scripts/Test-ToolPackage.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Package smoke checks failed.' }
+          $roots = @(Get-ChildItem artifacts/tool-smoke -Directory)
+          if ($roots.Count -ne 1) { throw 'Expected one isolated tool installation.' }
+          $name = if ($IsWindows) { 'ado.exe' } else { 'ado' }
+          $tool = Join-Path $roots[0].FullName "tool/$name"
+          "ADO_LIVE_TOOL=$tool" >> $env:GITHUB_ENV
+      - name: Read-only live assertions (no raw output retention)
+        shell: pwsh
+        env:
+          ADO_TOKEN: ${{ secrets.ADO_PAT }}
+          ADO_LIVE_FIXTURES: ${{ vars.ADO_LIVE_FIXTURES }}
+        run: ./scripts/Test-LiveIntegration.ps1 -ToolPath $env:ADO_LIVE_TOOL

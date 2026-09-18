@@ -427,3 +427,9 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+# Local SDK and generated delivery artifacts
+.tools/
+artifacts/
+
+# Personal repository-local Azure DevOps configuration (use --config explicitly)
+/config.json

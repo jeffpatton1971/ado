@@ -1,0 +1,401 @@
+# Build inspection
+
+`build list` and `build get` use Azure DevOps Services Build API 7.1 on dev.azure.com.
+They inspect Build execution records, distinct from Pipelines API runs and classic
+Releases. Both require organization/project context and read access (`vso.build`).
+
+```text
+ado build list --config ./config.json --token-prompt --output table --read-only --limit 20
+ado build list --config ./config.json --definition-id 12 --status completed --result failed --branch refs/heads/main --token-prompt --output table --read-only --limit 10
+ado build get --config ./config.json --build-id 34 --token-prompt --output table --read-only
+```
+
+For source builds, replace `ado` with
+`dotnet run --project src/Ado.Cli --configuration Release --`.
+Use IDs discovered in Build output; these commands do not convert pipeline run IDs
+into build IDs. `--definition-id` filters one Build definition; `--build-id` identifies
+one execution. Build list does not require a definition filter.
+
+## Filters and paging
+
+Filters are sent to the service, not applied to a local subset:
+
+| Flag | Meaning |
+|---|---|
+| --definition-id | One positive Build definition ID |
+| --status | none, inProgress, completed, cancelling, postponed, notStarted or all |
+| --result | none, succeeded, partiallySucceeded, failed or canceled |
+| --branch | Exact source branch, typically refs/heads/main; no automatic prefix |
+
+Enum spellings are case-sensitive and follow the Build API, including `cancelling`
+and `partiallySucceeded`. Filters are optional. The client explicitly requests
+queueTimeDescending ordering and otherwise preserves service order. Other documented
+filters (dates, tags, repositories, multiple definitions) are not exposed yet.
+
+List supports --top, --limit, --all, --continuation-token and --require-complete.
+Default page size and result limit are 100. --all uses the configured item ceiling
+(10,000 by default), and cannot accompany an explicit --limit. Each request's $top is
+bounded by the remaining item allowance. Continuation tokens are opaque query values,
+limited to 2048 characters and never treated as URLs. Resume with the same organization,
+project and filters. Requests are bounded to 100 pages, 4 MiB per decompressed response,
+and a 64 MiB aggregate threshold checked between pages, plus configured deadlines.
+Repeated tokens and responses larger than requested pages fail safely.
+
+When a bound stops pagination, metadata includes truncated:true, completeness:partial,
+a reason and the next continuation token. JSON preserves partial data with ok:false
+and exit 10 when --require-complete is set. Otherwise bounded lists succeed with explicit
+metadata and a warning in human mode. Empty lists are successful. Completeness reflects
+the service's visible filtered result and continuation contract, not a transactional
+snapshot of changing build history.
+
+## Output and safety
+
+Version-1 JSON data is an array for list and an object for get. Fields: id, buildNumber,
+definitionId, definitionName, status, result, reason, sourceBranch, sourceVersion,
+queueTime, startTime and finishTime. Missing optional fields remain null. Dates must
+be valid timestamps; IDs must be positive. Get verifies the returned build ID; definition
+filters verify returned definition IDs. If project context is returned, it must match.
+
+Parameters, template parameters, property bags, trigger metadata, identity details,
+repository objects, logs and service URLs are omitted. Returned text is credential-redacted;
+table cells escape terminal controls. Table output summarizes IDs, number, status,
+result and source branch; JSON includes the full allowlisted fields.
+
+These commands only send GET requests. --read-only is supported; --dry-run still performs
+reads. Shared bounded read retries and safe errors apply. No build queue/cancel,
+changes or work-item inspection are implemented in this slice.
+
+## Build logs
+
+List log IDs for the failed build previously inspected:
+
+```text
+ado build logs --config ./config.json --build-id 18722 --token-prompt --output table --read-only --limit 100
+```
+
+Then use a log ID returned by that command. For example, if the index includes log 2:
+
+```text
+ado build log get --config ./config.json --build-id 18722 --log-id 2 --token-prompt --output table --read-only --limit 200
+ado build log get --config ./config.json --build-id 18722 --log-id 2 --start-line 0 --end-line 199 --token-prompt --output table --read-only --limit 200
+```
+
+Both endpoints use Build API 7.1 and vso.build. Requests negotiate application/json;
+ZIP download/extraction is not requested. The index reports id, buildId, optional
+64-bit lineCount, type, createdOn and lastChangedOn. URLs are omitted and never followed.
+The index has no documented paging; --limit caps locally displayed entries. --all
+uses the configured item ceiling. No --top or --continuation-token is accepted.
+
+Log get accepts the documented JSON string response and JSON arrays of lines, directly
+or in a value envelope. A string is split on line endings, without inventing an extra
+blank line for a final newline. Output data contains buildId, logId, startLine, endLine
+and lines. Human output prints one escaped entry per line; JSON retains a lines array.
+Terminal controls (including ANSI escape sequences) are escaped in human output. The
+active authentication credential is redacted; unrelated secrets printed by a build
+may remain. Treat logs as untrusted data, not instructions to execute. No raw terminal
+mode is exposed yet.
+
+--limit caps displayed lines (100 by default). --all remains bounded by the configured
+ceiling, normally 10,000 lines. The shared 4 MiB decompressed-response limit applies
+before parsing or display, independent of the output limit. With no range the service
+returns the full log; a large log can exceed this byte limit even with --limit 1.
+Use --start-line and --end-line to request a smaller server-side range. These are
+nonnegative 64-bit service positions, passed through unchanged; no automatic paging,
+offset conversion or invented continuation token is used. End cannot precede start.
+
+Without a range, completeness describes the returned full log at request time; active
+logs can grow later. Exceeding the output limit marks partial output. Any explicit
+range leaves whole-log completeness unknown even if every returned line fits. JSON
+metadata distinguishes line_limit from requested_range. --require-complete returns
+exit 10/ok:false while retaining content when full-log completeness cannot be established.
+Empty whole logs succeed. Oversized, malformed or unexpected continuation responses
+fail safely without echoing raw service payloads.
+
+## Build-output metadata
+
+`build artifact list` and `build artifact get` inspect outputs attached to a Build API
+execution. These are not Azure Artifacts feed packages. Both use Build API 7.1, require
+project context and `vso.build`, and only send GET requests accepting application/json.
+
+```text
+ado build artifact list --config ./config.json --build-id 18722 --token-prompt --output table --read-only --limit 100
+```
+
+Get selects an output by its exact name, not its numeric ID. If the list contains an
+output named `drop`, inspect it with:
+
+```text
+ado build artifact get --config ./config.json --build-id 18722 --artifact-name drop --token-prompt --output table --read-only
+```
+
+The name is encoded as one query value and never interpreted as a path or URL. It must
+be nonempty, at most 1024 characters and contain no controls. Get verifies that the
+response name matches before redaction. JSON returns id, buildId, name, resourceType
+and optional source (the producing job reference). Resource types are preserved as
+reported; missing type is unknown. No type is assumed to be downloadable.
+
+Resource data, property bags, download/service URLs and links are omitted and never
+followed. No file is downloaded or written. Arbitrary resource properties do not imply
+a universal size or file-count field. Text is credential-redacted and human table cells
+escape terminal controls. JSON get returns one object; list returns an array.
+
+List has no documented pagination. --limit bounds displayed outputs; --all uses the
+configured ceiling. The full metadata response is still limited to 4 MiB before parsing.
+No --top or --continuation-token is accepted. Empty lists succeed, including builds that
+published no outputs. When the local limit truncates results, metadata is partial and
+has no continuation token; --require-complete retains partial data but returns exit 10.
+Unexpected continuation headers and malformed responses fail safely. --dry-run still
+performs these metadata reads. ZIP download is a separate command below; archive extraction remains unimplemented.
+
+## Build-output ZIP download
+
+`build artifact download` requires --build-id, --artifact-name and --destination (a new
+local file, not a directory). It first checks metadata and accepts Container and
+PipelineArtifact resource types. Container downloads request application/zip from Build
+Get Artifact; PipelineArtifact downloads resolve a signed URL through Pipelines Artifacts
+Get. It does not follow the metadata's downloadUrl. If the service does not return
+supported ZIP content, the command fails safely.
+
+PowerShell example using the output already discovered, outside the repository:
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- build artifact download --config ./config.json --build-id 18522 --artifact-name CompiledOutputs --destination "$env:TEMP\ado-CompiledOutputs-18522.zip" --token-prompt --output table --read-only
+```
+
+For a local plan, replace --token-prompt with --dry-run. Dry-run validates destination
+and bounds without credential lookup, HTTP or file writes; it does not verify remote
+availability. --read-only permits downloads: remote operations are GETs, and the explicit
+destination authorizes the local write. No mutation confirmation is required.
+
+The parent directory must exist. Existing files/directories are refused, with no
+overwrite flag. Symlink/reparse-point ancestors, Windows network/device paths and
+alternate streams are rejected. The response filename and archive entry paths are never
+used as local paths. A randomly named .ado-*.partial file is created exclusively in
+the same directory (0600 on Unix; inherited ACLs on Windows). After bounded transfer,
+length checks and basic ZIP header/end-record checks, it is renamed without replacing
+an existing destination. Archive entries are not parsed or extracted; this is not a
+CRC/signature or malware verification. A downloaded archive remains untrusted content.
+
+Use a destination directory controlled by your user. Ancestors are checked before
+creation and finalization; managed path checks cannot prevent all races from another
+process able to rename/replace those directories. Partial files are removed on failure
+where possible, but process termination or filesystem permission changes can leave
+the recognizable temporary file. Finalization is not a power-loss durability guarantee.
+
+Profile downloads.maxBytes defaults to 1 GiB, downloads.timeoutSeconds to 600 seconds.
+--max-bytes and --download-timeout can lower these ceilings. The overall operation
+deadline also applies (300 seconds by default), including metadata/credential work;
+--timeout governs the metadata read. Header sizes and streamed byte counts are checked.
+Interrupted, oversized, partial-HTTP, compressed-HTTP, HTML/JSON or malformed ZIP responses
+do not publish a completed file. Failure does not automatically retry or resume content.
+
+For PipelineArtifact outputs, the CLI reads the build to obtain its definition ID,
+then calls Pipelines Artifacts Get for that pipeline and run (the build ID), requesting
+$expand=signedContent. It verifies the artifact name and expiry before downloading
+the returned URL without credentials. Missing, malformed or expired signed content
+fails without falling back to forwarding the PAT. Container outputs retain the Build
+Artifacts ZIP endpoint. Resource.downloadUrl is not used in either flow.
+
+Authentication is sent only to the exact constructed dev.azure.com organization/project
+endpoint. Up to five redirects may target HTTPS port 443 artifact-storage hosts under
+.vsblob.vsassets.io, .vsblob.visualstudio.com, .artifacts.visualstudio.com, .blob.core.windows.net or
+.dedup.microsoft.com. Every hop is validated; IP literals, userinfo, fragments and other
+hosts are refused. Redirected content uses a separate client with no authorization,
+cookies, default credentials or referrer. Signed URLs and remote error bodies are never
+printed. These suffixes are a deliberately narrow subset of Microsoft's networking
+domains; an unfamiliar host fails instead of widening trust automatically.
+Rejected redirects report only a bounded, credential-redacted DNS hostname for
+diagnosis; URL paths, queries, user information and fragments remain omitted.
+
+Success returns buildId, artifactName, destination, bytes and format:zip. Size overflow
+uses exit 10; unsafe destination/type/redirect uses exit 7; transfer failure/deadline
+uses exit 9; user cancellation uses exit 130. Service authentication/access/not-found
+refusals retain exits 4/5/6. The response format is currently ZIP only.
+
+## Build timeline
+
+`build timeline --build-id 18722` reads the default Build API timeline. Table output
+shows order, type/name, parent name, attempt, previous-reference count, state, result,
+log ID and error/warning counts. Missing attempt metadata displays unknown; an absent
+parent record is labeled unavailable with its ID. JSON includes record/parent IDs,
+timelineId, detailsTimelineId, identifier (stable across attempts), attempt,
+previousAttempts (attempt/recordId/timelineId), startTime and finishTime. An omitted
+previousAttempts field remains null, distinct from an explicit empty array. Parent
+names are display context, not unique identities. Records retain service order. Use the log ID
+from a failed task with `build log get` to inspect its log.
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- build timeline --config ./config.json --build-id 18722 --token-prompt --output table --read-only --limit 100
+```
+
+By default this is one bounded GET, with the existing JSON byte ceiling and local --limit/--all
+bounds. There is no continuation token. Referenced sub-timelines are not fetched;
+their presence makes completeness unknown. Previous-attempt references, attempt > 1,
+or unavailable parent records also mark completeness unknown. JSON truncationReason
+reports item_limit first, then sub_timelines_not_loaded, previous_attempts_not_loaded,
+or parent_records_missing. Individual fields retain the other evidence. At most 100
+previous-attempt references per record are accepted. Referenced URLs are never followed.
+Item truncation marks results partial. No automatic causal classification or claim
+that an earlier failure was resolved is made. On 2026-09-18 the user verified the
+new table columns against build 18722: displayed records reported attempt 1 and
+zero previous-attempt references, with parent names and available order values.
+The failed golden-request task reported order 18 and log 21. Live retry-history,
+missing-parent and JSON metadata verification remain pending; these have mock coverage.
+--require-complete preserves results but returns exit 10 for either condition.
+Completeness describes this snapshot, not whether the build has finished. Issue
+messages, worker identities and service URLs are omitted. The user verified this command
+against build 18722: it identified the failed task at log 21 with one reported error.
+The endpoint and read scope are documented in [Timeline Get](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/timeline/get?view=azure-devops-rest-7.1).
+
+### Include referenced history
+
+Add --include-history to load sub-timelines and previous attempts:
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- build timeline --run-url "https://dev.azure.com/rseng/impldevmpc/_build/results?buildId=18722" --config ./config.json --token-prompt --output table --read-only --include-history --limit 100
+```
+
+Traversal uses service-provided GUID references to construct endpoints under the same
+organization/project/build. Returned URLs are never fetched. Each timeline is requested
+once (apart from bounded transport retries), in breadth-first discovery order; records
+retain service order within each timeline. Shared references and cycles do not repeat
+requests. Requested/returned timeline identities must match. Record and parent identities
+are scoped to their timeline, so repeated record IDs across attempts remain distinct.
+Tables add TIMELINE ID; JSON retains the existing array and additive context fields.
+
+Limits cover all records (--limit/--all), 100 timeline reads including the default,
+4 MiB per response, 64 MiB aggregate responses and the existing operation deadline.
+Before a subsequent request, the aggregate budget reserves a full 4 MiB response.
+Exhausted record/timeline/byte bounds preserve loaded data with partial completeness
+and item_limit/timeline_limit/byte_limit. There is no resumable continuation token.
+
+A referenced 404 preserves loaded data with unknown completeness and
+referenced_timeline_unavailable; permission, authentication, network and malformed
+response errors still fail the operation. Missing referenced records, mismatched
+attempt numbers or attempt > 1 without history references report
+attempt_references_unresolved. Missing parents report parent_records_missing;
+an absent default timeline ID reports timeline_identity_missing. Bound reasons take
+precedence, followed by unavailable references, unresolved references, missing parents
+and missing timeline identity. --require-complete returns exit 10 with retained data
+for partial/unknown results. Complete means all exposed references were resolved for
+this snapshot, not proof that the service exposed every historical attempt.
+
+Tests cover shared references/cycles, scoped identities, reference failures, strict
+output retention and record/request/byte limits. On 2026-09-18 the user verified
+--include-history on build 18722: all 30 displayed records used timeline
+b619e67f-5f18-4d01-b523-76f312e43fcb, attempt 1 and zero previous references,
+with no incomplete-result warning. This verifies the flag and timeline-ID display
+for that snapshot, not additional timeline requests. Live cross-timeline/retry
+traversal and JSON history verification remain pending. This command reads
+history and never retries or starts a pipeline execution.
+
+## Consolidated diagnosis
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- build diagnose --config ./config.json --build-id 18722 --token-prompt --output table --read-only --include-history --limit 100
+```
+
+build diagnose also accepts --run-url. It combines one build-detail read with the
+bounded timeline reader; --include-history opts into reference traversal. The
+operation deadline covers both phases. The build read adds at most 4 MiB to the
+timeline reader's 64 MiB history ceiling. --limit/--all bounds scanned timeline
+records, not just displayed findings. No log content is retrieved or persisted.
+
+JSON data contains build, loadedRecords, findings and limitations. Each finding
+retains the safe timeline record, category, attemptContext and logAvailability.
+Categories distinguish failed_task, failed_container, skipped, canceled_or_abandoned
+and succeeded_with_issues. Only an exact previous-attempt reference labels a record
+referenced_previous_attempt; not_identified_as_previous does not assert that a
+record is current or latest. Unavailable logs are explicitly identified, while a
+log reference alone does not prove the content exists or is accessible.
+
+Use build log get with the diagnosis's build ID and a selected log ID (for this
+sample, 21). Skips and cancellations are not asserted to be caused by a particular
+failure. An empty findings array does not prove tests or deployment succeeded.
+The build's sourceVersion is not complete shared-template provenance. Build and
+timeline reads are separate snapshots. Incomplete timeline metadata is propagated;
+--require-complete returns exit 10 with retained diagnosis. Otherwise exit 0 means
+inspection succeeded even when the inspected build failed. Service errors remain
+errors; root-cause conclusions are not generated. Mock tests cover outcome grouping,
+exact retry references, missing logs, partial JSON retention and terminal/credential
+escaping. On 2026-09-18 the user verified table diagnosis with --include-history
+for build 18722: completed/failed, source SHA a357ab0a6900e27bcaa318497ed11ff845fcfa16,
+one failed task (golden-request generation, log 21), three failed containers and
+five skipped records. All findings reported attempt 1. This verifies the combined
+read and outcome display; live JSON/strict completeness and actual retry-history
+classification remain unverified. The diagnosis did not retrieve log content.
+
+Automated end-to-end tests now chain URL-based JSON diagnosis to targeted log
+retrieval using synthetic stdin credentials and --non-interactive --read-only.
+They cover retry selection, bounded lines/ranges, denied timeline/log access and
+missing log content. This verifies the automation contract with mocks; it does
+not expand the live coverage above. For unattended use, supply an already-configured
+native credential reference, injected token environment variable or token stdin;
+--token-prompt is incompatible with JSON/non-interactive operation. Check exit
+codes and meta.completeness before treating findings as exhaustive; retain data
+from exit 10 when useful rather than interpreting it as an empty result.
+
+## Verification
+
+Mocked tests cover routes, encoding, filters, opaque pagination, page/item bounds,
+repeated tokens, safe output, IDs/context, CLI validation and strict completeness.
+The user reported successful live build list for definition 1128 and build get for
+18722. The user also retrieved its 26-entry log index and log 3 (27 lines). Mocked log tests cover routes,
+line ranges, JSON forms, bounds, safe output and strict completeness. The development
+agent has made no live requests. Build-output metadata tests cover routes, name encoding,
+identity checks, safe field selection, output bounds and CLI behavior. The user verified
+an empty output list for build 18722, two PipelineArtifact outputs for 18522, and get by
+name for CompiledOutputs (17112). A user-run download of that output was blocked by
+redirect validation for artprodcus3.artifacts.visualstudio.com. That service suffix is
+now allowed without forwarding credentials. The next attempt redirected to
+spsprodcus2.vssps.visualstudio.com for sign-in and was also blocked. PipelineArtifact
+downloads now use signedContent. On 2026-09-17 the user successfully downloaded
+CompiledOutputs from build 18522 (4,455,202 bytes), extracted it with PowerShell
+Expand-Archive and listed its contents. Extraction was performed outside the CLI;
+live Container download remains unverified. Tests cover header
+isolation, unsafe redirects and safe hostname diagnostics, redirect bounds,
+byte limits, interruption cleanup, timeouts, ZIP envelope checks and overwrite refusal.
+Signed-content tests cover the pipeline/run route, credential isolation, missing or
+expired content, mismatched artifact/build identities and blocked sign-in redirects.
+The synthetic symlink test skipped locally because the Windows session cannot create
+symlinks; it remains part of the cross-platform suite.
+
+Official endpoint references, checked before implementation:
+
+- [Pipelines Artifacts Get and signedContent](https://learn.microsoft.com/en-us/rest/api/azure/devops/pipelines/artifacts/get?view=azure-devops-rest-7.1)
+- [Pipeline definition and run/build IDs](https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/download-pipeline-artifact-v2?view=azure-pipelines)
+- [Builds List](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/list?view=azure-devops-rest-7.1)
+- [Builds Get](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get?view=azure-devops-rest-7.1)
+- [Get Build Logs](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get-build-logs?view=azure-devops-rest-7.1)
+- [Get Build Log](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get-build-log?view=azure-devops-rest-7.1)
+- [List Build Artifacts](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/artifacts/list?view=azure-devops-rest-7.1)
+- [Get Build Artifact](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/artifacts/get-artifact?view=azure-devops-rest-7.1)
+- [Azure DevOps allowed domains](https://learn.microsoft.com/en-us/azure/devops/organizations/security/allow-list-ip-url?view=azure-devops)
+## Run URL input
+
+Build get, timeline, logs, log get and artifact list/get/download accept --run-url
+in place of --build-id and missing organization/project context. Quote URLs in
+PowerShell so query separators remain part of the argument:
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- build timeline --run-url "https://dev.azure.com/rseng/impldevmpc/_build/results?buildId=18722" --config ./config.json --token-prompt --output table --read-only --limit 100
+```
+
+Supported forms are HTTPS dev.azure.com/ORG/PROJECT/_build/results?buildId=ID and
+ORG.visualstudio.com/PROJECT/_build/results?buildId=ID. UI query parameters and
+fragments do not select a log/task; use --log-id explicitly. A single positive
+int32 buildId is required. The link is parsed locally and never fetched; normal
+authenticated API endpoints are constructed from validated identity fields.
+
+The effective context (flags, then environment, then selected profile) must match
+the URL wherever configured. A conflicting --build-id also fails before credential
+lookup. Project names and GUIDs are not resolved as aliases during this local check;
+select matching context explicitly. Existing credential organization binding still
+applies. Unsupported links, user info and non-HTTPS/nonstandard-port URLs are rejected
+without echoing the URL. GitHub check URLs themselves, legacy /DefaultCollection
+routes and Pipelines API command URL input are not supported. Copy the Azure DevOps
+run link from the check. Automated tests cover modern/legacy hosts and rejection
+paths. On 2026-09-18 the user reported a successful modern-URL timeline read for
+build 18722 in rseng/impldevmpc. It identified the failed golden-request task with
+log ID 21 and one error. Other URL-command combinations and the legacy host remain
+mock-tested only. Markdown link wrappers are not supported CLI URL syntax.

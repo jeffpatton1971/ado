@@ -1,0 +1,190 @@
+using System.Net;
+using System.Text.Json;
+using Ado.Application;
+using Ado.Domain;
+
+namespace Ado.Infrastructure.Http;
+
+public sealed record JsonResponse(JsonDocument Document, string? ContinuationToken, string? RequestId, int Bytes) : IDisposable
+{
+    public void Dispose() => Document.Dispose();
+}
+public sealed record TextResponse(string Text, string? ContinuationToken, string? RequestId);
+
+public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider authentication, string organization,
+    int requestSeconds = 60, bool readOnly = true, bool dryRun = false,
+    Func<TimeSpan, CancellationToken, Task>? delay = null)
+{
+    public static HttpClient CreateClient() => new(new HttpClientHandler
+    {
+        AllowAutoRedirect = false,
+        UseCookies = false,
+        UseDefaultCredentials = false,
+        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+    })
+    { Timeout = Timeout.InfiniteTimeSpan };
+
+    public string Redact(string text) => authentication.Redact(text);
+    public IReadOnlyList<string> RedactLines(IReadOnlyList<string> lines) => authentication.RedactLines(lines);
+
+    public Task<JsonResponse> StartPipelineAsync(string project, int pipelineId, string body,
+        string? confirmation, CancellationToken cancellationToken) =>
+        PostPipelineAsync(project, pipelineId, body, confirmation, false, cancellationToken);
+
+    public Task<JsonResponse> PreviewPipelineAsync(string project, int pipelineId, PipelineRunRequest request,
+        string? confirmation, CancellationToken cancellationToken) =>
+        PostPipelineAsync(project, pipelineId, request.SerializePreview(), confirmation, true, cancellationToken);
+
+    private async Task<JsonResponse> PostPipelineAsync(string project, int pipelineId, string body,
+        string? confirmation, bool preview, CancellationToken cancellationToken)
+    {
+        var operation = preview ? Operations.PipelineRunPreview : Operations.PipelineRunStart;
+        SafetyPolicy.BeforeDispatch(operation, readOnly, dryRun);
+        var uri = EndpointBuilder.Pipeline(operation, organization, project, pipelineId);
+        EndpointBuilder.ValidateDestination(uri, ServiceHost.Core, organization, project);
+        MutationConfirmation.Require(preview ? MutationConfirmation.PipelinePreviewTarget(organization, project, pipelineId)
+            : MutationConfirmation.PipelineStartTarget(organization, project, pipelineId), confirmation);
+        if (System.Text.Encoding.UTF8.GetByteCount(body) > 1024 * 1024)
+            throw new AdoException("request_limit_exceeded", "The run request exceeds the 1 MiB safety limit.", ExitCode.Usage);
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(requestSeconds));
+        using var request = new HttpRequestMessage(HttpMethod.Post, uri);
+        request.Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
+        request.Headers.Accept.ParseAdd("application/json");
+        request.Headers.Add("X-TFS-FedAuthRedirect", "Suppress");
+        authentication.Apply(request);
+        deadline.Token.ThrowIfCancellationRequested();
+        // No write retries: after entering SendAsync even cancellation may follow delivery.
+        try
+        {
+            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+            if (IsTransient(response.StatusCode) || (int)response.StatusCode >= 500) throw preview ? PreviewFailure() : UncertainWrite();
+            if (!response.IsSuccessStatusCode) throw Map(response.StatusCode);
+            const int maximum = 4 * 1024 * 1024;
+            if (response.Content.Headers.ContentLength > maximum) throw preview ? Oversized() : UncertainWrite();
+            await using var stream = await response.Content.ReadAsStreamAsync(deadline.Token);
+            using var buffer = new MemoryStream();
+            var chunk = new byte[16384];
+            while (true)
+            {
+                int read = await stream.ReadAsync(chunk, deadline.Token);
+                if (read == 0) break;
+                if (buffer.Length + read > maximum) throw preview ? Oversized() : UncertainWrite();
+                await buffer.WriteAsync(chunk.AsMemory(0, read), deadline.Token);
+            }
+            return new(JsonDocument.Parse(buffer.ToArray(), new JsonDocumentOptions { MaxDepth = 32 }), null, null, checked((int)buffer.Length));
+        }
+        catch (OperationCanceledException) when (preview)
+        {
+            if (cancellationToken.IsCancellationRequested) throw;
+            throw new AdoException("request_timeout", "The server preview exceeded its timeout.", ExitCode.Transient);
+        }
+        catch (Exception ex) when (preview && ex is HttpRequestException or IOException or JsonException)
+        { throw PreviewFailure(); }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or OperationCanceledException or JsonException)
+        { throw UncertainWrite(); }
+    }
+
+    private static AdoException PreviewFailure() => new("preview_failed",
+        "The server preview could not be verified. No automatic retry was attempted. The request used previewRun:true.", ExitCode.Transient);
+
+    public static AdoException UncertainWrite() => new("uncertain_write",
+        "The pipeline submission outcome could not be verified. Do not blindly retry. Inspect pipeline runs for the same organization, project and pipeline ID, or check Azure DevOps before submitting again.", ExitCode.UncertainWrite);
+
+    public Task<JsonResponse> GetAsync(OperationDescriptor operation, Uri uri, CancellationToken cancellationToken, string? project = null) =>
+        ReadAsync(operation, uri, cancellationToken, project, "application/json", (bytes, continuation, requestId) =>
+            new JsonResponse(JsonDocument.Parse(bytes, new JsonDocumentOptions { MaxDepth = 32 }), continuation, requestId, bytes.Length));
+
+    public Task<TextResponse> GetTextAsync(OperationDescriptor operation, Uri uri, CancellationToken cancellationToken, string project) =>
+        ReadAsync(operation, uri, cancellationToken, project, "text/plain", (bytes, continuation, requestId) =>
+            new TextResponse(Redact(new System.Text.UTF8Encoding(false, true).GetString(bytes).TrimStart('\uFEFF')), continuation, requestId));
+
+    private async Task<T> ReadAsync<T>(OperationDescriptor operation, Uri uri, CancellationToken cancellationToken, string? project,
+        string mediaType, Func<byte[], string?, string?, T> parse)
+    {
+        SafetyPolicy.BeforeDispatch(operation, readOnly, dryRun);
+        if (operation.IsWrite) throw new AdoException("unsupported_operation", "The read transport cannot send mutations.", ExitCode.Safety);
+        EndpointBuilder.ValidateDestination(uri, operation.Service, organization, project);
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(requestSeconds));
+        try
+        {
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                try
+                {
+                    using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+                    request.Headers.Accept.ParseAdd(mediaType);
+                    request.Headers.Add("X-TFS-FedAuthRedirect", "Suppress");
+                    authentication.Apply(request);
+                    using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+                    if (IsTransient(response.StatusCode))
+                    {
+                        if (attempt == 2) throw Transient();
+                        var wait = response.Headers.RetryAfter?.Delta
+                            ?? (response.Headers.RetryAfter?.Date is { } date ? date - DateTimeOffset.UtcNow : TimeSpan.FromMilliseconds(200 * (1 << attempt) + Random.Shared.Next(100)));
+                        if (wait > TimeSpan.FromSeconds(requestSeconds)) throw Transient();
+                        await (delay ?? Task.Delay)(wait < TimeSpan.Zero ? TimeSpan.Zero : wait, deadline.Token);
+                        continue;
+                    }
+                    if (!response.IsSuccessStatusCode) throw Map(response.StatusCode);
+                    if (mediaType == "text/plain" && (response.StatusCode != HttpStatusCode.OK
+                        || response.Content.Headers.ContentType?.MediaType != "text/plain"
+                        || response.Content.Headers.ContentType.CharSet?.Trim('"').ToLowerInvariant() is not (null or "utf-8" or "us-ascii")))
+                        throw new AdoException("invalid_service_response", "The log endpoint did not return supported UTF-8 plain text.", ExitCode.Transient);
+                    const int maximum = 4 * 1024 * 1024;
+                    if (response.Content.Headers.ContentLength > maximum) throw Oversized();
+                    await using var stream = await response.Content.ReadAsStreamAsync(deadline.Token);
+                    using var buffer = new MemoryStream();
+                    var chunk = new byte[16384];
+                    while (true)
+                    {
+                        int read = await stream.ReadAsync(chunk, deadline.Token);
+                        if (read == 0) break;
+                        if (buffer.Length + read > maximum) throw Oversized();
+                        await buffer.WriteAsync(chunk.AsMemory(0, read), deadline.Token);
+                    }
+                    string? continuation = Header(response, "x-ms-continuationtoken", operation == Operations.PipelineList || operation == Operations.BuildList ? 2048 : 128);
+                    if (response.Headers.Contains("x-ms-continuationtoken") && continuation is null)
+                        throw new AdoException("invalid_service_response", "The continuation token is invalid.", ExitCode.Transient);
+                    if (operation == Operations.ProjectList && continuation is not null && (!int.TryParse(continuation, out int offset) || offset < 0))
+                        throw new AdoException("invalid_service_response", "The project continuation token is invalid.", ExitCode.Transient);
+                    string? requestId = Header(response, "x-vss-e2eid") ?? Header(response, "x-ms-request-id");
+                    return parse(buffer.ToArray(), continuation, requestId is null ? null : Redact(requestId));
+                }
+                catch (HttpRequestException) when (attempt < 2)
+                {
+                    await (delay ?? Task.Delay)(TimeSpan.FromMilliseconds(200 * (1 << attempt) + Random.Shared.Next(100)), deadline.Token);
+                }
+                catch (HttpRequestException) { throw Transient(); }
+            }
+            throw Transient();
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        { throw new AdoException("request_timeout", "The read request exceeded its timeout.", ExitCode.Transient, true); }
+        catch (JsonException)
+        { throw new AdoException("invalid_service_response", "The service returned invalid or excessively nested JSON.", ExitCode.Transient); }
+        catch (System.Text.DecoderFallbackException)
+        { throw new AdoException("invalid_service_response", "The service returned invalid UTF-8 log content.", ExitCode.Transient); }
+        catch (IOException) { throw Transient(); }
+    }
+
+    private static string? Header(HttpResponseMessage response, string name, int maximum = 128)
+    {
+        if (!response.Headers.TryGetValues(name, out var values)) return null;
+        string? value = values.FirstOrDefault();
+        return value is { Length: > 0 } && value.Length <= maximum && !value.Any(char.IsControl) ? value : null;
+    }
+    private static bool IsTransient(HttpStatusCode code) => code is HttpStatusCode.TooManyRequests or HttpStatusCode.InternalServerError or HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout or HttpStatusCode.RequestTimeout;
+    private static AdoException Transient() => new("transient_service_failure", "The service is temporarily unavailable or rate limited; the bounded read attempts did not succeed.", ExitCode.Transient, true);
+    private static AdoException Oversized() => new("response_limit_exceeded", "The service response exceeds the 4 MiB safety limit.", ExitCode.Partial);
+    private static AdoException Map(HttpStatusCode code) => code switch
+    {
+        HttpStatusCode.Unauthorized => new("authentication_failed", "Azure DevOps rejected the supplied credential.", ExitCode.Authentication),
+        HttpStatusCode.Forbidden => new("authorization_failed", "The credential lacks access to this operation or resource.", ExitCode.Authorization),
+        HttpStatusCode.NotFound => new("resource_not_found", "The requested resource was not found or is not visible to this identity.", ExitCode.NotFound),
+        HttpStatusCode.Conflict or HttpStatusCode.PreconditionFailed => new("conflict", "The request conflicts with the current resource state.", ExitCode.Safety),
+        >= HttpStatusCode.MultipleChoices and < HttpStatusCode.BadRequest => new("redirect_refused", "The service redirected the request. Credentials were not forwarded; verify organization and authentication.", ExitCode.Safety),
+        _ => new("service_request_failed", "Azure DevOps rejected the request. Check the command context and documented permissions.", ExitCode.Transient)
+    };
+}

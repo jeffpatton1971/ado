@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: '1'
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+      - run: dotnet restore Ado.slnx --locked-mode
+      - run: dotnet build Ado.slnx --no-restore --configuration Release
+      - name: Use canonical macOS temporary directory for filesystem safety tests
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          python3 -c 'import os; print("TMPDIR=" + os.path.realpath(os.environ["RUNNER_TEMP"]))' >> "$GITHUB_ENV"
+      - run: dotnet test Ado.slnx --no-build --configuration Release --logger trx --results-directory artifacts/test-results
+      - run: dotnet format Ado.slnx --no-restore --verify-no-changes
+      - run: dotnet list Ado.slnx package --vulnerable --include-transitive
+      - name: Verify authoritative version
+        shell: pwsh
+        run: |
+          [xml]$props = Get-Content Directory.Build.props
+          $expected = $props.Project.PropertyGroup.Version
+          $actual = dotnet src/Ado.Cli/bin/Release/net10.0/ado.dll --version
+          if ($LASTEXITCODE -ne 0 -or $actual -cne $expected -or $actual -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') {
+            throw 'CLI version differs from the authoritative semantic version.'
+          }
+      - name: Create local tool package (no publication)
+        run: dotnet pack src/Ado.Cli --configuration Release --no-build --output artifacts/packages
+      - name: Install and verify packaged command (no publication)
+        shell: pwsh
+        run: ./scripts/Test-ToolPackage.ps1
+      - name: Verify live integration harness with synthetic responses
+        shell: pwsh
+        run: ./scripts/Test-LiveIntegrationHarness.ps1
+
+  cross-compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [win-x64, win-arm64, linux-x64, linux-arm64, osx-x64, osx-arm64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+      - name: Cross-compile only (does not claim runtime verification)
+        run: dotnet publish src/Ado.Cli --configuration Release --runtime ${{ matrix.rid }} --self-contained true --output artifacts/${{ matrix.rid }} -p:PackAsTool=false -p:NuGetLockFilePath=obj/publish-packages.lock.json
