@@ -173,7 +173,7 @@ version resolution to service GUIDs is now implemented with bounded complete sca
 live resolution is verified for automation's Json.Input.Provider 1.1.0. Exact NuGet
 download now resolves metadata then saves bounded content with SHA-256 and isolated
 storage redirects; live validation is pending. Structured local package inspection
-is implemented; user validation is pending. Version-range/dependency-graph solving is outside this exact
+is implemented and user-verified for Json.Input.Provider 1.1.0. Version-range/dependency-graph solving is outside this exact
 version lookup and is not an additional M1 acceptance gate.
 
 - [ ] List/get feeds, packages and exact versions, supporting applicable organization
@@ -193,7 +193,8 @@ version lookup and is not an additional M1 acceptance gate.
   Local nuspec text/hash inspection is user-verified for Json.Input.Provider 1.1.0
   (18,092-byte archive, 9 entries). package inspect reports identity, dependency
   groups and raw version declarations with archive/member hashes; synthetic tests
-  pass, user validation pending. Declarations do not establish compatibility.
+  pass. User verified structured identity, net9.0 dependency declarations and both
+  hashes matching the earlier local inspection. Declarations do not establish compatibility.
 - [ ] Keep preview-only provenance features explicitly opted in and separate from
   basic package availability. Record scope/API and verification limits.
 

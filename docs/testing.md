@@ -12,6 +12,15 @@ Microsoft.Extensions.DependencyInjection (9.0.9) and Rackspace.BAT.Core.Abstract
 Synthetic coverage includes range declarations, empty groups, no config access,
 DTD rejection, duplicate manifests/identity and truncated-text rejection.
 
+User-reported success: structured inspection returned Json.Input.Provider 1.1.0,
+18,092 archive bytes, the net9.0 group and both expected dependency declarations
+with `exclude="Build,Analyzers"`. Archive SHA-256:
+`d229edb039c1555af0f136f67d4d1d12a526f56e1820be943598c091fd45b2d9`;
+manifest SHA-256:
+`42124df9879ecfe80c705cce0fc198862900e78cb3ea64b5788d494c396b7366`.
+Both match the prior local text inspection. This verifies the local reader;
+successful CLI content download and remote origin remain separately unverified.
+
 ## Read-only diagnostic workflow acceptance
 
 DiagnosticWorkflowTests exercises the actual CLI entry point with a supported run

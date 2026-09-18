@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record user verification of structured Json.Input.Provider 1.1.0 inspection,
+  including dependency declarations and matching archive/manifest hashes.
+
 - Add local package inspect for bounded nuspec identity and dependency declarations,
   with archive/member hashes, DTD rejection and no configuration or network access.
 
