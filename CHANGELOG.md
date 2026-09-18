@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Record successful user-reported build diagnose table output for build 18722,
+  including source SHA, one failed task at log 21, three failed containers and
+  five skipped records; actual retry-history and live JSON coverage remain pending.
+
 - Add build diagnose to combine build/source details with categorized timeline
   findings, exact earlier-attempt references and targeted log IDs. Preserve partial
   evidence and limitations without fetching raw logs or asserting root cause.

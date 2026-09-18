@@ -29,7 +29,7 @@ classic-release expansion and mutation work follow the priority order below.
 ## M1: authentication and ranks 1–4
 
 The active slice is M1.1. URL input and bounded history traversal are implemented;
-consolidated findings are implemented; live diagnosis and end-to-end automation
+consolidated findings are implemented and live table diagnosis is verified; end-to-end automation
 verification remain open.
 Deliver each slice in small tested commits, then update this checklist and capability
 evidence. Proposed work below is not currently supported command syntax.
@@ -44,7 +44,7 @@ references are now preserved in JSON; tables show order, parent and attempt cont
 Optional --include-history traverses referenced timelines within shared bounds.
 build diagnose combines build details with categorized outcomes and exact prior-attempt
 references. Targeted log content still uses an explicit build log get command.
-Missing: live diagnosis/retry-history and end-to-end automation verification.
+Missing: live retry-history and end-to-end JSON/non-interactive verification.
 
 - [x] Accept supported Azure DevOps run URLs directly, including a run link obtained
   from a GitHub check; parse locally, validate host/path/IDs and reject conflicts
@@ -64,8 +64,9 @@ Missing: live diagnosis/retry-history and end-to-end automation verification.
   skipped/cancelled downstream work and earlier retry attempts. Label causal
   interpretation as inference when service evidence cannot establish it.
   build diagnose now reports categories, exact previous-attempt matches and log IDs;
-  it does not infer causality or fetch raw logs. Mock coverage passes, live acceptance
-  remains pending.
+  it does not infer causality or fetch raw logs. Mock coverage passes; the user verified
+  live table diagnosis on build 18722 (one failed task at log 21, three failed
+  containers, five skipped records). Live retry classification remains pending.
 - [ ] Verify a URL-to-failure workflow through JSON/non-interactive/read-only mode,
   including missing permission, absent logs, retries and truncated output.
 

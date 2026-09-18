@@ -318,7 +318,12 @@ timeline reads are separate snapshots. Incomplete timeline metadata is propagate
 inspection succeeded even when the inspected build failed. Service errors remain
 errors; root-cause conclusions are not generated. Mock tests cover outcome grouping,
 exact retry references, missing logs, partial JSON retention and terminal/credential
-escaping. Live diagnosis verification remains pending.
+escaping. On 2026-09-18 the user verified table diagnosis with --include-history
+for build 18722: completed/failed, source SHA a357ab0a6900e27bcaa318497ed11ff845fcfa16,
+one failed task (golden-request generation, log 21), three failed containers and
+five skipped records. All findings reported attempt 1. This verifies the combined
+read and outcome display; live JSON/strict completeness and actual retry-history
+classification remain unverified. The diagnosis did not retrieve log content.
 
 ## Verification
 
