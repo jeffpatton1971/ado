@@ -138,6 +138,11 @@ on refs/heads/feature/mpcsupeng-9381-escape-terraform-template-interpolation.
 Repository filters, partial-search resumption and missing-source handling remain
 mock-tested only; this does not verify PR or shared-template provenance.
 
+Feed list/get mocks verify project and organization routes, allowlisted identity,
+project association, validation before credentials, partial JSON with exit 10,
+HTTP 401/403/404 errors, mismatched feed/project rejection, credential redaction
+and terminal escaping. Feed live verification is pending. See [feed syntax](feeds.md).
+
 Live read-only tests require an explicitly authorized organization/project. Remote
 mutation tests require separate approval of exact disposable target, effect/cost,
 cleanup and reconciliation plan. No live test is automatically invoked by CI.

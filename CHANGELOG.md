@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add read-only feed list/get on the Azure Artifacts host, with explicit project or
+  organization scope, bounded allowlisted output and honest non-paged truncation.
+
 - Refresh the M1 roadmap and record M1 completion as the first tagged-version
   checkpoint. Rank 4 feed/package diagnostics is next; validation gaps remain open.
 - Add bounded repository/SHA/PR build discovery, reported repository identity and

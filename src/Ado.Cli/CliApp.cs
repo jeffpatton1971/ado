@@ -57,6 +57,15 @@ public static class CliApp
         var continuation = new Option<string>("--continuation-token") { Description = "Endpoint continuation token (numeric for projects/releases, opaque for pipelines/builds)." };
         var requireComplete = new Option<bool>("--require-complete") { Description = "Exit 10 if results are truncated or completeness is unknown." };
         var searchName = new Option<string>("--name") { Description = "Project name fragment." };
+        var feedCommand = new Command("feed", "Inspect accessible Azure Artifacts feeds.");
+        var feedList = new Command("list", "List accessible feeds; bounded locally, no server pagination.");
+        var feedGet = new Command("get", "Get feed identity by name or ID.");
+        var feedScope = new Option<string>("--scope") { Description = "project (default, uses configured project) or organization (omits project from the route)." };
+        var feedSelector = new Option<string>("--feed") { Description = "Feed name or ID; views are not supported." };
+        foreach (var command in new[] { feedList, feedGet }) { command.Options.Add(feedScope); feedCommand.Subcommands.Add(command); }
+        foreach (var option in new Option[] { all, requireComplete }) feedList.Options.Add(option);
+        feedGet.Options.Add(feedSelector);
+        root.Subcommands.Add(feedCommand);
         foreach (var command in new[] { list, search })
         {
             foreach (var option in new Option[] { top, all, continuation, requireComplete }) command.Options.Add(option);
@@ -281,7 +290,8 @@ public static class CliApp
                 return 0;
             }
             var selectedCommand = parsed.CommandResult.Command;
-            string? serviceCommand = selectedCommand == list ? "project list" : selectedCommand == get ? "project get"
+            string? serviceCommand = selectedCommand == feedList ? "feed list" : selectedCommand == feedGet ? "feed get"
+                : selectedCommand == list ? "project list" : selectedCommand == get ? "project get"
                 : selectedCommand == search ? "project search" : selectedCommand == check ? "auth check" : selectedCommand == doctor ? "doctor"
                 : selectedCommand == pipelineList ? "pipeline list" : selectedCommand == pipelineGet ? "pipeline get"
                 : selectedCommand == pipelineRuns ? "pipeline runs" : selectedCommand == pipelineRunGet ? "pipeline run get"
@@ -340,7 +350,8 @@ public static class CliApp
                         targetBuildId, new(parsed.GetValue(definitionId), parsed.GetValue(buildStatus), parsed.GetValue(buildResult), parsed.GetValue(branch), parsed.GetValue(repositoryId), parsed.GetValue(repositoryType), parsed.GetValue(sourceSha), parsed.GetValue(prNumber)),
                         parsed.GetValue(logId), parsed.GetValue(startLine), parsed.GetValue(endLine), parsed.GetValue(artifactName),
                         parsed.GetValue(destination), parsed.GetValue(maxBytes), parsed.GetValue(downloadTimeout), parsed.GetValue(releaseId), parsed.GetValue(releaseDefinitionId),
-                        parsed.GetValue(environmentId), parsed.GetValue(deploymentId), parsed.GetValue(taskId), parsed.GetValue(includeHistory), parsed.GetValue(archiveEntry)),
+                        parsed.GetValue(environmentId), parsed.GetValue(deploymentId), parsed.GetValue(taskId), parsed.GetValue(includeHistory), parsed.GetValue(archiveEntry),
+                        parsed.GetValue(feedSelector), parsed.GetValue(feedScope) ?? "project"),
                     output, error, input ?? Console.In, environment, testHandler, testNativeProvider, cancellationToken);
             }
             if (parsed.GetValue(effective))

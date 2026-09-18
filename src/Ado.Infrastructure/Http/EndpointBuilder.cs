@@ -6,6 +6,22 @@ namespace Ado.Infrastructure.Http;
 
 public static partial class EndpointBuilder
 {
+    public static Uri Feed(OperationDescriptor operation, string organization, string? project, string? feed = null)
+    {
+        ValidateOrganization(organization);
+        string path = "/" + organization + (project is null ? "" : "/" + ProjectSegment(project)) + "/_apis/packaging/feeds";
+        if (operation == Operations.FeedGet)
+        {
+            if (string.IsNullOrWhiteSpace(feed) || feed.Length > 64 || feed is "." or ".."
+                || feed.Any(c => char.IsControl(c) || char.IsWhiteSpace(c) || "/\\?&#%@:".Contains(c)))
+                throw new AdoException("invalid_feed", "Supply a feed name or ID with --feed (not a URL or feed view).", ExitCode.Usage);
+            path += "/" + Uri.EscapeDataString(feed);
+        }
+        else if (operation != Operations.FeedList || feed is not null)
+            throw new AdoException("invalid_feed_query", "Unsupported feed operation or selector.", ExitCode.Usage);
+        return new UriBuilder("https", Host(ServiceHost.Feeds)) { Path = path, Query = "api-version=7.1" }.Uri;
+    }
+
     [GeneratedRegex("^[A-Za-z0-9][A-Za-z0-9-]{0,49}$", RegexOptions.CultureInvariant)]
     private static partial Regex OrganizationPattern();
 

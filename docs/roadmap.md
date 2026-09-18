@@ -162,7 +162,9 @@ with explicit unavailable states; it does not infer template usage or fetch curr
 
 ### M1.4 — Azure Artifacts feeds and packages (rank 4)
 
-No feed/package CLI commands are implemented yet.
+Feed list/get is implemented for explicit project or organization scope, with bounded
+output and allowlisted identity fields. Live verification is pending. Package/version
+lookup, exact NuGet download and structured package inspection are not implemented yet.
 
 - [ ] List/get feeds, packages and exact versions, supporting applicable organization
   and project scopes, pagination and explicit permissions/completeness diagnostics.
