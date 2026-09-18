@@ -292,4 +292,7 @@ applies. Unsupported links, user info and non-HTTPS/nonstandard-port URLs are re
 without echoing the URL. GitHub check URLs themselves, legacy /DefaultCollection
 routes and Pipelines API command URL input are not supported. Copy the Azure DevOps
 run link from the check. Automated tests cover modern/legacy hosts and rejection
-paths; live URL-based verification is pending.
+paths. On 2026-09-18 the user reported a successful modern-URL timeline read for
+build 18722 in rseng/impldevmpc. It identified the failed golden-request task with
+log ID 21 and one error. Other URL-command combinations and the legacy host remain
+mock-tested only. Markdown link wrappers are not supported CLI URL syntax.

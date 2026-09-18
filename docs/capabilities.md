@@ -43,7 +43,9 @@ Output schema starts at version 1. Azure DevOps Services only.
 
 Build get/timeline/logs/log get and artifact list/get/download accept --run-url
 for locally validated Azure DevOps results links. Context conflicts fail before
-credential lookup. Mocked URL routing/rejection verified; live URL smoke test pending.
+credential lookup. Mocked URL routing/rejection verified; the user verified a live
+timeline read using the modern run URL for build 18722. Other URL-command combinations
+and the legacy host remain mock-tested only.
 
 Run start supports local previews, exact confirmation, single-attempt POST and uncertain-write
 reporting. Server-side YAML preview is separate from local dry-run and requires explicit

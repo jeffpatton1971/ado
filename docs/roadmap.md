@@ -44,7 +44,8 @@ Missing: richer attempt context, sub-timeline traversal and a consolidated diagn
   with explicit organization/project context before credential lookup. Do not
   fetch arbitrary links or imply GitHub check discovery is implemented. Implemented
   as --run-url on build inspection/artifact commands; mocked canonical-route and
-  no-dispatch rejection coverage, live URL smoke test pending. See [syntax](builds.md).
+  no-dispatch rejection coverage, and user-reported live modern-URL timeline read
+  for build 18722. Other URL-command combinations remain mock-tested. See [syntax](builds.md).
 - [ ] Preserve stage/job/task hierarchy, ordering, attempts and available timeline
   references with bounded traversal and explicit missing/incomplete metadata.
 - [ ] Identify failed tasks and their targeted logs; distinguish failures from
@@ -108,7 +109,7 @@ No feed/package CLI commands are implemented yet.
 | Requirement | Current evidence | Remaining acceptance work |
 |---|---|---|
 | Cross-platform .NET; PowerShell-friendly | SDK pinned to 10.0.400; Windows x64 tests; three-OS CI authored | Execute target-OS checks, native-store checks and installation smoke tests; distinguish cross-compilation from runtime coverage |
-| Named org/project profiles and run URLs | Profiles and build --run-url implemented; conflict tests pass | Live URL smoke test; unsupported URL forms remain explicit |
+| Named org/project profiles and run URLs | Profiles and build --run-url implemented; conflict tests pass; live modern-URL timeline read verified | Broaden URL-command/legacy-host live coverage as authorized; unsupported URL forms remain explicit |
 | Authentication diagnostics | Credential providers and HTTP error categories; auth check probes projects | Add service-specific read probes for build/artifact/feed access; retain ambiguity for masked not-found/public access; distinguish network, credential, permission and resource failures where possible |
 | OS PAT stores and Entra | Native adapters and externally supplied Entra tokens; Windows synthetic store test | Validate macOS/Linux stores; document token acquisition/refresh limitations; do not claim automatic Entra login |
 | Never print/persist tokens | Selected credential redaction, safe config output, no CLI credential persistence; plaintext config rejected | Preserve rejection of plaintext credentials; verify secret handling across new commands and exports; unknown secrets in service logs are not automatically sanitized |

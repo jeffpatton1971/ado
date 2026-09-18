@@ -29,7 +29,7 @@ User-run server YAML preview, build list/get and log index/content reads also su
 Build-output metadata list/get and a PipelineArtifact ZIP download passed user-run
 live checks; Container download live verification remains pending. Classic-release
 inspection through task logs also passed user-run checks. Build inspection accepts
---run-url (mock-tested; live verification pending). Richer
+--run-url (mock-tested; user-verified timeline read for build 18722). Richer
 diagnostics, exact provenance, archive inspection and feed/package access remain
 MVP gaps. The initial release is not complete; see the backlog for acceptance criteria.
 

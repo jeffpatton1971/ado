@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record user-reported successful modern run-URL timeline read for build 18722;
+  the failed golden-request task resolves to log 21 with one error.
+
 - Add --run-url to build inspection and artifact commands, with local Azure DevOps
   results-link parsing, canonical endpoint construction and pre-credential context
   conflict rejection. Supports modern and organization.visualstudio.com links.
