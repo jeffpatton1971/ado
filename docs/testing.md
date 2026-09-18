@@ -1,5 +1,10 @@
 # Verification and CI
 
+`AuthProbeTests` verifies selected build, artifact-list and organization-feed GET
+routes, no fallback project request, 401/403/404 failure propagation and required
+context rejection before credential retrieval. Live commands are documented in
+[authentication](authentication.md); new probes await user validation.
+
 Local NuGet manifest smoke test (no token/configuration required):
 
 ```powershell

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add explicit build, artifact-metadata and scoped feed access probes to auth check,
+  preserving project defaults and endpoint-specific permission limitations.
+
 - Record successful live Json.Input.Provider 1.1.0 download and digest agreement;
   clarify that nested resolution limitations describe metadata resolution alone.
 

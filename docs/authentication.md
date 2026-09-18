@@ -1,5 +1,23 @@
 # Authentication and native credential setup
 
+`auth check` defaults to the project probe. Select `--capability build` with
+`--build-id` for one build, `--capability artifact` with `--build-id` for its
+artifact metadata list, or `--capability feed` with `--feed` and
+`--scope project|organization` for one feed. Project scope is the default.
+Required target context is validated before credential retrieval. Probes use
+bounded GET clients without downloading content or testing write permissions.
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- auth check --capability build --build-id 18722 --config ./config.json --token-prompt --output table --read-only
+dotnet run --project src/Ado.Cli --configuration Release -- auth check --capability artifact --build-id 18522 --config ./config.json --token-prompt --output table --read-only
+dotnet run --project src/Ado.Cli --configuration Release -- auth check --capability feed --scope organization --feed automation --config ./config.json --token-prompt --output table --read-only
+```
+
+Success means the selected metadata endpoint was accessible. Empty artifact lists
+can confirm list access. Public resources do not independently prove credential
+validity; not-found responses may mask visibility restrictions. JSON completeness
+describes the probe, not a complete artifact inventory. Resource contents are omitted.
+
 Token acquisition is separate from HTTP authentication. PAT uses Basic authentication
 with an empty username. `entra-token` uses Bearer authentication; acquire the token for
 Azure DevOps, not Azure Resource Manager. Tokens are opaque and never decoded. No

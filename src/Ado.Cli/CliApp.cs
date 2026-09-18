@@ -238,7 +238,9 @@ public static class CliApp
         release.Subcommands.Add(releaseTask);
         root.Subcommands.Add(release);
         var auth = new Command("auth", "Check access using the selected credential.");
-        var check = new Command("check", "Test project endpoint access; other services are not checked.");
+        var check = new Command("check", "Test access to one selected read endpoint; does not establish all service permissions.");
+        var capability = new Option<string>("--capability") { Description = "Read probe: project (default), build, artifact or feed." };
+        foreach (var option in new Option[] { capability, buildId, feedSelector, feedScope }) check.Options.Add(option);
         auth.Subcommands.Add(check);
         root.Subcommands.Add(auth);
         var doctor = new Command("doctor", "Local configuration/platform diagnostics; no secret lookup or network request.");
@@ -391,7 +393,7 @@ public static class CliApp
                         parsed.GetValue(destination), parsed.GetValue(maxBytes), parsed.GetValue(downloadTimeout), parsed.GetValue(releaseId), parsed.GetValue(releaseDefinitionId),
                         parsed.GetValue(environmentId), parsed.GetValue(deploymentId), parsed.GetValue(taskId), parsed.GetValue(includeHistory), parsed.GetValue(archiveEntry),
                         parsed.GetValue(feedSelector), parsed.GetValue(feedScope) ?? "project",
-                        new(parsed.GetValue(packageId), parsed.GetValue(versionId), parsed.GetValue(packageProtocol), parsed.GetValue(packageName), parsed.GetValue(packageVersionText))),
+                        new(parsed.GetValue(packageId), parsed.GetValue(versionId), parsed.GetValue(packageProtocol), parsed.GetValue(packageName), parsed.GetValue(packageVersionText)), parsed.GetValue(capability) ?? "project"),
                     output, error, input ?? Console.In, environment, testHandler, testNativeProvider, cancellationToken);
             }
             if (parsed.GetValue(effective))

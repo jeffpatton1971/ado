@@ -12,7 +12,7 @@ public sealed record ServiceOptions(string Command, bool Json, bool NonInteracti
     int? BuildId = null, BuildFilters? BuildFilters = null, int? LogId = null, long? StartLine = null, long? EndLine = null, string? ArtifactName = null,
     string? Destination = null, long? MaxBytes = null, int? DownloadTimeout = null, int? ReleaseId = null, int? ReleaseDefinitionId = null,
     int? EnvironmentId = null, int? DeploymentId = null, int? TaskId = null, bool IncludeHistory = false, string? ArchiveEntry = null,
-    string? Feed = null, string FeedScope = "project", PackageQuery? PackageQuery = null);
+    string? Feed = null, string FeedScope = "project", PackageQuery? PackageQuery = null, string Capability = "project");
 
 internal static class ServiceCommands
 {
@@ -38,6 +38,7 @@ internal static class ServiceCommands
             return 0;
         }
         string organization = EndpointBuilder.ValidateOrganization(profile.Organization);
+        if (options.Command == "auth check") AuthProbeCommands.Validate(options, organization, profile.Project);
         int limit = options.All ? profile.Pagination.MaxItems : profile.Pagination.Limit;
         int top = options.Top ?? profile.Pagination.PageSize;
         if (top < 1 || top > profile.Pagination.MaxItems)
@@ -238,6 +239,8 @@ internal static class ServiceCommands
             using var authentication = new TokenAuthentication(reference.Type, secret);
             using var client = testHandler is null ? ServiceTransport.CreateClient() : new HttpClient(testHandler, disposeHandler: false) { Timeout = Timeout.InfiniteTimeSpan };
             var transport = new ServiceTransport(client, authentication, organization, profile.Timeouts.RequestSeconds, options.ReadOnly, options.DryRun);
+            if (options.Command == "auth check" && options.Capability != "project")
+                return await AuthProbeCommands.ReadAsync(transport, options, organization, profile.Project, reference.Type, output, deadline.Token);
             if (feedCommand)
                 return await FeedCommands.ReadAsync(new(transport, organization, feedProject), options, limit, output, error, deadline.Token);
             if (packageTarget is not null)
