@@ -14,6 +14,8 @@ internal static class ReleaseCommands
             return await ApprovalsAsync(client, options, limit, output, error, cancellationToken);
         if (options.Command == "release deployments")
             return await DeploymentsAsync(client, options, limit, output, error, cancellationToken);
+        if (options.Command == "release tasks")
+            return await TasksAsync(client, options, limit, output, error, cancellationToken);
         bool single = options.Command == "release get";
         var result = single ? await client.GetAsync(options.ReleaseId!.Value, cancellationToken)
             : await client.ListAsync(top, limit, options.Continuation, options.ReleaseDefinitionId, cancellationToken);
@@ -49,6 +51,26 @@ internal static class ReleaseCommands
             foreach (var item in result.Items)
                 await output.WriteLineAsync($"{item.Id}  {item.ReleaseId}  {item.DefinitionEnvironmentId}  {OutputWriter.TerminalSafe(item.Name ?? "")}  {OutputWriter.TerminalSafe(item.Status ?? "")}  {item.Rank}");
             if (incomplete) await error.WriteLineAsync("warning: Environments are truncated; raise --limit within its ceiling. There is no continuation token.");
+        }
+        return options.RequireComplete && incomplete ? (int)ExitCode.Partial : 0;
+    }
+
+    private static async Task<int> TasksAsync(ReleasesClient client, ServiceOptions options, int limit,
+        TextWriter output, TextWriter error, CancellationToken cancellationToken)
+    {
+        var result = await client.TasksAsync(options.ReleaseId!.Value, limit, cancellationToken);
+        bool incomplete = result.Meta.Completeness != "complete";
+        if (options.Json)
+        {
+            if (options.RequireComplete && incomplete) await OutputWriter.PartialAsync(output, result.Items, result.Meta);
+            else await OutputWriter.SuccessAsync(output, result.Items, true, result.Meta);
+        }
+        else
+        {
+            await output.WriteLineAsync("TASK ID  ENVIRONMENT ID  DEPLOYMENT ID  ATTEMPT  PHASE  JOB  NAME  STATUS  LINES");
+            foreach (var item in result.Items)
+                await output.WriteLineAsync($"{item.Id}  {item.EnvironmentId}  {item.DeploymentId}  {item.Attempt}  {OutputWriter.TerminalSafe(item.PhaseName ?? "")}  {OutputWriter.TerminalSafe(item.JobName ?? "")}  {OutputWriter.TerminalSafe(item.Name ?? "")}  {OutputWriter.TerminalSafe(item.Status ?? "")}  {item.LineCount}");
+            if (incomplete) await error.WriteLineAsync("warning: Task results are truncated or nested arrays are missing; inspect JSON metadata. There is no continuation token.");
         }
         return options.RequireComplete && incomplete ? (int)ExitCode.Partial : 0;
     }

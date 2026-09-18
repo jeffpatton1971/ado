@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add release tasks with expanded deployment task results, attempt/phase/job context,
+  bounded output and explicit completeness; task inputs and log URLs are omitted.
 - Record user-reported live deployment inspection for release 1492: step 3615,
   deployment 1506, environment 1499, attempt 1, failed/PhaseFailed and started.
 - Add release deployments for bounded deployment-attempt summaries with status,

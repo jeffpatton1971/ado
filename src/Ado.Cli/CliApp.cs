@@ -141,6 +141,7 @@ public static class CliApp
         var releaseEnvironments = new Command("environments", "List bounded deployment statuses for a classic release's environments.");
         var releaseApprovals = new Command("approvals", "Inspect pre/post-deployment approval statuses; no approval actions.");
         var releaseDeployments = new Command("deployments", "Inspect deployment attempts embedded in a classic release; no deployment actions.");
+        var releaseTasks = new Command("tasks", "Inspect expanded task results across classic release deployment attempts.");
         var releaseId = new Option<int?>("--release-id") { Description = "Positive classic release ID." };
         var releaseDefinitionId = new Option<int?>("--definition-id") { Description = "Filter by classic release definition ID." };
         foreach (var option in new Option[] { top, all, continuation, requireComplete, releaseDefinitionId }) releaseList.Options.Add(option);
@@ -148,11 +149,13 @@ public static class CliApp
         foreach (var option in new Option[] { releaseId, all, requireComplete }) releaseEnvironments.Options.Add(option);
         foreach (var option in new Option[] { releaseId, all, requireComplete }) releaseApprovals.Options.Add(option);
         foreach (var option in new Option[] { releaseId, all, requireComplete }) releaseDeployments.Options.Add(option);
+        foreach (var option in new Option[] { releaseId, all, requireComplete }) releaseTasks.Options.Add(option);
         release.Subcommands.Add(releaseList);
         release.Subcommands.Add(releaseGet);
         release.Subcommands.Add(releaseEnvironments);
         release.Subcommands.Add(releaseApprovals);
         release.Subcommands.Add(releaseDeployments);
+        release.Subcommands.Add(releaseTasks);
         root.Subcommands.Add(release);
         var auth = new Command("auth", "Check access using the selected credential.");
         var check = new Command("check", "Test project endpoint access; other services are not checked.");
@@ -178,7 +181,7 @@ public static class CliApp
             if (args.Length == 0 || parsed.Action is System.CommandLine.Help.HelpAction)
             {
                 if (jsonOutput)
-                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build timeline", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download", "release list", "release get", "release environments", "release approvals", "release deployments" } }, true);
+                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build timeline", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download", "release list", "release get", "release environments", "release approvals", "release deployments", "release tasks" } }, true);
                 else
                 {
                     var helpArgs = args.Length == 0 ? new[] { "--help" } : args;
@@ -207,7 +210,8 @@ public static class CliApp
                 : selectedCommand == releaseList ? "release list" : selectedCommand == releaseGet ? "release get"
                 : selectedCommand == releaseEnvironments ? "release environments"
                 : selectedCommand == releaseApprovals ? "release approvals"
-                : selectedCommand == releaseDeployments ? "release deployments" : null;
+                : selectedCommand == releaseDeployments ? "release deployments"
+                : selectedCommand == releaseTasks ? "release tasks" : null;
             if (selectedCommand != show && serviceCommand is null)
                 throw new AdoException("command_required", "Choose a command. Use ado --help for supported syntax.", ExitCode.Usage);
 

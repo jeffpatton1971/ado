@@ -1,7 +1,7 @@
 # Classic release inspection
 
 `release list`, `release get`, `release environments`, `release approvals` and
-`release deployments` inspect classic Azure DevOps
+`release deployments` and `release tasks` inspect classic Azure DevOps
 releases, separate from YAML pipeline runs and builds. All require an organization and project and use
 the Release API 7.1 on vsrm.dev.azure.com. The documented read scope is vso.release;
 successful Build API reads do not establish release access.
@@ -106,6 +106,27 @@ bounds, invalid identities/payloads, redaction and CLI completeness. The user ve
 release 1492 returned step 3615, deployment 1506, environment 1499 (ib-tasks),
 attempt 1, status failed, operationStatus PhaseFailed and hasStarted true. This
 identifies a deployment-phase failure but does not identify the failed task or cause.
+
+## Task results
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- release tasks --config ./config.json --release-id 1492 --token-prompt --output table --read-only --limit 100
+```
+
+This uses Get Release with $expand=tasks and traverses deployment attempts, phases,
+jobs and their task arrays. Rows include task name/status/line count and the release,
+environment, step, deployment, attempt, phase and job context. Task IDs are scoped to
+their job; the same ID may occur in other jobs or attempts. Service order is preserved.
+Agent identities, task inputs, issues, result-code text and log URLs are omitted.
+No log URLs are followed and no tasks are executed.
+
+The local --limit/--all applies across all returned tasks. The 4 MiB response ceiling
+still applies to the expanded response. Empty arrays are complete for this snapshot;
+missing/null nested arrays yield unknown completeness. --require-complete retains
+data with exit 10 for unknown or truncated results. No continuation is available.
+Gate evaluation tasks and parent-job summary rows are outside this command's scope.
+Mock tests cover the expansion query, context, bounds, malformed data, identity checks,
+redaction and terminal escaping. Live task verification is pending.
 
 References:
 
