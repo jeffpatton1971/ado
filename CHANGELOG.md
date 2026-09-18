@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Reject wrong/missing repository identities in ordinary filtered build searches,
+  including exact-SHA queries; reconcile completed artifact/provenance implementation
+  checklist items while retaining outstanding release validation.
+
 - Add isolated packaged-tool installation smoke checks to three-OS CI; verify
   installed version/help, deterministic inspection JSON and hash-mismatch exit.
   Local Windows x64 execution passed; Linux/macOS runs remain pending.

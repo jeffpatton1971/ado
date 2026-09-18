@@ -30,6 +30,8 @@ public sealed class BuildsClient(ServiceTransport transport, string organization
             {
                 var build = Parse(value);
                 if (filters.DefinitionId is { } id && build.DefinitionId != id) throw Invalid();
+                if (filters.RepositoryId is not null && !string.Equals(build.Repository?.Id, filters.RepositoryId, StringComparison.OrdinalIgnoreCase)
+                    || filters.RepositoryType is not null && !string.Equals(build.Repository?.Type, filters.RepositoryType, StringComparison.OrdinalIgnoreCase)) throw Invalid();
                 if (filters.PrNumber is not null &&
                     (!string.Equals(build.SourceBranch, filters.EffectiveBranch, StringComparison.Ordinal)
                     || !string.Equals(build.Reason, "pullRequest", StringComparison.Ordinal)

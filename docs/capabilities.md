@@ -1,5 +1,9 @@
 # Capability matrix
 
+Build repository filters validate returned repository ID/type for ordinary searches
+as well as PR queries. A matching source SHA alone cannot satisfy a repository-scoped
+query if service metadata reports a different or missing repository identity.
+
 The packaged ado 0.1.0 command was installed and executed locally on Windows x64:
 version/help, deterministic local inspection JSON and hash-mismatch exit behavior
 passed. CI now includes this isolated install check on all three test OSes;

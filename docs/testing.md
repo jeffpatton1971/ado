@@ -1,5 +1,10 @@
 # Verification and CI
 
+Repository-filter acceptance: ordinary build searches now reject wrong or missing
+returned repository IDs/types, including a successful build with the requested SHA.
+Four CLI regression cases exercise this through the JSON error contract. Existing
+source-search continuation coverage now supplies matching repository identity.
+
 Package automation acceptance: the direct and storage-redirect download cases now
 consume the JSON destination/digest in `package inspect`, then use its manifest
 path/hash in `artifact evidence`. Checks verify identity and digest agreement,

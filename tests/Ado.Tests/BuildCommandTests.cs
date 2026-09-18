@@ -77,7 +77,7 @@ public sealed class BuildCommandTests
             StringAssert.Contains(request.RequestUri.Query, "repositoryType=TfsGit");
             Assert.IsFalse(request.RequestUri.Query.Contains("source", StringComparison.OrdinalIgnoreCase));
             if (calls == 2) StringAssert.Contains(request.RequestUri.Query, "continuationToken=next");
-            var response = TransportTests.Json(JsonSerializer.Serialize(new { value = new[] { new { id = calls, definition = new { id = 12 }, sourceVersion = calls == 1 ? new string('b', 40) : sha.ToUpperInvariant() } } }));
+            var response = TransportTests.Json(JsonSerializer.Serialize(new { value = new[] { new { id = calls, definition = new { id = 12 }, repository = new { id = "repo&id", type = "TfsGit" }, sourceVersion = calls == 1 ? new string('b', 40) : sha.ToUpperInvariant() } } }));
             if (calls == 1) response.Headers.Add("x-ms-continuationtoken", "next");
             return response;
         });
@@ -105,6 +105,26 @@ public sealed class BuildCommandTests
         using var json = JsonDocument.Parse(result.Output);
         Assert.AreEqual("unknown", json.RootElement.GetProperty("meta").GetProperty("completeness").GetString());
         Assert.AreEqual("source_version_unavailable", json.RootElement.GetProperty("meta").GetProperty("truncationReason").GetString());
+    }
+
+    [TestMethod]
+    [DataRow("other/repo", "GitHub")]
+    [DataRow(null, "GitHub")]
+    [DataRow("owner/repo", "TfsGit")]
+    [DataRow("owner/repo", null)]
+    public async Task ExactSourceCannotMatchWrongOrMissingRepository(string? repositoryId, string? repositoryType)
+    {
+        string sha = new('a', 40);
+        using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json(JsonSerializer.Serialize(new
+        {
+            value = new[] { new { id = 34, definition = new { id = 12 }, buildNumber = "same-successful-name", result = "succeeded",
+                sourceVersion = sha, repository = new { id = repositoryId, type = repositoryType } } }
+        })));
+        var result = await RunAsync(["list", "--repository-id", "owner/repo", "--repository-type", "GitHub", "--source-sha", sha, "--require-complete"], handler);
+        Assert.AreEqual(9, result.Exit, result.Output);
+        using var json = JsonDocument.Parse(result.Output);
+        Assert.IsFalse(json.RootElement.GetProperty("ok").GetBoolean());
+        Assert.IsFalse(json.RootElement.TryGetProperty("data", out _));
     }
 
     [TestMethod]

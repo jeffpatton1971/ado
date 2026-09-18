@@ -28,11 +28,12 @@ classic-release expansion and mutation work follow the priority order below.
 
 ## M1: authentication and ranks 1–4
 
-Current focus: M1.4 feed/package diagnostics. M1.1 run diagnostics, M1.2 selected
+Current focus: M1 acceptance and source-query hardening. M1.1 run diagnostics, M1.2 selected
 artifact workflows and M1.3 bounded discovery/source context are implemented in
 usable slices with live verification of their primary paths. Outstanding acceptance
 work includes live JSON/retry-history checks, Container artifact and platform
-coverage, package semantics and explicit provenance limitations. M1 is not complete.
+coverage and package acceptance. Structured nuspec inspection and package download
+are user-verified. M1 is not complete.
 Deliver each slice in small tested commits, then update this checklist and capability
 evidence. Unimplemented checklist work below is not supported command syntax.
 
@@ -99,7 +100,7 @@ The user extracted a ZIP externally. ado now inspects local ZIP inventories and
 hashes exact selected members; single-member extraction to an explicit new file
 is implemented with shared validation and no-overwrite publication.
 
-- [ ] Add bounded archive inventory and explicit member selection for evidence ZIPs,
+- [x] Add bounded archive inventory and explicit member selection for evidence ZIPs,
   package inventories, manifests and reports. State whether selection reduces
   network transfer or happens after downloading the selected artifact.
   artifact inspect provides local inventory and exact member metadata/hash selection.
@@ -109,7 +110,7 @@ is implemented with shared validation and no-overwrite publication.
   member text is implemented and user-verified for that manifest with unchanged
   hashes. Structured nuspec declarations are implemented and user-verified. Selection does not reduce
   download transfer; live JSON/truncated-text checks remain outstanding.
-- [ ] Report artifact identity, size and SHA-256; compare an expected hash when
+- [x] Report artifact identity, size and SHA-256; compare an expected hash when
   supplied. A computed digest alone must not be called authenticity verification.
   Local archive/member digests and expected archive hash comparison are implemented;
   local evidence export is implemented. build artifact evidence now records scoped
@@ -117,7 +118,7 @@ is implemented with shared validation and no-overwrite publication.
   mock coverage passes for both types. The user verified PipelineArtifact export for
   build 18522/artifact 17112, including source revision and matching member digest.
   ZIP digest differed from the earlier download; the cause was not established.
-- [ ] Add opt-in safe extraction: reject path traversal, absolute paths, unsafe
+- [x] Add opt-in safe extraction: reject path traversal, absolute paths, unsafe
   links, duplicate/colliding paths and existing destinations; bound entry count,
   expanded bytes and execution time; clean up interrupted temporary output.
   artifact extract now writes one exact member to an explicit destination, with
@@ -126,7 +127,7 @@ is implemented with shared validation and no-overwrite publication.
   build 18522 (527 bytes, matching prior digests, written:true). Broader platform
   validation and live failure-path/dry-run checks remain open.
   Bulk directory-tree extraction is not implemented.
-- [ ] Produce a minimal sanitized evidence manifest identifying the selected
+- [x] Produce a minimal sanitized evidence manifest identifying the selected
   run/artifact/files, digests and limitations. No automatic raw-log retention.
   artifact evidence exports allowlisted local archive/member metadata and hashes,
   with no raw contents or absolute input paths. Optional run/artifact labels are
@@ -138,6 +139,8 @@ is implemented with shared validation and no-overwrite publication.
   remains open. Names/labels are not claimed secret-free.
 - [ ] Validate both supported artifact types and failure/cleanup cases, recording
   live versus mocked coverage separately.
+  The preceding implementation items have synthetic tests and primary live-path
+  evidence; their checked status does not close Container or platform release checks.
 
 ### M1.3 — Run discovery and exact source provenance (rank 3)
 
@@ -162,10 +165,16 @@ with explicit unavailable states; it does not infer template usage or fetch curr
   repository resources/shared-template revisions where the service exposes them.
   Build PR context now distinguishes trigger reason and merge-ref inference, labels
   reported merge revisions and leaves historical PR head revisions unresolved.
-- [ ] Distinguish run-time revisions from current definition or branch contents;
+- [x] Distinguish run-time revisions from current definition or branch contents;
   mark unavailable provenance unknown rather than substituting current HEAD.
+  RunRepositoryProvenanceTests verifies reported resources and unavailable states
+  without current-branch requests; user verified reported resources for run 18722.
 - [ ] Verify that similarly named successful runs, different commits and retry
   attempts cannot silently satisfy an exact-source query.
+  Ordinary repository filters now validate returned repository ID/type as PR queries
+  already did. Regression cases reject wrong/missing identities even with the
+  requested SHA and a successful result. Existing tests cover SHA mismatch, unknown
+  source versions, bounded continuation and PR head-versus-merge distinctions.
 
 ### M1.4 — Azure Artifacts feeds and packages (rank 4)
 
