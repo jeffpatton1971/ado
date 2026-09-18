@@ -100,12 +100,13 @@ download permission, compatibility or package contents. Version-range/dependency
 solving is outside this command. Exact NuGet download and structured local nuspec
 inspection are implemented and user-verified for Json.Input.Provider 1.1.0.
 The user verified NuGet package listing in the organization-scoped automation feed
-with 20 returned rows and a bounded-search warning. Live continuation, version listing
-and exact version retrieval remain pending.
+with 20 returned rows and a bounded-search warning. Live continuation remains pending.
+Standalone version listing returned eight visible Json.Input.Provider versions with
+`--require-complete` and no truncation warning; exact GUID retrieval returned 1.1.0.
 The user also verified `package resolve` for Json.Input.Provider 1.1.0, returning
 package ID `2894f7c9-8ec5-4679-a5d8-b5836dc971ee` and version ID
 `945356c8-1454-4477-b38e-e9f37aed193c`. This verifies metadata resolution only;
-standalone version commands and live JSON remain unverified.
+live JSON remains unverified. Standalone version commands are now user-verified.
 The user verified destination-exists refusal before a token prompt, then externally
 expanded an existing Json.Input.Provider 1.1.0 nupkg. Its download origin and digest
 were not established by that output. A subsequent CLI download succeeded with

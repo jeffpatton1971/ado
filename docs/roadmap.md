@@ -47,9 +47,9 @@ them off. Verification CI and local packaging do not authorize a release.
 Live retry-history validation is unavailable: the user could not identify an
 existing run with a retried job/stage. Retain synthetic attempt-history coverage
 and document this release limitation; it does not independently block M1. Do not
-rerun a work pipeline solely to manufacture a fixture. The next live acceptance
-check is standalone package version listing and exact-version retrieval for the
-already verified organization-scoped automation package Json.Input.Provider.
+rerun a work pipeline solely to manufacture a fixture. Standalone package version
+listing and exact-version retrieval are now user-verified for the organization-scoped
+automation package Json.Input.Provider. Live package continuation remains pending.
 
 ### M1.1 — Run details, stage/job/task timeline and targeted logs (rank 1)
 
@@ -205,7 +205,9 @@ rseng/impldevmpc (`testing-upstream`); organization-scoped get is verified for
 rseng's `automation` feed. Organization listing, project get and live JSON remain pending.
 Package listing, bounded version inventory and exact version-GUID retrieval are
 implemented. NuGet listing in automation is verified live (20 rows and a bound
-warning); continuation and version reads remain pending. Exact NuGet name/literal
+warning); continuation remains pending. Standalone version listing returned eight
+visible versions with --require-complete and no truncation warning; exact version
+retrieval returned the known 1.1.0 GUID. Exact NuGet name/literal
 version resolution to service GUIDs is now implemented with bounded complete scans;
 live resolution is verified for automation's Json.Input.Provider 1.1.0. Exact NuGet
 download now resolves metadata then saves bounded content with SHA-256 and isolated

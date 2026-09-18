@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record live organization-scoped package version listing and exact-version
+  retrieval for Json.Input.Provider 1.1.0.
+
 - Document unavailable live retry-history fixtures as a non-blocking coverage
   limitation and refresh package verification status and next acceptance checks.
 
