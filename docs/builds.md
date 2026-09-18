@@ -196,6 +196,8 @@ hosts are refused. Redirected content uses a separate client with no authorizati
 cookies, default credentials or referrer. Signed URLs and remote error bodies are never
 printed. These suffixes are a deliberately narrow subset of Microsoft's networking
 domains; an unfamiliar host fails instead of widening trust automatically.
+Rejected redirects report only a bounded, credential-redacted DNS hostname for
+diagnosis; URL paths, queries, user information and fragments remain omitted.
 
 Success returns buildId, artifactName, destination, bytes and format:zip. Size overflow
 uses exit 10; unsafe destination/type/redirect uses exit 7; transfer failure/deadline
@@ -212,8 +214,9 @@ line ranges, JSON forms, bounds, safe output and strict completeness. The develo
 agent has made no live requests. Build-output metadata tests cover routes, name encoding,
 identity checks, safe field selection, output bounds and CLI behavior. The user verified
 an empty output list for build 18722, two PipelineArtifact outputs for 18522, and get by
-name for CompiledOutputs (17112). Download verification is mocked only; no live transfer
-has been performed. Tests cover header isolation, unsafe redirects, redirect bounds,
+name for CompiledOutputs (17112). A user-run download of that output was blocked by
+redirect validation; successful live transfer remains unverified. Tests cover header
+isolation, unsafe redirects and safe hostname diagnostics, redirect bounds,
 byte limits, interruption cleanup, timeouts, ZIP envelope checks and overwrite refusal.
 The synthetic symlink test skipped locally because the Windows session cannot create
 symlinks; it remains part of the cross-platform suite.

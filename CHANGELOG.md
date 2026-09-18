@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Include a bounded, credential-redacted hostname when an artifact download redirect
+  is refused, without exposing signed URLs or changing the storage allowlist.
 - Add build artifact download with an explicit new-file destination, local dry-run,
   configured byte/time limits, isolated storage redirects, temporary-file cleanup and
   no-overwrite ZIP finalization. No extraction or automatic content retry is performed.

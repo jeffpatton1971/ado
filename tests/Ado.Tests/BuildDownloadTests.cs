@@ -62,10 +62,13 @@ public sealed class BuildDownloadTests
         Assert.ThrowsExactly<AdoException>(() => BuildArtifactDownloader.ValidateStorageDestination(new(uri)));
 
     [TestMethod]
-    public async Task BlockedRedirectDoesNotSendStorageRequest()
+    [DataRow("evil.invalid", "evil.invalid")]
+    [DataRow("synthetic.evil.invalid", "[REDACTED].evil.invalid")]
+    public async Task BlockedRedirectDoesNotSendStorageRequest(string host, string expectedHost)
     {
         using var directory = new DownloadDirectory();
-        using var service = new TransportTests.FakeHandler(_ => new(HttpStatusCode.Redirect) { Headers = { Location = new("https://evil.invalid/?sig=secret-sentinel") } });
+        using var service = new TransportTests.FakeHandler(_ => new(HttpStatusCode.Redirect)
+        { Headers = { Location = new($"https://secret-sentinel@{host}/secret-sentinel?sig=secret-sentinel#secret-sentinel") } });
         using var storage = new TransportTests.FakeHandler(_ => throw new AssertFailedException());
         using var serviceHttp = new HttpClient(service);
         using var contentHttp = new HttpClient(storage);
@@ -73,6 +76,8 @@ public sealed class BuildDownloadTests
         var error = await Assert.ThrowsExactlyAsync<AdoException>(() => new BuildArtifactDownloader(serviceHttp, contentHttp, auth, "example", "Project")
             .DownloadAsync(34, "drop", DownloadTarget.Validate(directory.Target), 10000, 10, CancellationToken.None));
         Assert.AreEqual("unsafe_download_destination", error.Code);
+        Assert.IsTrue(error.Message.Contains($"Redirect host: {expectedHost}.", StringComparison.Ordinal));
+        Assert.IsFalse(error.Message.Contains("synthetic", StringComparison.Ordinal));
         Assert.IsFalse(error.Message.Contains("secret-sentinel", StringComparison.Ordinal));
         Assert.AreEqual(0, storage.Calls);
         Assert.AreEqual(0, Directory.GetFiles(directory.Root).Length);

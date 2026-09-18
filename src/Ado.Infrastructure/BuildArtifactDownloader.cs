@@ -44,7 +44,7 @@ public sealed class BuildArtifactDownloader(HttpClient serviceClient, HttpClient
             for (int hop = 0; hop <= 5; hop++)
             {
                 deadline.Token.ThrowIfCancellationRequested();
-                if (hop > 0) ValidateStorageDestination(uri);
+                if (hop > 0) ValidateRedirect(uri);
                 using var request = new HttpRequestMessage(HttpMethod.Get, uri);
                 request.Headers.Accept.ParseAdd("application/zip");
                 if (hop == 0)
@@ -58,7 +58,7 @@ public sealed class BuildArtifactDownloader(HttpClient serviceClient, HttpClient
                 {
                     if (hop == 5 || response.Headers.Location is not { } location) throw Failure();
                     uri = location.IsAbsoluteUri ? location : new Uri(uri, location);
-                    ValidateStorageDestination(uri);
+                    ValidateRedirect(uri);
                     continue;
                 }
                 if (response.StatusCode == HttpStatusCode.Unauthorized) throw new AdoException("authentication_failed", "The download request was rejected or its signed access expired.", ExitCode.Authentication);
@@ -110,6 +110,20 @@ public sealed class BuildArtifactDownloader(HttpClient serviceClient, HttpClient
         {
             if (temporary is not null)
                 try { File.Delete(temporary); } catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+        }
+    }
+
+    private void ValidateRedirect(Uri uri)
+    {
+        try { ValidateStorageDestination(uri); }
+        catch (AdoException ex) when (ex.Code == "unsafe_download_destination")
+        {
+            // Never include the signed path, query, user information or fragment.
+            string host = uri.IsAbsoluteUri && uri.HostNameType == UriHostNameType.Dns ? uri.IdnHost : "";
+            string diagnostic = host.Length is > 0 and <= 253
+                && host.All(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '-')
+                ? authentication.Redact(host) : "unavailable";
+            throw new AdoException(ex.Code, $"{ex.Message} Redirect host: {diagnostic}.", ExitCode.Safety);
         }
     }
 
