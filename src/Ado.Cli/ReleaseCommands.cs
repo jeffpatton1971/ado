@@ -10,6 +10,8 @@ internal static class ReleaseCommands
     {
         if (options.Command == "release environments")
             return await EnvironmentsAsync(client, options, limit, output, error, cancellationToken);
+        if (options.Command == "release approvals")
+            return await ApprovalsAsync(client, options, limit, output, error, cancellationToken);
         bool single = options.Command == "release get";
         var result = single ? await client.GetAsync(options.ReleaseId!.Value, cancellationToken)
             : await client.ListAsync(top, limit, options.Continuation, options.ReleaseDefinitionId, cancellationToken);
@@ -45,6 +47,26 @@ internal static class ReleaseCommands
             foreach (var item in result.Items)
                 await output.WriteLineAsync($"{item.Id}  {item.ReleaseId}  {item.DefinitionEnvironmentId}  {OutputWriter.TerminalSafe(item.Name ?? "")}  {OutputWriter.TerminalSafe(item.Status ?? "")}  {item.Rank}");
             if (incomplete) await error.WriteLineAsync("warning: Environments are truncated; raise --limit within its ceiling. There is no continuation token.");
+        }
+        return options.RequireComplete && incomplete ? (int)ExitCode.Partial : 0;
+    }
+
+    private static async Task<int> ApprovalsAsync(ReleasesClient client, ServiceOptions options, int limit,
+        TextWriter output, TextWriter error, CancellationToken cancellationToken)
+    {
+        var result = await client.ApprovalsAsync(options.ReleaseId!.Value, limit, cancellationToken);
+        bool incomplete = result.Meta.Completeness != "complete";
+        if (options.Json)
+        {
+            if (options.RequireComplete && incomplete) await OutputWriter.PartialAsync(output, result.Items, result.Meta);
+            else await OutputWriter.SuccessAsync(output, result.Items, true, result.Meta);
+        }
+        else
+        {
+            await output.WriteLineAsync("APPROVAL ID  ENVIRONMENT ID  ENVIRONMENT  PHASE  STATUS  AUTOMATED  ATTEMPT  RANK");
+            foreach (var item in result.Items)
+                await output.WriteLineAsync($"{item.Id}  {item.EnvironmentId}  {OutputWriter.TerminalSafe(item.EnvironmentName ?? "")}  {item.Phase}  {OutputWriter.TerminalSafe(item.Status ?? "")}  {item.IsAutomated}  {item.Attempt}  {item.Rank}");
+            if (incomplete) await error.WriteLineAsync("warning: Approvals are truncated or approval arrays are missing; inspect JSON metadata. There is no continuation token.");
         }
         return options.RequireComplete && incomplete ? (int)ExitCode.Partial : 0;
     }

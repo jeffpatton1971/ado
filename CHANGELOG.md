@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add read-only release approvals with bounded pre/post-deployment status summaries,
+  identity checks, omitted private approval payloads and explicit completeness.
 - Record user-reported release environment inspection for release 1492:
   environment 1499 (ib-tasks), definition environment 22, status rejected, rank 1.
 - Add release environments with bounded environment IDs, deployment status and rank,

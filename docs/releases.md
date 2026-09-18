@@ -1,6 +1,6 @@
 # Classic release inspection
 
-`release list`, `release get` and `release environments` inspect classic Azure DevOps
+`release list`, `release get`, `release environments` and `release approvals` inspect classic Azure DevOps
 releases, separate from YAML pipeline runs and builds. All require an organization and project and use
 the Release API 7.1 on vsrm.dev.azure.com. The documented read scope is vso.release;
 successful Build API reads do not establish release access.
@@ -59,6 +59,27 @@ identity checks, malformed responses, redaction, terminal escaping and completen
 the user verified release 1492 returned environment 1499 (ib-tasks), definition
 environment 22, status rejected and rank 1. This summary does not establish the
 reason for the rejected status.
+
+## Approval status
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- release approvals --config ./config.json --release-id 1492 --token-prompt --output table --read-only --limit 100
+```
+
+This reads the release's preDeployApprovals and postDeployApprovals arrays with one
+Get Release request. It returns approval ID, release/environment IDs, environment
+name, phase, status, isAutomated, attempt and rank. It does not approve or reject
+anything. Approver identities, comments, URLs, nested history and approval-definition
+snapshots are omitted. It does not establish why an approval has its current status.
+
+--limit/--all bound output across all environments and both phases; order follows
+the service's environments, pre-deployment then post-deployment. The response remains
+subject to the 4 MiB transport ceiling. There is no continuation token. Empty arrays
+are complete; missing/null approval arrays mark completeness unknown. A missing
+environments array is invalid. --require-complete retains data with exit 10 for
+truncated or unknown results. This is a snapshot, not a complete approval audit trail.
+Mock tests cover route, phases, limits, identity mismatches, malformed responses,
+redaction, terminal escaping and strict completeness. Live verification is pending.
 
 References:
 

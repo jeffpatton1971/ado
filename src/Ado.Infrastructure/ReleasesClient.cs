@@ -5,7 +5,7 @@ using Ado.Infrastructure.Http;
 
 namespace Ado.Infrastructure;
 
-public sealed class ReleasesClient(ServiceTransport transport, string organization, string project)
+public sealed partial class ReleasesClient(ServiceTransport transport, string organization, string project)
 {
     public async Task<CollectionResult<ReleaseInfo>> ListAsync(int pageSize, int limit, string? continuation,
         int? definitionId, CancellationToken cancellationToken)
