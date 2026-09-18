@@ -28,11 +28,19 @@ classic-release expansion and mutation work follow the priority order below.
 
 ## M1: authentication and ranks 1–4
 
-M1.1 is implemented with end-to-end mocked automation coverage and live table
-diagnosis. Live JSON and actual retry-history checks remain outstanding. The next
-implementation slice is M1.2: bounded archive inventory and selected evidence.
+Current focus: M1.4 feed/package diagnostics. M1.1 run diagnostics, M1.2 selected
+artifact workflows and M1.3 bounded discovery/source context are implemented in
+usable slices with live verification of their primary paths. Outstanding acceptance
+work includes live JSON/retry-history checks, Container artifact and platform
+coverage, package semantics and explicit provenance limitations. M1 is not complete.
 Deliver each slice in small tested commits, then update this checklist and capability
-evidence. Proposed work below is not currently supported command syntax.
+evidence. Unimplemented checklist work below is not supported command syntax.
+
+The user selected completion of M1 (the first group, ranks 1–4 plus day-one gates)
+as the first tagged-version checkpoint. Announce when the gates are met and review
+the version/tag then; do not tag merely because feed commands have been added.
+Keep any unavailable live/platform checks explicit rather than silently checking
+them off. Tag publication/pushing remains a separate action.
 
 ### M1.1 — Run details, stage/job/task timeline and targeted logs (rank 1)
 
@@ -178,7 +186,7 @@ No feed/package CLI commands are implemented yet.
 | Never print/persist tokens | Selected credential redaction, safe config output, no CLI credential persistence; plaintext config rejected | Preserve rejection of plaintext credentials; verify secret handling across new commands and exports; unknown secrets in service logs are not automatically sanitized |
 | Stable automation contract | JSON envelope, non-interactive mode, bounded reads, cancellation, exit codes | Apply contracts to every new workflow; test partial results, cancellation and endpoint-specific continuation |
 | Read-only and explicit writes | Dispatch safeguards, exact run confirmation, no automatic write retry | Preserve safeguards; read-only diagnostics must never queue/retry/cancel or approve a deployment |
-| No raw-log retention; sanitized evidence; safe ZIP handling | Logs printed on request; explicit ZIP download, no overwrite; no built-in extraction/export | Complete M1.2 with allowlisted summary fields and opt-in files; never label arbitrary log/artifact contents sanitized |
+| No raw-log retention; sanitized evidence; safe ZIP handling | Logs printed on request; bounded ZIP inspection, exact-member extraction and local/service-backed evidence export; explicit destinations with no overwrite | Finish artifact/platform acceptance coverage; never label arbitrary log/artifact contents sanitized |
 
 M1 acceptance scenarios: starting from a supported run URL and selected credential
 profile, obtain exact run/source context, locate a failing task and bounded log
@@ -196,7 +204,7 @@ are bypassed by this CLI.
 | 5 | Definition/configuration inspection: basic pipeline metadata only | Inspect YAML location, branch filters, defaults, shared templates and accessible non-secret UI settings; distinguish current configuration from what a run used and avoid unconditional publication predictions |
 | 6 | Expanded YAML: preview implemented and user-verified | Review endpoint/permissions and safe preview semantics; inspect assembled YAML and substitutions without execution; document that preview success validates neither execution nor deployment. Current command requires confirmation and is blocked in read-only mode |
 | 7 | Detailed tests/comparison: absent | Failed assertions, counts, skipped/not-run tests, bounded attachments and comparison to an explicitly identified last successful run; do not treat missing artifact tests as passed |
-| 8 | Watching/export: absent beyond planned M1 manifest | Bounded polling of an already-authorized run with cancellation; sanitized consolidated export of run ID, source SHA, outcomes, artifact identities and limitations; no automatic raw logs |
+| 8 | Watching: absent; selected artifact evidence export exists | Bounded polling of an already-authorized run with cancellation; sanitized consolidated export of run ID, source SHA, outcomes, artifact identities and limitations; no automatic raw logs |
 
 ## M3 and later: can wait
 

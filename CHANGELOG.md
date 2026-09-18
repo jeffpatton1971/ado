@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Refresh the M1 roadmap and record M1 completion as the first tagged-version
+  checkpoint. Rank 4 feed/package diagnostics is next; validation gaps remain open.
+- Add bounded repository/SHA/PR build discovery, reported repository identity and
+  run resource revisions, with explicit unresolved PR head and template provenance.
+  Record live SHA, GitHub PR, repository revision and merge-context verification.
+
 - Record user-reported authenticated evidence export for build 18522/artifact 17112,
   including source revision. The selected member hash matches prior inspection;
   the downloaded ZIP hash differs, so archive-byte identity is not assumed stable.
