@@ -110,6 +110,10 @@ requires --log-id and accepts --start-line/--end-line. Log commands accept --lim
 Build artifact list/get require --build-id; get also requires --artifact-name. List
 supports --limit, --all and --require-complete without server pagination. These commands
 inspect build-output metadata only; download links are not returned or followed.
+Build artifact download also requires --destination and optionally accepts --max-bytes
+and --download-timeout to lower profile download ceilings. --dry-run is local only;
+--read-only permits the remote GET and explicitly requested local file. Existing files
+are never overwritten. The operation deadline remains an additional download bound.
 
 `--version` always prints only the semantic version, even with --json. Config text
 output uses indented JSON for readability. Schema errors exit 3; command syntax errors

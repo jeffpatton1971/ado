@@ -37,8 +37,12 @@ have mocked route/filter/pagination/output coverage and user-reported live succe
 definition 1128/build 18722. Log index/content tests use mocked HTTP and cover response
 and output bounds, line ranges, redaction, terminal escaping and completeness. The user
 reported a successful 26-log index and content retrieval for log 3 of build 18722.
-Build-output metadata list/get have mocked route/name/filtering/limit coverage; their
-live validation remains pending.
+Build-output metadata list/get also have user-reported live success for build 18522,
+including CompiledOutputs (17112). ZIP download tests use generated in-memory archives
+and mocked HTTP only, covering redirect credential isolation, bounds, interruption,
+cleanup, file conflicts and local dry-run. No live download has been performed.
+The download symlink test skipped in the current Windows session because creating a
+synthetic symlink requires unavailable privileges; cross-platform execution remains pending.
 
 Native macOS calls use a deprecated generic-password API and cannot safely abort an
 active OS approval dialog. This is documented rather than claiming universal cancellation

@@ -26,8 +26,9 @@ agent has not accessed the live organization or submitted runs.
 | build get | dev.azure.com | Build 7.1 | Read | None | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
 | build logs | dev.azure.com | Build Logs 7.1 | Read | None; local output bound | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
 | build log get | dev.azure.com | Build Logs 7.1 | Read | Optional service line range; no continuation | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
-| build artifact list | dev.azure.com | Build Artifacts 7.1 | Read metadata | None; local output bound | N/A | None | vso.build | Mock HTTP verified; live check pending |
-| build artifact get | dev.azure.com | Build Artifacts 7.1 | Read metadata | None | N/A | None | vso.build | Mock HTTP verified; live check pending |
+| build artifact list | dev.azure.com | Build Artifacts 7.1 | Read metadata | None; local output bound | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
+| build artifact get | dev.azure.com | Build Artifacts 7.1 | Read metadata | None | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
+| build artifact download | dev.azure.com plus validated storage redirects | Build Artifacts 7.1 | Remote read, explicit local file write | None; bounded ZIP stream | Local plan, no writes/network | Explicit destination; no overwrite | vso.build; redirected content unauthenticated | Mock verified; live transfer pending |
 
 Output schema starts at version 1. Azure DevOps Services only.
 

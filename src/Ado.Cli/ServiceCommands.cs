@@ -9,7 +9,8 @@ namespace Ado.Cli;
 public sealed record ServiceOptions(string Command, bool Json, bool NonInteractive, bool ReadOnly, bool DryRun,
     int? Top, bool All, string? Continuation, bool RequireComplete, string? Search, int? PipelineId = null, int? RunId = null,
     string? Confirmation = null, string? RefName = null, string? ParametersFile = null, string? VariablesFile = null, bool ShowYaml = false,
-    int? BuildId = null, BuildFilters? BuildFilters = null, int? LogId = null, long? StartLine = null, long? EndLine = null, string? ArtifactName = null);
+    int? BuildId = null, BuildFilters? BuildFilters = null, int? LogId = null, long? StartLine = null, long? EndLine = null, string? ArtifactName = null,
+    string? Destination = null, long? MaxBytes = null, int? DownloadTimeout = null);
 
 internal static class ServiceCommands
 {
@@ -54,7 +55,7 @@ internal static class ServiceCommands
             if (options.Command is "build logs" or "build log get")
                 _ = EndpointBuilder.BuildLog(options.Command == "build logs" ? Operations.BuildLogs : Operations.BuildLogGet,
                     organization, profile.Project!, options.BuildId!.Value, options.LogId, options.StartLine, options.EndLine);
-            if (options.Command is "build artifact list" or "build artifact get")
+            if (options.Command is "build artifact list" or "build artifact get" or "build artifact download")
                 _ = EndpointBuilder.BuildArtifact(options.Command == "build artifact list" ? Operations.BuildArtifactList : Operations.BuildArtifactGet,
                     organization, profile.Project!, options.BuildId!.Value, options.ArtifactName);
             // Validate pagination before credential acquisition as well as at endpoint construction.
@@ -73,6 +74,33 @@ internal static class ServiceCommands
         deadline.CancelAfter(TimeSpan.FromSeconds(profile.Timeouts.OperationSeconds));
         try
         {
+            DownloadTarget? downloadTarget = null;
+            long maxBytes = options.MaxBytes ?? profile.Downloads.MaxBytes;
+            int downloadSeconds = options.DownloadTimeout ?? profile.Downloads.TimeoutSeconds;
+            if (options.Command == "build artifact download")
+            {
+                if (maxBytes <= 0 || maxBytes > profile.Downloads.MaxBytes || downloadSeconds <= 0 || downloadSeconds > profile.Downloads.TimeoutSeconds)
+                    throw new AdoException("invalid_download_bounds", "Download overrides must be positive and within the configured ceilings.", ExitCode.Usage);
+                downloadTarget = DownloadTarget.Validate(options.Destination);
+                if (options.DryRun)
+                {
+                    await OutputWriter.SuccessAsync(output, new
+                    {
+                        action = options.Command,
+                        dryRun = true,
+                        downloaded = false,
+                        buildId = options.BuildId,
+                        artifactName = options.ArtifactName,
+                        destination = downloadTarget.Path,
+                        maxBytes,
+                        timeoutSeconds = Math.Min(downloadSeconds, profile.Timeouts.OperationSeconds),
+                        format = "zip",
+                        note = "Local plan only. No credentials, HTTP requests or file writes; remote resource support is not verified."
+                    }, options.Json,
+                        new(Organization: organization, Project: profile.Project));
+                    return 0;
+                }
+            }
             PipelineRunRequest? runRequest = null;
             bool serverPreview = options.Command == "pipeline run preview";
             if (options.Command == "pipeline run start" || serverPreview)
@@ -118,6 +146,18 @@ internal static class ServiceCommands
             using var authentication = new TokenAuthentication(reference.Type, secret);
             using var client = testHandler is null ? ServiceTransport.CreateClient() : new HttpClient(testHandler, disposeHandler: false) { Timeout = Timeout.InfiniteTimeSpan };
             var transport = new ServiceTransport(client, authentication, organization, profile.Timeouts.RequestSeconds, options.ReadOnly, options.DryRun);
+            if (downloadTarget is not null)
+            {
+                var metadata = await new BuildArtifactsClient(transport, organization, profile.Project!).GetAsync(options.BuildId!.Value, options.ArtifactName!, deadline.Token);
+                if (metadata.Items[0].ResourceType is not ("Container" or "PipelineArtifact"))
+                    throw new AdoException("unsupported_artifact_type", "ZIP download is currently supported only for Container and PipelineArtifact build outputs.", ExitCode.Safety);
+                using var downloadService = testHandler is null ? BuildArtifactDownloader.CreateClient() : new HttpClient(testHandler, false) { Timeout = Timeout.InfiniteTimeSpan };
+                using var contentClient = testHandler is null ? BuildArtifactDownloader.CreateClient() : new HttpClient(testHandler, false) { Timeout = Timeout.InfiniteTimeSpan };
+                var downloadResult = await new BuildArtifactDownloader(downloadService, contentClient, authentication, organization, profile.Project!)
+                    .DownloadAsync(options.BuildId.Value, options.ArtifactName!, downloadTarget, maxBytes, downloadSeconds, deadline.Token);
+                await OutputWriter.SuccessAsync(output, downloadResult, options.Json, new(Organization: organization, Project: profile.Project));
+                return 0;
+            }
             if (options.Command is "build artifact list" or "build artifact get")
                 return await BuildArtifactCommands.ReadAsync(new BuildArtifactsClient(transport, organization, profile.Project!), options, limit, output, error, deadline.Token);
             if (options.Command is "build logs" or "build log get")

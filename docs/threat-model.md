@@ -27,3 +27,11 @@ Residual risks: process administrators can inspect memory/environment; terminal 
 may capture explicit token arguments; native OS stores have platform-specific trust and
 availability; source builds can invalidate Keychain authorization. Do not claim secure
 erasure of managed strings. Remote mutation success does not imply deployment success.
+
+Download paths must be in a directory controlled by the invoking user. Ancestor checks
+and no-replace finalization do not eliminate directory-swap races by another process
+with write access. Unix temporary files use 0600; Windows inherits parent ACLs. Cleanup
+is best effort after failure and cannot run after process termination. ZIP envelope checks
+do not verify entry CRCs or authenticity, and no entries are extracted. Storage redirects
+receive neither authentication nor cookies. The synthetic symlink test skipped locally
+because this Windows session lacks symlink creation permission.

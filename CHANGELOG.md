@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add build artifact download with an explicit new-file destination, local dry-run,
+  configured byte/time limits, isolated storage redirects, temporary-file cleanup and
+  no-overwrite ZIP finalization. No extraction or automatic content retry is performed.
+- Record user-reported build-output metadata list/get success for build 18522.
+
 - Add build artifact list/get for bounded output metadata, preserving resource types
   while omitting resource data, property bags and download links. No downloads occur.
 - Record user-reported live log index/content success for build 18722/log 3.

@@ -63,7 +63,7 @@ result and source branch; JSON includes the full allowlisted fields.
 
 These commands only send GET requests. --read-only is supported; --dry-run still performs
 reads. Shared bounded read retries and safe errors apply. No build queue/cancel,
-changes, work items or build-output downloads are implemented in this slice.
+changes or work-item inspection are implemented in this slice.
 
 ## Build logs
 
@@ -145,7 +145,62 @@ No --top or --continuation-token is accepted. Empty lists succeed, including bui
 published no outputs. When the local limit truncates results, metadata is partial and
 has no continuation token; --require-complete retains partial data but returns exit 10.
 Unexpected continuation headers and malformed responses fail safely. --dry-run still
-performs these metadata reads. Downloads and archive extraction remain unimplemented.
+performs these metadata reads. ZIP download is a separate command below; archive extraction remains unimplemented.
+
+## Build-output ZIP download
+
+`build artifact download` requires --build-id, --artifact-name and --destination (a new
+local file, not a directory). It first checks metadata and accepts Container and
+PipelineArtifact resource types. It requests application/zip from the documented Build
+Get Artifact endpoint. It does not follow the metadata's downloadUrl or guess resource
+protocols. If the service does not support ZIP for that output, the command fails safely.
+
+PowerShell example using the output already discovered, outside the repository:
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- build artifact download --config ./config.json --build-id 18522 --artifact-name CompiledOutputs --destination "$env:TEMP\ado-CompiledOutputs-18522.zip" --token-prompt --output table --read-only
+```
+
+For a local plan, replace --token-prompt with --dry-run. Dry-run validates destination
+and bounds without credential lookup, HTTP or file writes; it does not verify remote
+availability. --read-only permits downloads: remote operations are GETs, and the explicit
+destination authorizes the local write. No mutation confirmation is required.
+
+The parent directory must exist. Existing files/directories are refused, with no
+overwrite flag. Symlink/reparse-point ancestors, Windows network/device paths and
+alternate streams are rejected. The response filename and archive entry paths are never
+used as local paths. A randomly named .ado-*.partial file is created exclusively in
+the same directory (0600 on Unix; inherited ACLs on Windows). After bounded transfer,
+length checks and basic ZIP header/end-record checks, it is renamed without replacing
+an existing destination. Archive entries are not parsed or extracted; this is not a
+CRC/signature or malware verification. A downloaded archive remains untrusted content.
+
+Use a destination directory controlled by your user. Ancestors are checked before
+creation and finalization; managed path checks cannot prevent all races from another
+process able to rename/replace those directories. Partial files are removed on failure
+where possible, but process termination or filesystem permission changes can leave
+the recognizable temporary file. Finalization is not a power-loss durability guarantee.
+
+Profile downloads.maxBytes defaults to 1 GiB, downloads.timeoutSeconds to 600 seconds.
+--max-bytes and --download-timeout can lower these ceilings. The overall operation
+deadline also applies (300 seconds by default), including metadata/credential work;
+--timeout governs the metadata read. Header sizes and streamed byte counts are checked.
+Interrupted, oversized, partial-HTTP, compressed-HTTP, HTML/JSON or malformed ZIP responses
+do not publish a completed file. Failure does not automatically retry or resume content.
+
+Authentication is sent only to the exact constructed dev.azure.com organization/project
+endpoint. Up to five redirects may target HTTPS port 443 artifact-storage hosts under
+.vsblob.vsassets.io, .vsblob.visualstudio.com, .blob.core.windows.net or
+.dedup.microsoft.com. Every hop is validated; IP literals, userinfo, fragments and other
+hosts are refused. Redirected content uses a separate client with no authorization,
+cookies, default credentials or referrer. Signed URLs and remote error bodies are never
+printed. These suffixes are a deliberately narrow subset of Microsoft's networking
+domains; an unfamiliar host fails instead of widening trust automatically.
+
+Success returns buildId, artifactName, destination, bytes and format:zip. Size overflow
+uses exit 10; unsafe destination/type/redirect uses exit 7; transfer failure/deadline
+uses exit 9; user cancellation uses exit 130. Service authentication/access/not-found
+refusals retain exits 4/5/6. The response format is currently ZIP only.
 
 ## Verification
 
@@ -155,8 +210,13 @@ The user reported successful live build list for definition 1128 and build get f
 18722. The user also retrieved its 26-entry log index and log 3 (27 lines). Mocked log tests cover routes,
 line ranges, JSON forms, bounds, safe output and strict completeness. The development
 agent has made no live requests. Build-output metadata tests cover routes, name encoding,
-identity checks, safe field selection, output bounds and CLI behavior. Live build-output
-metadata validation remains pending.
+identity checks, safe field selection, output bounds and CLI behavior. The user verified
+an empty output list for build 18722, two PipelineArtifact outputs for 18522, and get by
+name for CompiledOutputs (17112). Download verification is mocked only; no live transfer
+has been performed. Tests cover header isolation, unsafe redirects, redirect bounds,
+byte limits, interruption cleanup, timeouts, ZIP envelope checks and overwrite refusal.
+The synthetic symlink test skipped locally because the Windows session cannot create
+symlinks; it remains part of the cross-platform suite.
 
 Official endpoint references, checked before implementation:
 
@@ -166,3 +226,4 @@ Official endpoint references, checked before implementation:
 - [Get Build Log](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get-build-log?view=azure-devops-rest-7.1)
 - [List Build Artifacts](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/artifacts/list?view=azure-devops-rest-7.1)
 - [Get Build Artifact](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/artifacts/get-artifact?view=azure-devops-rest-7.1)
+- [Azure DevOps allowed domains](https://learn.microsoft.com/en-us/azure/devops/organizations/security/allow-list-ip-url?view=azure-devops)

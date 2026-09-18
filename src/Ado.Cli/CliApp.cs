@@ -118,12 +118,19 @@ public static class CliApp
         var buildArtifact = new Command("artifact", "Inspect outputs produced by a build, not Azure Artifacts feed packages.");
         var buildArtifactList = new Command("list", "List bounded build-output metadata; no downloads.");
         var buildArtifactGet = new Command("get", "Get one build output by name; no downloads.");
+        var buildArtifactDownload = new Command("download", "Download a ZIP to a new explicit local file; no extraction or overwrite.");
+        var destination = new Option<string>("--destination") { Description = "Required new local file path; its parent directory must exist." };
+        var maxBytes = new Option<long?>("--max-bytes") { Description = "Lower the configured download byte ceiling." };
+        var downloadTimeout = new Option<int?>("--download-timeout") { Description = "Lower the configured download timeout in seconds." };
+        foreach (var option in new Option[] { destination, maxBytes, downloadTimeout }) buildArtifactDownload.Options.Add(option);
         var artifactName = new Option<string>("--artifact-name") { Description = "Exact build-output name returned by build artifact list." };
-        foreach (var command in new[] { buildArtifactList, buildArtifactGet }) command.Options.Add(buildId);
+        foreach (var command in new[] { buildArtifactList, buildArtifactGet, buildArtifactDownload }) command.Options.Add(buildId);
         foreach (var option in new Option[] { all, requireComplete }) buildArtifactList.Options.Add(option);
         buildArtifactGet.Options.Add(artifactName);
+        buildArtifactDownload.Options.Add(artifactName);
         buildArtifact.Subcommands.Add(buildArtifactList);
         buildArtifact.Subcommands.Add(buildArtifactGet);
+        buildArtifact.Subcommands.Add(buildArtifactDownload);
         build.Subcommands.Add(buildArtifact);
         root.Subcommands.Add(build);
         var auth = new Command("auth", "Check access using the selected credential.");
@@ -150,7 +157,7 @@ public static class CliApp
             if (args.Length == 0 || parsed.Action is System.CommandLine.Help.HelpAction)
             {
                 if (jsonOutput)
-                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build logs", "build log get", "build artifact list", "build artifact get" } }, true);
+                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download" } }, true);
                 else
                 {
                     var helpArgs = args.Length == 0 ? new[] { "--help" } : args;
@@ -173,7 +180,8 @@ public static class CliApp
                 : selectedCommand == pipelineRunStart ? "pipeline run start" : selectedCommand == pipelineRunPreview ? "pipeline run preview"
                 : selectedCommand == buildList ? "build list" : selectedCommand == buildGet ? "build get"
                 : selectedCommand == buildLogs ? "build logs" : selectedCommand == buildLogGet ? "build log get"
-                : selectedCommand == buildArtifactList ? "build artifact list" : selectedCommand == buildArtifactGet ? "build artifact get" : null;
+                : selectedCommand == buildArtifactList ? "build artifact list" : selectedCommand == buildArtifactGet ? "build artifact get"
+                : selectedCommand == buildArtifactDownload ? "build artifact download" : null;
             if (selectedCommand != show && serviceCommand is null)
                 throw new AdoException("command_required", "Choose a command. Use ado --help for supported syntax.", ExitCode.Usage);
 
@@ -183,7 +191,7 @@ public static class CliApp
             var configuredAuth = profileName is not null && loaded.File.Profiles.TryGetValue(profileName, out var selectedProfile)
                 ? selectedProfile.Authentication : new CredentialReference();
             CredentialSelection? selection = null;
-            if (serviceCommand is not null && serviceCommand != "doctor" && !(serviceCommand is "pipeline run start" or "pipeline run preview" && parsed.GetValue(dryRun)))
+            if (serviceCommand is not null && serviceCommand != "doctor" && !(serviceCommand is "pipeline run start" or "pipeline run preview" or "build artifact download" && parsed.GetValue(dryRun)))
                 selection = CredentialSelection.Resolve(configuredAuth, parsed.GetValue(authType), parsed.GetValue(token) is not null,
                     parsed.GetValue(tokenStdin), parsed.GetValue(tokenPrompt), parsed.GetValue(credentialProvider),
                     parsed.GetValue(credentialService), parsed.GetValue(credentialAccount), environment);
@@ -201,7 +209,8 @@ public static class CliApp
                         parsed.GetValue(top), parsed.GetValue(all), parsed.GetValue(continuation), parsed.GetValue(requireComplete), parsed.GetValue(searchName), parsed.GetValue(pipelineId), parsed.GetValue(runId),
                         parsed.GetValue(confirm), parsed.GetValue(refName), parsed.GetValue(parametersFile), parsed.GetValue(variablesFile), parsed.GetValue(showYaml),
                         parsed.GetValue(buildId), new(parsed.GetValue(definitionId), parsed.GetValue(buildStatus), parsed.GetValue(buildResult), parsed.GetValue(branch)),
-                        parsed.GetValue(logId), parsed.GetValue(startLine), parsed.GetValue(endLine), parsed.GetValue(artifactName)),
+                        parsed.GetValue(logId), parsed.GetValue(startLine), parsed.GetValue(endLine), parsed.GetValue(artifactName),
+                        parsed.GetValue(destination), parsed.GetValue(maxBytes), parsed.GetValue(downloadTimeout)),
                     output, error, input ?? Console.In, environment, testHandler, testNativeProvider, cancellationToken);
             }
             if (parsed.GetValue(effective))
