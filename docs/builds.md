@@ -281,8 +281,12 @@ for partial/unknown results. Complete means all exposed references were resolved
 this snapshot, not proof that the service exposed every historical attempt.
 
 Tests cover shared references/cycles, scoped identities, reference failures, strict
-output retention and record/request/byte limits. Live history traversal is pending;
-build 18722 previously exposed no previous-attempt references. This command reads
+output retention and record/request/byte limits. On 2026-09-18 the user verified
+--include-history on build 18722: all 30 displayed records used timeline
+b619e67f-5f18-4d01-b523-76f312e43fcb, attempt 1 and zero previous references,
+with no incomplete-result warning. This verifies the flag and timeline-ID display
+for that snapshot, not additional timeline requests. Live cross-timeline/retry
+traversal and JSON history verification remain pending. This command reads
 history and never retries or starts a pipeline execution.
 
 ## Verification

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Record user-reported --include-history compatibility on build 18722: one
+  displayed timeline, attempt 1, no previous references and no completeness warning.
+  Live traversal across referenced timelines remains unverified.
+
 - Add build timeline --include-history for bounded sub-timeline and prior-attempt
   traversal, timeline-scoped record identities, cycle deduplication and retained
   partial/unknown results when bounds or unavailable references prevent completion.

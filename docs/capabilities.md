@@ -46,7 +46,9 @@ context. Optional --include-history traverses referenced timelines under shared
 record, request, byte and time bounds. Without it, references are not fetched. Missing parents
 or unloaded history mark completeness unknown. The user verified parent/order and
 attempt columns for build 18722 (attempt 1, zero previous references). Retry-history
-and JSON metadata coverage remain mocked; live --include-history verification is pending.
+and JSON metadata coverage remain mocked. The user also verified --include-history
+on build 18722 with one displayed timeline and no previous references; live traversal
+across referenced timelines remains pending.
 
 Build get/timeline/logs/log get and artifact list/get/download accept --run-url
 for locally validated Azure DevOps results links. Context conflicts fail before

@@ -55,7 +55,8 @@ Missing: a consolidated diagnostic workflow and live retry-history verification.
   Metadata, table context and bounded --include-history traversal implemented;
   mocked reference identity, cycles, unavailable history and bound coverage passes.
   User verified parent/order and attempt columns on build 18722 (attempt 1, no
-  previous references); live retry-history verification remains outstanding.
+  previous references), including --include-history and its timeline-ID column.
+  Live traversal across referenced timelines remains outstanding.
 - [ ] Identify failed tasks and their targeted logs; distinguish failures from
   skipped/cancelled downstream work and earlier retry attempts. Label causal
   interpretation as inference when service evidence cannot establish it.
