@@ -83,6 +83,41 @@ public static partial class EndpointBuilder
         return new UriBuilder("https", Host(operation.Service)) { Path = path, Query = query }.Uri;
     }
 
+    public static Uri Build(OperationDescriptor operation, string organization, string project, int? buildId = null,
+        int? top = null, string? continuation = null, BuildFilters? filters = null)
+    {
+        ValidateOrganization(organization);
+        string path = $"/{organization}/{ProjectSegment(project)}/_apis/build/builds";
+        var query = new List<string> { "api-version=" + operation.ApiVersion };
+        if (operation == Operations.BuildGet)
+        {
+            if (buildId is null or <= 0) throw new AdoException("build_required", "Supply a positive --build-id.", ExitCode.Usage);
+            if (top is not null || continuation is not null || filters is not null)
+                throw new AdoException("invalid_build_query", "Build get does not support list filters or pagination.", ExitCode.Usage);
+            path += "/" + buildId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+        else if (operation == Operations.BuildList)
+        {
+            filters ??= new();
+            filters.Validate();
+            if (top is <= 0 || continuation is { Length: 0 or > 2048 } || continuation?.Any(char.IsControl) == true)
+                throw new AdoException("invalid_pagination", "Build page size or continuation token is invalid.", ExitCode.Usage);
+            void Add(string key, string? value)
+            {
+                if (value is not null) query.Add(Uri.EscapeDataString(key) + "=" + Uri.EscapeDataString(value));
+            }
+            Add("$top", top?.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            Add("continuationToken", continuation);
+            Add("definitions", filters.DefinitionId?.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            Add("statusFilter", filters.Status);
+            Add("resultFilter", filters.Result);
+            Add("branchName", filters.Branch);
+            Add("queryOrder", "queueTimeDescending");
+        }
+        else throw new AdoException("unsupported_operation", "This endpoint is not registered.", ExitCode.Usage);
+        return new UriBuilder("https", Host(operation.Service)) { Path = path, Query = string.Join('&', query) }.Uri;
+    }
+
     public static void ValidateDestination(Uri uri, ServiceHost service, string organization, string? project = null)
     {
         ValidateOrganization(organization);

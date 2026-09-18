@@ -24,7 +24,16 @@ public static class Operations
         "https://learn.microsoft.com/en-us/rest/api/azure/devops/pipelines/runs/run-pipeline?view=azure-devops-rest-7.1");
     // Conservatively treated as a write for policy: preview still uses the queue endpoint via POST.
     public static readonly OperationDescriptor PipelineRunPreview = PipelineRunStart with { Command = "pipeline run preview" };
-    public static IReadOnlyList<OperationDescriptor> All { get; } = [ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet, PipelineRunStart, PipelineRunPreview];
+    public static readonly OperationDescriptor BuildList = new("build list", ServiceHost.Core, "7.1", false,
+        true, "none", false, "opaque header continuation", "vso.build",
+        "https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/list?view=azure-devops-rest-7.1");
+    public static readonly OperationDescriptor BuildGet = BuildList with
+    {
+        Command = "build get",
+        Pagination = "none",
+        Documentation = "https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get?view=azure-devops-rest-7.1"
+    };
+    public static IReadOnlyList<OperationDescriptor> All { get; } = [ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet, PipelineRunStart, PipelineRunPreview, BuildList, BuildGet];
 
     private static OperationDescriptor Pipeline(string command, string endpoint, string pagination) => new(command,
         ServiceHost.Core, "7.1", false, true, "none", false, pagination, "vso.build",

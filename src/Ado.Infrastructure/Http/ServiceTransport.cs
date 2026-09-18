@@ -129,7 +129,7 @@ public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider 
                         if (buffer.Length + read > maximum) throw Oversized();
                         await buffer.WriteAsync(chunk.AsMemory(0, read), deadline.Token);
                     }
-                    string? continuation = Header(response, "x-ms-continuationtoken", operation == Operations.PipelineList ? 2048 : 128);
+                    string? continuation = Header(response, "x-ms-continuationtoken", operation == Operations.PipelineList || operation == Operations.BuildList ? 2048 : 128);
                     if (response.Headers.Contains("x-ms-continuationtoken") && continuation is null)
                         throw new AdoException("invalid_service_response", "The continuation token is invalid.", ExitCode.Transient);
                     if (operation == Operations.ProjectList && continuation is not null && (!int.TryParse(continuation, out int offset) || offset < 0))
