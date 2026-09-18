@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record successful full Windows candidate verification for 0.1.0: locked restore,
+  Release build, 563 tests passed/one skipped, formatting, pack and installed-tool smoke.
+
 - Document existing Entra Bearer authentication with a complete profile, external
   Azure CLI/stdin examples, native-store references and acquisition/refresh limits.
 

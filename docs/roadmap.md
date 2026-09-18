@@ -34,6 +34,10 @@ Core, YAML and JSON package resolution. Before declaring M1 complete, reconcile
 day-one platform/automation evidence and documented limitations, run final local
 verification and prepare the candidate version/changelog for human release review.
 Unavailable live retry history remains a documented, non-blocking limitation.
+The user completed the full local verification sequence for 0.1.0 after ca46b76:
+locked restore, Release build, 563 passing tests/one skip, formatting, packing and
+installed-tool smoke checks. Candidate hosted CI and final version/changelog review
+remain; earlier cross-platform CI is not attributed to this newer source state.
 Deliver each slice in small tested commits, then update this checklist and capability
 evidence. Unimplemented checklist work below is not supported command syntax.
 

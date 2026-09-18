@@ -1,5 +1,25 @@
 # Verification and CI
 
+## M1 local candidate verification — 2026-09-18
+
+The user reported the full verification sequence passing on Windows x64 for
+version 0.1.0 after commit ca46b76:
+
+- Locked restore and Release build succeeded.
+- Tests: 564 total, 563 passed, zero failed, one skipped. The preceding local run
+  identified the platform-dependent symlink-creation case as the skipped test.
+- Format verification returned without errors.
+- Local package creation succeeded.
+- Test-ToolPackage.ps1 installed PattonTech.Ado.Cli 0.1.0 in isolation and reported
+  successful win-x64 smoke checks.
+
+This is local candidate verification, not a new hosted cross-platform run. The
+earlier hosted matrix remains evidence for its recorded source state. Final
+version/changelog review and hosted CI for the human-pushed candidate remain
+release checks. No tag or publication is implied by these results.
+
+## Workflow verification
+
 Exact-source acceptance includes a two-page fixture with identical pipeline/build
 names, successful builds of other commits and failed/successful runs of the selected
 commit. Only the exact SHA matches survive, retaining distinct build IDs and results.
