@@ -105,7 +105,15 @@ Live JSON output, missing-resource states and other repository types remain unve
 PR context tests cover reason-plus-ref inference, reason-only and ref-only evidence,
 canonical positive PR numbers, malformed/overflow refs, unsupported repository types,
 missing revisions and an explicitly unresolved head version. List JSON and get
-JSON/table tests verify integration. Live context rendering remains pending.
+JSON/table tests verify integration. On 2026-09-18 the user verified build get table
+context for build 18856 (definition 1124, completed/succeeded) in rseng/impldevmpc.
+The repository was `global-build/rackspace-output-terraform`, type `GitHub`, name
+unavailable. Source ref `refs/pull/8/merge` and version
+`55d3be0388e923740b230bf6971e42ebc022eaf0` produced PR number 8, evidence
+`pull_request_reason_and_merge_ref`, built version kind `reported_merge_commit`,
+and head version `unknown (not_resolved)`. This verifies service-reported context
+rendering, not independent merge verification or historical PR head resolution.
+Live JSON context and alternative evidence states remain unverified.
 
 PR discovery mocks cover GitHub/TfsGit repository-scoped merge refs, pullRequest
 reason filtering, continuation preservation, rejection of wrong/missing repository

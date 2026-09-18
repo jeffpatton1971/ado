@@ -105,7 +105,10 @@ a nonblank source version labels that version `reported_merge_commit`; other cas
 remain `unknown`. No matching evidence produces null context, not a claim that the
 build has no PR association. `headVersion` remains null with `not_resolved` status.
 This adds context to embedded build diagnostics/evidence too; it does not retrieve
-PR details or establish historical head-to-merge mapping. Mock-tested; live pending.
+PR details or establish historical head-to-merge mapping. The user verified build get
+table context for build 18856: PR 8, `pull_request_reason_and_merge_ref`,
+`reported_merge_commit`, and an unknown head version (`not_resolved`). Live JSON
+context and the alternative evidence states remain unverified.
 
 Build list `--pr-number` discovers PR validation builds using the documented
 `refs/pull/N/merge` source ref and `reasonFilter=pullRequest`. It requires a positive
