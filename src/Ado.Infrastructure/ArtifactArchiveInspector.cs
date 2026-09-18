@@ -9,11 +9,26 @@ public sealed record ArchiveEntryInfo(string Path, bool Directory, long Bytes, l
 public sealed record ArchiveInspection(long ArchiveBytes, string Sha256, bool? ExpectedHashMatches, int TotalEntries,
     IReadOnlyList<ArchiveEntryInfo> Entries);
 public sealed record ArchiveInspectionResult(ArchiveInspection Data, ResultMetadata Meta);
+public sealed record ArchiveExtraction(string Entry, string Destination, long Bytes, string ArchiveSha256, string MemberSha256, bool DryRun, bool Written);
 
 public static class ArtifactArchiveInspector
 {
-    public static async Task<ArchiveInspectionResult> InspectAsync(string? path, string? entryName, string? expectedHash, int limit, CancellationToken cancellationToken,
-        bool showText = false, int textLines = 100)
+    public static Task<ArchiveInspectionResult> InspectAsync(string? path, string? entryName, string? expectedHash, int limit, CancellationToken cancellationToken,
+        bool showText = false, int textLines = 100) => ProcessAsync(path, entryName, expectedHash, limit, cancellationToken, showText, textLines, null);
+
+    public static async Task<ArchiveExtraction> ExtractAsync(string? path, string? entryName, string? destination, string? expectedHash,
+        bool dryRun, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(entryName) || entryName.EndsWith('/'))
+            throw new AdoException("archive_entry_required", "Extraction requires one exact file --entry.", ExitCode.Usage);
+        var target = DownloadTarget.Validate(destination);
+        var result = await ProcessAsync(path, entryName, expectedHash, 1, cancellationToken, false, 100, dryRun ? null : target);
+        var entry = result.Data.Entries.Single();
+        return new(entry.Path, target.Path, entry.Bytes, result.Data.Sha256, entry.Sha256!, dryRun, !dryRun);
+    }
+
+    private static async Task<ArchiveInspectionResult> ProcessAsync(string? path, string? entryName, string? expectedHash, int limit, CancellationToken cancellationToken,
+        bool showText, int textLines, DownloadTarget? target)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if ((showText && string.IsNullOrEmpty(entryName)) || textLines is < 1 or > 10000)
@@ -21,6 +36,7 @@ public static class ArtifactArchiveInspector
         if (string.IsNullOrWhiteSpace(path) || limit is < 1 or > 10000 || (expectedHash is not null
             && (expectedHash.Length != 64 || expectedHash.Any(c => !Uri.IsHexDigit(c)))))
             throw new AdoException("invalid_archive_options", "Supply --file, a limit from 1 to 10000 and, optionally, a 64-digit --expected-sha256.", ExitCode.Usage);
+        string? temporary = null;
         try
         {
             string fullPath = Path.GetFullPath(path);
@@ -91,6 +107,15 @@ public static class ArtifactArchiveInspector
                     throw new AdoException("archive_text_limit", "Text inspection requires a file of at most 1 MiB expanded size.", ExitCode.Safety);
                 if (entryName is not null && !entry.FullName.EndsWith('/'))
                 {
+                    FileStream? extraction = null;
+                    if (target is not null)
+                    {
+                        target.Check();
+                        string candidate = target.TemporaryPath();
+                        extraction = new FileStream(candidate, FileMode.CreateNew, FileAccess.Write, FileShare.None, 65536, FileOptions.Asynchronous);
+                        temporary = candidate;
+                    }
+                    await using var extractionOutput = extraction;
                     using var text = showText ? new MemoryStream() : null;
                     await using var content = entry.Open();
                     using var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
@@ -102,6 +127,7 @@ public static class ArtifactArchiveInspector
                         read += count;
                         if (read > maximum || read > entry.Length) throw Bound();
                         hasher.AppendData(buffer, 0, count);
+                        if (extractionOutput is not null) await extractionOutput.WriteAsync(buffer.AsMemory(0, count), ct);
                         if (text is not null)
                         {
                             if (read > 1024 * 1024) throw Bound();
@@ -109,6 +135,7 @@ public static class ArtifactArchiveInspector
                         }
                     }
                     if (read != entry.Length) throw new InvalidDataException();
+                    if (extractionOutput is not null) await extractionOutput.FlushAsync(ct);
                     hash = Convert.ToHexStringLower(hasher.GetHashAndReset());
                     if (text is not null)
                     {
@@ -132,6 +159,13 @@ public static class ArtifactArchiveInspector
                 results.Add(new(entry.FullName, entry.FullName.EndsWith('/'), entry.Length, entry.CompressedLength, hash, lines, lineCount));
             }
             bool truncated = selected.Length > limit || textTruncated;
+            if (target is not null)
+            {
+                ct.ThrowIfCancellationRequested();
+                target.Check();
+                File.Move(temporary!, target.Path, overwrite: false);
+                temporary = null;
+            }
             return new(new(snapshot.Length, digest, expectedHash is null ? null : true, archive.Entries.Count, results),
                 new(Truncated: truncated, Completeness: truncated ? "partial" : "complete", TruncationReason: textTruncated ? "line_limit" : truncated ? "item_limit" : null, ScannedCount: archive.Entries.Count));
         }
@@ -140,7 +174,12 @@ public static class ArtifactArchiveInspector
         catch (FileNotFoundException) { throw new AdoException("archive_not_found", "The local archive file was not found.", ExitCode.NotFound); }
         catch (DirectoryNotFoundException) { throw new AdoException("archive_not_found", "The local archive file was not found.", ExitCode.NotFound); }
         catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or ArgumentException or NotSupportedException or OverflowException)
-        { throw new AdoException("invalid_archive", "The archive could not be read or is not a supported ZIP.", ExitCode.Safety); }
+        { throw new AdoException("invalid_archive", "The ZIP could not be processed or the selected output could not be written.", ExitCode.Safety); }
+        finally
+        {
+            if (temporary is not null)
+                try { File.Delete(temporary); } catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+        }
     }
     private static AdoException Unsafe() => new("unsafe_archive", "The archive path or entry names contain unsafe links, paths or collisions.", ExitCode.Safety);
     private static AdoException InvalidText() => new("invalid_archive_text", "The selected member is not supported UTF-8 text (invalid encoding or NUL bytes). Use metadata/hash inspection for binary members.", ExitCode.Safety);

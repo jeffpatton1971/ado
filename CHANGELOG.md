@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add artifact extract for one exact member to an explicit new file, reusing
+  archive validation/bounds and destination checks, with temporary publication,
+  no overwrite, hashes and a no-write local dry-run.
+
 - Record successful user-verified plugin.json text inspection from build 18522,
   with unchanged archive/member hashes and no truncation warning. Declared
   runtime dependencies are not automatically verified by text inspection.

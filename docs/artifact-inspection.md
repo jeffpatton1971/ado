@@ -71,7 +71,8 @@ or spaces, case-insensitive duplicate paths, file/directory conflicts and ZIP Un
 symlink entries are refused. Local file paths with reparse-point/symlink ancestors
 are refused; Windows network/device/alternate-stream paths are unsupported. These
 checks are for inspection, not a promise that the archive is safe to extract with
-an unrelated tool. No extraction capability is implemented yet.
+an unrelated tool. The separate extraction command below uses an explicit output
+file rather than mapping archive paths into a directory tree.
 
 Default output limit is 100, configurable only by `--limit` (1–10000) for this local
 command. Config/profile and credential settings do not apply. `--json` or
@@ -96,3 +97,41 @@ mock-verified only. The recorded digest is an
 observation, not independent evidence of authenticity. File names may
 themselves contain sensitive information; inspection output is not a sanitized
 evidence export. No raw archive content is retained by the command.
+
+## Extract one member
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- artifact extract --file "$env:TEMP\ado-CompiledOutputs-18522.zip" --entry "CompiledOutputs/src/plugin.json" --destination "$env:TEMP\ado-plugin-18522.json" --output table --read-only
+```
+
+artifact extract requires one exact case-sensitive file entry and an explicit new
+destination file in an existing directory. Directories, wildcards and bulk extraction
+are not supported. Archive entry names never determine destination paths. This
+command does not recreate directory trees, links, executable modes or timestamps.
+It never executes the content. Binary members are supported within the existing
+64 MiB member bound; text-only inspection limits do not apply to extraction.
+
+The same full-archive validation, immutable in-memory snapshot, size/entry ceilings,
+expected archive hash comparison and 60-second deadline apply. No temporary output
+is created until validation and exact selection succeed. The selected bytes stream
+to a CreateNew temporary file in the destination's directory while computing their
+SHA-256. After length verification and flush/close, destination checks run again and
+the file is renamed without overwrite. Cancellation is checked before publication.
+Failure cleanup attempts to remove the temporary file; filesystem failures can
+prevent cleanup. Parent symlinks/reparse points are refused. As with downloads,
+path checks are not a sandbox against another process replacing parent directories
+concurrently; use a directory under your control.
+
+--dry-run validates and hashes the selected member and reports the intended
+destination with dryRun:true/written:false, without creating output. Otherwise
+the result reports entry, destination, bytes, archiveSha256, memberSha256 and
+written:true. Table mode prints this result as a formatted object; JSON uses the
+stable envelope. --read-only permits this explicitly requested local write, since
+it cannot mutate Azure DevOps. No credentials/configuration or network are used.
+Neither hashes nor successful extraction establish trusted publisher identity or
+validate package semantics. Expected archive hash comparison is opt-in.
+
+Tests cover selected bytes/digests, dry-run, overwrite refusal, unsafe archives,
+missing/directory entries, hash mismatch and temporary cleanup after unsupported
+compression. The command reuses inspection's bound tests and the download target's
+path checks. Live selected extraction remains pending.

@@ -81,7 +81,8 @@ URL-to-diagnosis-to-targeted-log tests now exercise both, including failure path
 Available: artifact list/get and download of one named artifact to a new ZIP file.
 PipelineArtifact download was user-verified; Container live validation is pending.
 The user extracted a ZIP externally. ado now inspects local ZIP inventories and
-hashes exact selected members; safe extraction is still unimplemented.
+hashes exact selected members; single-member extraction to an explicit new file
+is implemented with shared validation and no-overwrite publication.
 
 - [ ] Add bounded archive inventory and explicit member selection for evidence ZIPs,
   package inventories, manifests and reports. State whether selection reduces
@@ -100,6 +101,10 @@ hashes exact selected members; safe extraction is still unimplemented.
 - [ ] Add opt-in safe extraction: reject path traversal, absolute paths, unsafe
   links, duplicate/colliding paths and existing destinations; bound entry count,
   expanded bytes and execution time; clean up interrupted temporary output.
+  artifact extract now writes one exact member to an explicit destination, with
+  full archive validation, shared bounds, temporary cleanup and no overwrite.
+  Mock coverage passes; live extraction and broader platform validation remain open.
+  Bulk directory-tree extraction is not implemented.
 - [ ] Produce a minimal sanitized evidence manifest identifying the selected
   run/artifact/files, digests and limitations. No automatic raw-log retention.
 - [ ] Validate both supported artifact types and failure/cleanup cases, recording

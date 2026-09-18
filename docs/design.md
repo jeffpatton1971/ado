@@ -64,8 +64,9 @@ provenance requires 7.1-preview.1 and explicit preview opt-in. Pipeline runtime 
 parameters map to templateParameters; do not invent a runtimeParameters REST field.
 
 Downloads require an explicit destination, size/time bounds, no accidental overwrites,
-safe filesystem paths and temporary-to-final rename. Opt-in bounded archive inspection
-and safe extraction are M1 requirements, not implemented capabilities. Logs are
+safe filesystem paths and temporary-to-final rename. Bounded local archive inspection
+and single-member extraction to an explicit new file are implemented M1 primitives;
+bulk extraction is not implemented. Logs are
 bounded with escaped terminal controls and no automatic retention. Evidence export
 uses selected sanitized fields; arbitrary raw logs are not assumed secret-free.
 

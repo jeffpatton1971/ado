@@ -25,7 +25,8 @@ the [capability matrix](docs/capabilities.md).
 `artifact inspect` lists a downloaded ZIP's entries and computes archive/selected
 member hashes locally. Add --show-text to read bounded UTF-8 member text.
 See [artifact inspection](docs/artifact-inspection.md) for
-fixed bounds and exact selection. Extraction is not yet implemented.
+fixed bounds and exact selection. `artifact extract` writes one exact member to
+an explicit new file with no overwrite; bulk directory extraction is not supported.
 
 Windows x64 tests pass locally, including a disposable synthetic Credential Manager
 round-trip. User-run live project listing/retrieval and pipeline listing/run-history checks
