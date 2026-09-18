@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record live JSON/non-interactive package pagination with stdin credentials,
+  distinct result pages and explicit partial-result metadata.
+
 - Record live organization-scoped package version listing and exact-version
   retrieval for Json.Input.Provider 1.1.0.
 

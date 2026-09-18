@@ -288,7 +288,13 @@ listing in rseng's automation feed, protocol NuGet, limit 20. The table returned
 package identities and the bounded-search warning. One returned package was
 `Json.Input.Provider`, ID `2894f7c9-8ec5-4679-a5d8-b5836dc971ee`.
 This verifies listing and table warning behavior, not exhaustion or a successful
-resume. Live JSON continuation remains pending. See [syntax](packages.md).
+resume. The user subsequently verified live JSON/non-interactive listing with
+stdin credentials and limit 2: aws/azr returned continuationToken 2; resuming
+with the same scope/feed/protocol returned build/coverlet.collector and token 4.
+Both envelopes reported schemaVersion 1, project null, truncated true,
+completeness partial, truncationReason item_limit and scannedCount 2.
+The two pages had distinct package IDs. This verifies numeric-offset resumption,
+not exhaustion or snapshot consistency. See [syntax](packages.md).
 The user subsequently verified standalone version listing for this package with
 limit 100 and --require-complete: eight visible versions, no truncation warning.
 Exact version retrieval returned GUID `945356c8-1454-4477-b38e-e9f37aed193c`,

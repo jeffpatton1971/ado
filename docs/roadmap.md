@@ -49,7 +49,8 @@ existing run with a retried job/stage. Retain synthetic attempt-history coverage
 and document this release limitation; it does not independently block M1. Do not
 rerun a work pipeline solely to manufacture a fixture. Standalone package version
 listing and exact-version retrieval are now user-verified for the organization-scoped
-automation package Json.Input.Provider. Live package continuation remains pending.
+automation package Json.Input.Provider. Package listing also passed live JSON,
+stdin-token/non-interactive pagination: two distinct pages advanced offsets 2 to 4.
 
 ### M1.1 — Run details, stage/job/task timeline and targeted logs (rank 1)
 
@@ -205,7 +206,9 @@ rseng/impldevmpc (`testing-upstream`); organization-scoped get is verified for
 rseng's `automation` feed. Organization listing, project get and live JSON remain pending.
 Package listing, bounded version inventory and exact version-GUID retrieval are
 implemented. NuGet listing in automation is verified live (20 rows and a bound
-warning); continuation remains pending. Standalone version listing returned eight
+warning); JSON/non-interactive continuation is user-verified across two distinct
+two-item pages, advancing offsets 2 to 4 without claiming exhaustion.
+Standalone version listing returned eight
 visible versions with --require-complete and no truncation warning; exact version
 retrieval returned the known 1.1.0 GUID. Exact NuGet name/literal
 version resolution to service GUIDs is now implemented with bounded complete scans;
