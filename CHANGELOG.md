@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record successful user-reported release task log retrieval for release 1492,
+  environment 1499, deployment 1506, task 12 after the phaseId parsing fix.
+
 - Fix release task phase parsing to accept the documented decimal-string phaseId;
   retain positive int32 route validation and report invalid phase metadata safely.
 

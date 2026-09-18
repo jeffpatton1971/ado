@@ -144,7 +144,8 @@ URL is constructed from validated IDs; returned logUrl fields are never followed
 The service's string phaseId is normalized to a positive int32 (numeric JSON is
 also accepted). Invalid phase values produce a field-specific error without
 echoing the value. This corrects a parser mismatch identified after the first
-user-reported task-log attempt; successful live retrieval is still pending.
+user-reported task-log attempt. The user subsequently verified successful retrieval
+for release 1492, environment 1499, deployment 1506, task 12.
 
 Get Task Log returns UTF-8 text/plain. JSON output contains context and lines; table
 output prints escaped lines. The active credential is redacted from the full text
@@ -157,7 +158,13 @@ Metadata resolution is bounded by response size; --limit/--all bounds displayed 
 range marks full-log completeness unknown; local truncation marks it partial.
 --require-complete retains the lines and returns exit 10 in either case. No log file
 is written, and no deployment actions occur. Mock tests cover phase resolution,
-routes, ranges, limits, invalid content and safe output. Live verification is pending.
+routes, ranges, limits, invalid content and safe output. The user verified table
+output with --limit 100 through the task's finishing marker, with escaped terminal
+controls and no truncation warning. The historical log (2022-02-17) reported AWS
+STS ExpiredToken during Terraform S3 backend initialization, followed by a plan
+failure because the backend was not initialized and Bash exit code 1. Raw logs
+and credential-related values are not stored in the repository. Live JSON output,
+line ranges and strict-completeness behavior remain covered by mocks only.
 
 References:
 
