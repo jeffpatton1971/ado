@@ -46,6 +46,7 @@ public sealed partial class ReleasesClient
                 {
                     if (phase.ValueKind != JsonValueKind.Object) throw Invalid();
                     string? phaseName = Text(phase, "name", 1024);
+                    int? phaseId = ParsePhaseId(phase);
                     foreach (var job in Children(phase, "deploymentJobs"))
                     {
                         if (job.ValueKind != JsonValueKind.Object) throw Invalid();
@@ -68,7 +69,7 @@ public sealed partial class ReleasesClient
                                 lineCount = number;
                             }
                             var item = new ReleaseTaskInfo(taskId, releaseId, environmentId, stepId, deploymentId, attempt,
-                                phaseName, jobId, jobName, Text(task, "name", 1024), Text(task, "status", 64), lineCount, OptionalPositive(phase, "phaseId"));
+                                phaseName, jobId, jobName, Text(task, "name", 1024), Text(task, "status", 64), lineCount, phaseId);
                             count++;
                             if (items.Count < limit) items.Add(item);
                         }
@@ -80,5 +81,18 @@ public sealed partial class ReleasesClient
         return new(items, new(Organization: organization, Project: project, RequestId: response.RequestId,
             Truncated: truncated, Completeness: truncated ? "partial" : missing ? "unknown" : "complete",
             TruncationReason: truncated ? "item_limit" : missing ? "task_arrays_missing" : null, ScannedCount: count));
+    }
+
+    private static int? ParsePhaseId(JsonElement phase)
+    {
+        if (!phase.TryGetProperty("phaseId", out var field) || field.ValueKind == JsonValueKind.Null) return null;
+        // ReleaseDeployPhase documents a string; Get Task Log requires an int32 route ID.
+        int number = 0;
+        bool valid = field.ValueKind == JsonValueKind.String
+            ? int.TryParse(field.GetString(), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out number)
+            : field.ValueKind == JsonValueKind.Number && field.TryGetInt32(out number);
+        if (!valid || number <= 0)
+            throw new AdoException("invalid_service_response", "The release task metadata phaseId must be a positive int32 number or decimal string.", ExitCode.Transient);
+        return number;
     }
 }

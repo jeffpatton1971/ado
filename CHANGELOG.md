@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fix release task phase parsing to accept the documented decimal-string phaseId;
+  retain positive int32 route validation and report invalid phase metadata safely.
+
 - Add release task log with phase resolution from expanded task metadata, bounded
   UTF-8 plain-text reads, optional service line ranges and safe terminal/JSON output.
 - Record user-reported live task inspection for release 1492/deployment 1506:

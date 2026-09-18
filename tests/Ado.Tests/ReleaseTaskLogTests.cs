@@ -16,15 +16,17 @@ public sealed class ReleaseTaskLogTests
     private static HttpResponseMessage Log(string body) => new(HttpStatusCode.OK) { Content = new StringContent(body) };
 
     [TestMethod]
-    [DataRow(false)]
-    [DataRow(true)]
-    public async Task ResolvesPhaseAndReadsRedactedBoundedText(bool range)
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    [DataRow(true, true)]
+    public async Task ResolvesPhaseAndReadsRedactedBoundedText(bool range, bool stringPhase)
     {
         using var handler = new TransportTests.FakeHandler(request =>
         {
             Assert.AreEqual("vsrm.dev.azure.com", request.RequestUri!.Host);
             Assert.IsNotNull(request.Headers.Authorization);
-            if (request.Headers.Accept.Single().MediaType == "application/json") return TransportTests.Json(Metadata);
+            if (request.Headers.Accept.Single().MediaType == "application/json") return TransportTests.Json(stringPhase ? Metadata.Replace("\"phaseId\":77", "\"phaseId\":\"77\"", StringComparison.Ordinal) : Metadata);
             Assert.AreEqual("https://vsrm.dev.azure.com/example/Project/_apis/release/releases/1492/environments/1499/deployPhases/77/tasks/12/logs?api-version=7.1" + (range ? "&startLine=2&endLine=4" : ""), request.RequestUri.AbsoluteUri);
             Assert.AreEqual("text/plain", request.Headers.Accept.Single().MediaType);
             return Log("synthetic\u001b first\r\nsecond\nthird\n");
@@ -37,6 +39,26 @@ public sealed class ReleaseTaskLogTests
         Assert.AreEqual("[REDACTED]\u001b first", result.Data.Lines[0]);
         Assert.AreEqual(range ? "unknown" : "partial", result.Meta.Completeness);
         Assert.AreEqual(2, handler.Calls);
+    }
+
+    [TestMethod]
+    [DataRow("\"0\"")]
+    [DataRow("\"2147483648\"")]
+    [DataRow("\"77/secret-sentinel\"")]
+    [DataRow("\"+77\"")]
+    [DataRow("{}")]
+    public async Task InvalidPhaseNeverFetchesLog(string phase)
+    {
+        using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json(
+            Metadata.Replace("\"phaseId\":77", "\"phaseId\":" + phase, StringComparison.Ordinal)));
+        using var http = new HttpClient(handler);
+        using var auth = new TokenAuthentication("pat", new("synthetic"));
+        var error = await Assert.ThrowsExactlyAsync<AdoException>(() => new ReleasesClient(new ServiceTransport(http, auth, "example"), "example", "Project")
+            .TaskLogAsync(1492, 1499, 1506, 12, null, null, 100, CancellationToken.None));
+        Assert.AreEqual("invalid_service_response", error.Code);
+        StringAssert.Contains(error.Message, "phaseId");
+        Assert.IsFalse(error.Message.Contains("secret-sentinel", StringComparison.Ordinal));
+        Assert.AreEqual(1, handler.Calls);
     }
 
     [TestMethod]

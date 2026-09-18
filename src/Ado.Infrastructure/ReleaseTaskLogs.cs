@@ -28,7 +28,8 @@ public sealed partial class ReleasesClient
             Query = query
         }.Uri;
         var response = await transport.GetTextAsync(Operations.ReleaseTaskLog, uri, cancellationToken, project);
-        if (response.ContinuationToken is not null) throw Invalid();
+        if (response.ContinuationToken is not null)
+            throw new AdoException("invalid_service_response", "The release task log response unexpectedly included a continuation token.", ExitCode.Transient);
         var lines = new List<string>();
         int count = 0;
         using var reader = new StringReader(response.Text);

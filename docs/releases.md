@@ -141,6 +141,10 @@ The command first expands release tasks to resolve the requested environment,
 deployment and task to exactly one phase ID. Missing metadata or ambiguous matches
 fail before the log request. Task summaries now include phaseId in JSON. The log
 URL is constructed from validated IDs; returned logUrl fields are never followed.
+The service's string phaseId is normalized to a positive int32 (numeric JSON is
+also accepted). Invalid phase values produce a field-specific error without
+echoing the value. This corrects a parser mismatch identified after the first
+user-reported task-log attempt; successful live retrieval is still pending.
 
 Get Task Log returns UTF-8 text/plain. JSON output contains context and lines; table
 output prints escaped lines. The active credential is redacted from the full text
