@@ -126,7 +126,10 @@ missing/null nested arrays yield unknown completeness. --require-complete retain
 data with exit 10 for unknown or truncated results. No continuation is available.
 Gate evaluation tasks and parent-job summary rows are outside this command's scope.
 Mock tests cover the expansion query, context, bounds, malformed data, identity checks,
-redaction and terminal escaping. Live task verification is pending.
+redaction and terminal escaping. The user verified ten task records for release 1492,
+environment 1499, deployment 1506, attempt 1. Task 12 (Setting up 200compute) reported
+failed; the other nine tasks reported succeeded. Line counts were absent. The task
+summary identifies the failure location, not its underlying cause.
 
 References:
 
