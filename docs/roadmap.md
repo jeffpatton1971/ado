@@ -190,6 +190,9 @@ version lookup and is not an additional M1 acceptance gate.
   unestablished by the reported output.
 - [ ] Inspect selected .nuspec, manifest and assembly entries using the bounded
   archive facilities from M1.2; never execute downloaded code.
+  Local nuspec text/hash inspection is user-verified for Json.Input.Provider 1.1.0
+  (18,092-byte archive, 9 entries). Structured nuspec/dependency interpretation
+  remains outstanding; displayed declarations do not establish compatibility.
 - [ ] Keep preview-only provenance features explicitly opted in and separate from
   basic package availability. Record scope/API and verification limits.
 

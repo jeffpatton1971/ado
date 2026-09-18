@@ -184,6 +184,18 @@ its contents: a nuspec, plugin.json, documentation, lib/net9.0 DLL/XML and ZIP/N
 metadata entries. This verifies the live no-overwrite guard and external extraction
 of an existing local file. The pasted output does not establish the file's download
 origin or digest and is not evidence of a successful CLI content transfer.
+The user subsequently verified local `artifact inspect --show-text` for
+`Json.Input.Provider.nuspec`: archive 18,092 bytes, 9 entries, SHA-256
+`d229edb039c1555af0f136f67d4d1d12a526f56e1820be943598c091fd45b2d9`;
+member 841 bytes (457 compressed), SHA-256
+`42124df9879ecfe80c705cce0fc198862900e78cb3ea64b5788d494c396b7366`.
+The displayed manifest declares Json.Input.Provider 1.1.0, a net9.0 dependency
+group, Microsoft.Extensions.DependencyInjection version text 9.0.9 and
+Rackspace.BAT.Core.Abstractions version text 2.8.0. These are declarations, not
+resolved dependency identities or proof of compatibility. The repository element
+supplies only type git, without a URL or commit. This verifies local member text
+and digests; remote download provenance, signatures and structured nuspec parsing
+remain unverified by this output.
 
 Live read-only tests require an explicitly authorized organization/project. Remote
 mutation tests require separate approval of exact disposable target, effect/cost,

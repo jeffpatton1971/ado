@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record local Json.Input.Provider 1.1.0 nuspec text and archive/member digest
+  verification, separately from dependency semantics and remote download provenance.
+
 - Record live NuGet destination-exists refusal and external extraction of an
   existing nupkg, separately from still-pending CLI transfer/digest verification.
 

@@ -99,6 +99,10 @@ standalone version commands, live JSON and package content retrieval remain unve
 The user verified destination-exists refusal before a token prompt, then externally
 expanded an existing Json.Input.Provider 1.1.0 nupkg. Its download origin and digest
 were not established by that output; successful CLI content transfer is still pending.
+Subsequent local artifact inspection verified the nuspec text and archive/member
+hashes (see testing.md). The manifest declares Json.Input.Provider 1.1.0 and a net9.0
+dependency group. This is local text inspection, not structured package validation,
+dependency resolution, signature verification or remote download provenance.
 
 References: [packages](https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/artifact-details/get-packages?view=azure-devops-rest-7.1),
 [versions](https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/artifact-details/get-package-versions?view=azure-devops-rest-7.1),
