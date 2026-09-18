@@ -170,7 +170,7 @@ Package listing, bounded version inventory and exact version-GUID retrieval are
 implemented. NuGet listing in automation is verified live (20 rows and a bound
 warning); continuation and version reads remain pending. Exact NuGet name/literal
 version resolution to service GUIDs is now implemented with bounded complete scans;
-live validation is pending. Exact NuGet download and structured package inspection
+live resolution is verified for automation's Json.Input.Provider 1.1.0. Exact NuGet download and structured package inspection
 remain outstanding. Version-range/dependency-graph solving is outside this exact
 version lookup and is not an additional M1 acceptance gate.
 

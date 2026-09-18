@@ -164,7 +164,12 @@ pending. See [syntax](packages.md).
 Package resolution mocks verify exact name/version selection, rejection of similarly
 named packages and different versions, ambiguous identity failures, independent
 package/version bounds (exit 10), and invalid selectors before authentication.
-Live resolution remains pending; it does not imply downloadability or compatibility.
+On 2026-09-18 the user verified organization-scoped resolution in rseng's automation
+feed for `Json.Input.Provider` version `1.1.0`, with limit 100. The table returned
+package ID `2894f7c9-8ec5-4679-a5d8-b5836dc971ee` and version ID
+`945356c8-1454-4477-b38e-e9f37aed193c`. This exercises package and version metadata
+reads through the resolver; standalone version commands and live JSON remain
+unverified. No package was downloaded; downloadability and compatibility are not proven.
 
 Live read-only tests require an explicitly authorized organization/project. Remote
 mutation tests require separate approval of exact disposable target, effect/cost,

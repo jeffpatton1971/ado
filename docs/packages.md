@@ -63,6 +63,10 @@ remain outstanding for M1.
 The user verified NuGet package listing in the organization-scoped automation feed
 with 20 returned rows and a bounded-search warning. Live continuation, version listing
 and exact version retrieval remain pending.
+The user also verified `package resolve` for Json.Input.Provider 1.1.0, returning
+package ID `2894f7c9-8ec5-4679-a5d8-b5836dc971ee` and version ID
+`945356c8-1454-4477-b38e-e9f37aed193c`. This verifies metadata resolution only;
+standalone version commands, live JSON and package content retrieval remain unverified.
 
 References: [packages](https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/artifact-details/get-packages?view=azure-devops-rest-7.1),
 [versions](https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/artifact-details/get-package-versions?view=azure-devops-rest-7.1),

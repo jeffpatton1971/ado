@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record live resolution of Json.Input.Provider 1.1.0 in the organization-scoped
+  automation feed to exact package and version identities; no content download yet.
+
 - Add bounded exact NuGet name/literal-version resolution to service identities,
   requiring complete metadata scans and preserving incomplete/not-found distinctions.
 
