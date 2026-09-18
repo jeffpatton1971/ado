@@ -25,7 +25,7 @@ agent has not accessed the live organization or submitted runs.
 | pipeline run preview | dev.azure.com | Pipelines Runs 7.1 | POST preview; blocked read-only | None | Local; no credentials/HTTP | Preview-specific exact target | vso.build_execute | Mock HTTP verified; user-reported live success |
 | build list | dev.azure.com | Build 7.1 | Read | Opaque header continuation | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
 | build get | dev.azure.com | Build 7.1 | Read | None | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
-| build timeline | dev.azure.com | Build Timeline 7.1 | Read | Local bound; sub-timelines not fetched | N/A | None | vso.build | Mock HTTP verified; user-reported live success (build 18722) |
+| build timeline | dev.azure.com | Build Timeline 7.1 | Read | Shared record bound; optional bounded --include-history traversal | N/A | None | vso.build | Mock HTTP verified; user-reported live default timeline success (build 18722); traversal live pending |
 | build logs | dev.azure.com | Build Logs 7.1 | Read | None; local output bound | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
 | build log get | dev.azure.com | Build Logs 7.1 | Read | Optional service line range; no continuation | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
 | build artifact list | dev.azure.com | Build Artifacts 7.1 | Read metadata | None; local output bound | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
@@ -42,10 +42,11 @@ agent has not accessed the live organization or submitted runs.
 Output schema starts at version 1. Azure DevOps Services only.
 
 Build timelines include attempt/identifier/time/reference metadata and parent/order
-context. Previous-attempt history and sub-timelines are not fetched. Missing parents
+context. Optional --include-history traverses referenced timelines under shared
+record, request, byte and time bounds. Without it, references are not fetched. Missing parents
 or unloaded history mark completeness unknown. The user verified parent/order and
 attempt columns for build 18722 (attempt 1, zero previous references). Retry-history
-and JSON metadata coverage remain mocked; referenced history is not fetched.
+and JSON metadata coverage remain mocked; live --include-history verification is pending.
 
 Build get/timeline/logs/log get and artifact list/get/download accept --run-url
 for locally validated Azure DevOps results links. Context conflicts fail before

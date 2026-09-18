@@ -28,7 +28,8 @@ classic-release expansion and mutation work follow the priority order below.
 
 ## M1: authentication and ranks 1–4
 
-The active slice is M1.1. Run-URL input is implemented; retry-aware diagnostics are next.
+The active slice is M1.1. URL input and bounded history traversal are implemented;
+consolidated failure diagnostics are next.
 Deliver each slice in small tested commits, then update this checklist and capability
 evidence. Proposed work below is not currently supported command syntax.
 
@@ -39,7 +40,8 @@ index, individual bounded logs and service line ranges. User smoke tests located
 a failed build task and read its error. Build commands also accept supported run URLs.
 Attempt numbers, stable identifiers, timestamps and safe previous-attempt/sub-timeline
 references are now preserved in JSON; tables show order, parent and attempt context.
-Missing: referenced timeline traversal and a consolidated diagnostic workflow.
+Optional --include-history traverses referenced timelines within shared bounds.
+Missing: a consolidated diagnostic workflow and live retry-history verification.
 
 - [x] Accept supported Azure DevOps run URLs directly, including a run link obtained
   from a GitHub check; parse locally, validate host/path/IDs and reject conflicts
@@ -48,9 +50,10 @@ Missing: referenced timeline traversal and a consolidated diagnostic workflow.
   as --run-url on build inspection/artifact commands; mocked canonical-route and
   no-dispatch rejection coverage, and user-reported live modern-URL timeline read
   for build 18722. Other URL-command combinations remain mock-tested. See [syntax](builds.md).
-- [ ] Preserve stage/job/task hierarchy, ordering, attempts and available timeline
+- [x] Preserve stage/job/task hierarchy, ordering, attempts and available timeline
   references with bounded traversal and explicit missing/incomplete metadata.
-  Metadata and table context implemented; referenced-history traversal remains open.
+  Metadata, table context and bounded --include-history traversal implemented;
+  mocked reference identity, cycles, unavailable history and bound coverage passes.
   User verified parent/order and attempt columns on build 18722 (attempt 1, no
   previous references); live retry-history verification remains outstanding.
 - [ ] Identify failed tasks and their targeted logs; distinguish failures from

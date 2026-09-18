@@ -228,7 +228,7 @@ from a failed task with `build log get` to inspect its log.
 dotnet run --project src/Ado.Cli --configuration Release -- build timeline --config ./config.json --build-id 18722 --token-prompt --output table --read-only --limit 100
 ```
 
-This is one bounded GET, with the existing JSON byte ceiling and local --limit/--all
+By default this is one bounded GET, with the existing JSON byte ceiling and local --limit/--all
 bounds. There is no continuation token. Referenced sub-timelines are not fetched;
 their presence makes completeness unknown. Previous-attempt references, attempt > 1,
 or unavailable parent records also mark completeness unknown. JSON truncationReason
@@ -246,6 +246,44 @@ Completeness describes this snapshot, not whether the build has finished. Issue
 messages, worker identities and service URLs are omitted. The user verified this command
 against build 18722: it identified the failed task at log 21 with one reported error.
 The endpoint and read scope are documented in [Timeline Get](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/timeline/get?view=azure-devops-rest-7.1).
+
+### Include referenced history
+
+Add --include-history to load sub-timelines and previous attempts:
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- build timeline --run-url "https://dev.azure.com/rseng/impldevmpc/_build/results?buildId=18722" --config ./config.json --token-prompt --output table --read-only --include-history --limit 100
+```
+
+Traversal uses service-provided GUID references to construct endpoints under the same
+organization/project/build. Returned URLs are never fetched. Each timeline is requested
+once (apart from bounded transport retries), in breadth-first discovery order; records
+retain service order within each timeline. Shared references and cycles do not repeat
+requests. Requested/returned timeline identities must match. Record and parent identities
+are scoped to their timeline, so repeated record IDs across attempts remain distinct.
+Tables add TIMELINE ID; JSON retains the existing array and additive context fields.
+
+Limits cover all records (--limit/--all), 100 timeline reads including the default,
+4 MiB per response, 64 MiB aggregate responses and the existing operation deadline.
+Before a subsequent request, the aggregate budget reserves a full 4 MiB response.
+Exhausted record/timeline/byte bounds preserve loaded data with partial completeness
+and item_limit/timeline_limit/byte_limit. There is no resumable continuation token.
+
+A referenced 404 preserves loaded data with unknown completeness and
+referenced_timeline_unavailable; permission, authentication, network and malformed
+response errors still fail the operation. Missing referenced records, mismatched
+attempt numbers or attempt > 1 without history references report
+attempt_references_unresolved. Missing parents report parent_records_missing;
+an absent default timeline ID reports timeline_identity_missing. Bound reasons take
+precedence, followed by unavailable references, unresolved references, missing parents
+and missing timeline identity. --require-complete returns exit 10 with retained data
+for partial/unknown results. Complete means all exposed references were resolved for
+this snapshot, not proof that the service exposed every historical attempt.
+
+Tests cover shared references/cycles, scoped identities, reference failures, strict
+output retention and record/request/byte limits. Live history traversal is pending;
+build 18722 previously exposed no previous-attempt references. This command reads
+history and never retries or starts a pipeline execution.
 
 ## Verification
 

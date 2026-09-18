@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add build timeline --include-history for bounded sub-timeline and prior-attempt
+  traversal, timeline-scoped record identities, cycle deduplication and retained
+  partial/unknown results when bounds or unavailable references prevent completion.
+
 - Record user-reported live build timeline parent/order/attempt columns for build
   18722; all displayed records reported attempt 1 with zero previous references.
 

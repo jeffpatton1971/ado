@@ -97,6 +97,8 @@ public static class CliApp
         var buildGet = new Command("get", "Get a Build API record by build ID.");
         var buildLogs = new Command("logs", "List log IDs and line counts for a build; no server pagination.");
         var buildTimeline = new Command("timeline", "Inspect jobs/tasks, their results and log IDs in the default build timeline.");
+        var includeHistory = new Option<bool>("--include-history") { Description = "Follow bounded sub-timeline and previous-attempt references." };
+        buildTimeline.Options.Add(includeHistory);
         var buildLog = new Command("log", "Read individual build logs.");
         var buildLogGet = new Command("get", "Read bounded log content; terminal controls are escaped.");
         var logId = new Option<int?>("--log-id") { Description = "Positive log ID returned by build logs." };
@@ -266,7 +268,7 @@ public static class CliApp
                         targetBuildId, new(parsed.GetValue(definitionId), parsed.GetValue(buildStatus), parsed.GetValue(buildResult), parsed.GetValue(branch)),
                         parsed.GetValue(logId), parsed.GetValue(startLine), parsed.GetValue(endLine), parsed.GetValue(artifactName),
                         parsed.GetValue(destination), parsed.GetValue(maxBytes), parsed.GetValue(downloadTimeout), parsed.GetValue(releaseId), parsed.GetValue(releaseDefinitionId),
-                        parsed.GetValue(environmentId), parsed.GetValue(deploymentId), parsed.GetValue(taskId)),
+                        parsed.GetValue(environmentId), parsed.GetValue(deploymentId), parsed.GetValue(taskId), parsed.GetValue(includeHistory)),
                     output, error, input ?? Console.In, environment, testHandler, testNativeProvider, cancellationToken);
             }
             if (parsed.GetValue(effective))

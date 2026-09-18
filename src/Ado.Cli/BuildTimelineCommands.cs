@@ -8,7 +8,7 @@ internal static class BuildTimelineCommands
     public static async Task<int> ReadAsync(BuildTimelineClient client, ServiceOptions options, int limit,
         TextWriter output, TextWriter error, CancellationToken cancellationToken)
     {
-        var result = await client.GetAsync(options.BuildId!.Value, limit, cancellationToken);
+        var result = await client.GetAsync(options.BuildId!.Value, limit, cancellationToken, options.IncludeHistory);
         bool incomplete = result.Meta.Completeness != "complete";
         if (options.Json)
         {
@@ -17,13 +17,13 @@ internal static class BuildTimelineCommands
         }
         else
         {
-            var records = result.Items.ToDictionary(item => item.Id);
-            await output.WriteLineAsync("ORDER  TYPE  NAME  PARENT  ATTEMPT  PREVIOUS  STATE  RESULT  LOG ID  ERRORS  WARNINGS");
+            var records = result.Items.ToDictionary(item => (item.TimelineId, item.Id));
+            await output.WriteLineAsync((options.IncludeHistory ? "TIMELINE ID  " : "") + "ORDER  TYPE  NAME  PARENT  ATTEMPT  PREVIOUS  STATE  RESULT  LOG ID  ERRORS  WARNINGS");
             foreach (var item in result.Items)
             {
-                string parent = item.ParentId is not { } parentId ? "" : records.TryGetValue(parentId, out var parentRecord)
+                string parent = item.ParentId is not { } parentId ? "" : records.TryGetValue((item.TimelineId, parentId), out var parentRecord)
                     ? parentRecord.Name ?? parentId.ToString() : "unavailable:" + parentId;
-                await output.WriteLineAsync($"{item.Order}  {OutputWriter.TerminalSafe(item.Type ?? "")}  {OutputWriter.TerminalSafe(item.Name ?? "")}  {OutputWriter.TerminalSafe(parent)}  {item.Attempt?.ToString() ?? "unknown"}  {item.PreviousAttempts?.Count.ToString() ?? "unknown"}  {OutputWriter.TerminalSafe(item.State ?? "")}  {OutputWriter.TerminalSafe(item.Result ?? "")}  {item.LogId}  {item.ErrorCount}  {item.WarningCount}");
+                await output.WriteLineAsync((options.IncludeHistory ? $"{item.TimelineId?.ToString() ?? "unknown"}  " : "") + $"{item.Order}  {OutputWriter.TerminalSafe(item.Type ?? "")}  {OutputWriter.TerminalSafe(item.Name ?? "")}  {OutputWriter.TerminalSafe(parent)}  {item.Attempt?.ToString() ?? "unknown"}  {item.PreviousAttempts?.Count.ToString() ?? "unknown"}  {OutputWriter.TerminalSafe(item.State ?? "")}  {OutputWriter.TerminalSafe(item.Result ?? "")}  {item.LogId}  {item.ErrorCount}  {item.WarningCount}");
             }
             if (incomplete) await error.WriteLineAsync("warning: Timeline results are limited or have unloaded hierarchy/attempt context; inspect JSON metadata.");
         }

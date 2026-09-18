@@ -11,7 +11,7 @@ public sealed record ServiceOptions(string Command, bool Json, bool NonInteracti
     string? Confirmation = null, string? RefName = null, string? ParametersFile = null, string? VariablesFile = null, bool ShowYaml = false,
     int? BuildId = null, BuildFilters? BuildFilters = null, int? LogId = null, long? StartLine = null, long? EndLine = null, string? ArtifactName = null,
     string? Destination = null, long? MaxBytes = null, int? DownloadTimeout = null, int? ReleaseId = null, int? ReleaseDefinitionId = null,
-    int? EnvironmentId = null, int? DeploymentId = null, int? TaskId = null);
+    int? EnvironmentId = null, int? DeploymentId = null, int? TaskId = null, bool IncludeHistory = false);
 
 internal static class ServiceCommands
 {
