@@ -21,7 +21,9 @@ agent has not accessed the live organization or submitted runs.
 | pipeline runs | dev.azure.com | Pipelines Runs 7.1 | Read | No paging; server caps at 10,000 | N/A | None | vso.build | Mock HTTP verified |
 | pipeline run get | dev.azure.com | Pipelines Runs 7.1 | Read | None | N/A | None | vso.build | Mock HTTP verified |
 | pipeline run start | dev.azure.com | Pipelines Runs 7.1 | Write | None | Local; no credentials/HTTP | Exact action/org/project/ID via --confirm | vso.build_execute | Mock HTTP verified; no live submission |
-| pipeline run preview | dev.azure.com | Pipelines Runs 7.1 | POST preview; blocked read-only | None | Local; no credentials/HTTP | Preview-specific exact target | vso.build_execute | Mock HTTP verified; live preview pending |
+| pipeline run preview | dev.azure.com | Pipelines Runs 7.1 | POST preview; blocked read-only | None | Local; no credentials/HTTP | Preview-specific exact target | vso.build_execute | Mock HTTP verified; user-reported live success |
+| build list | dev.azure.com | Build 7.1 | Read | Opaque header continuation | N/A | None | vso.build | Mock HTTP verified; live check pending |
+| build get | dev.azure.com | Build 7.1 | Read | None | N/A | None | vso.build | Mock HTTP verified; live check pending |
 
 Output schema starts at version 1. Azure DevOps Services only.
 

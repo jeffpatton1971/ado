@@ -10,8 +10,9 @@ checks, server-side YAML preview, and local diagnostics. Run start supports loca
 PATs or externally supplied Entra tokens through stdin, environment, masked prompt,
 or native credential stores. Native macOS/Linux execution remains pending validation.
 Server preview uses a separate confirmation and is blocked by --read-only; expanded
-YAML is omitted unless --show-yaml is requested. Build/release/feed commands are not
-implemented in this development build.
+YAML is omitted unless --show-yaml is requested. Build list/get support bounded history
+and safe execution metadata. Build queue/cancel/logs/outputs and release/feed commands
+are not implemented in this development build.
 
 ```text
 ado --help

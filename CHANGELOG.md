@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add build list/get with Build API 7.1, server-side definition/status/result/branch
+  filters, newest-queued ordering, bounded opaque pagination and safe execution fields.
+- Record user-reported successful live server YAML preview for pipeline 1128.
+
 - Add pipeline run preview with forced previewRun:true, separate exact confirmation,
   local dry-run, read-only guards and optional expanded YAML with known-value redaction.
   Server preview uses one bounded POST and never falls back to run creation.

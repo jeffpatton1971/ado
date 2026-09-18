@@ -30,8 +30,10 @@ agent has not accessed the live service. Run submission tests use synthetic cred
 and mocked HTTP, including no-dispatch safety checks and uncertain-write outcomes.
 The user verified local run-start dry-run for pipeline 1128. Server YAML preview tests
 also use mocked HTTP: forced previewRun:true, exact preview confirmation, read-only
-blocking, no retry, bounded responses and opt-in YAML redaction. No live server preview
-has been performed by the development agent.
+blocking, no retry, bounded responses and opt-in YAML redaction. The user reported live
+server-preview success for pipeline 1128 (13,778 YAML characters, content omitted).
+No live server preview has been performed by the development agent. Build list/get
+have mocked route/filter/pagination/output coverage; live Build API validation is pending.
 
 Native macOS calls use a deprecated generic-password API and cannot safely abort an
 active OS approval dialog. This is documented rather than claiming universal cancellation

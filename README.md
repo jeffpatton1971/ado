@@ -8,19 +8,20 @@ Under development; Azure DevOps Server is not supported. See the
 
 Available commands: `--help`, clean semantic `--version`, `config paths`,
 `config show --effective`, `project list|get|search`, `auth check`, local-only
-`doctor`, `pipeline list|get|runs`, and `pipeline run get|start|preview`. Run start and
+`doctor`, `pipeline list|get|runs`, `pipeline run get|start|preview`, and `build list|get`. Run start and
 server preview include a local dry-run and require exact target confirmation before
 sending their requests. PAT and externally supplied Entra tokens are supported through stdin,
 environment, masked prompt, explicit argument, or native credential references.
 See [configuration and global parameters](docs/configuration.md),
 [credential setup](docs/authentication.md), [project examples](docs/projects.md),
-[pipeline examples and limits](docs/pipelines.md), and
+[pipeline examples and limits](docs/pipelines.md), [build inspection](docs/builds.md), and
 the [capability matrix](docs/capabilities.md).
 
 Windows x64 tests pass locally, including a disposable synthetic Credential Manager
 round-trip. User-run live project listing/retrieval and pipeline listing/run-history checks
 succeeded. macOS/Linux native keyring execution and live run submission remain pending.
-Live server preview also remains pending. Builds, classic releases, feed metadata, completion and download
+User-run server YAML preview also succeeded. Live Build API validation remains pending.
+Build queue/cancel/logs/outputs, classic releases, feed metadata, completion and download
 commands remain planned; the initial release is not complete.
 
 The [CI definition](.github/workflows/ci.yml) covers three-OS tests and six-RID

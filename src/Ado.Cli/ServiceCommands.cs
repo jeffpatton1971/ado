@@ -8,7 +8,8 @@ namespace Ado.Cli;
 
 public sealed record ServiceOptions(string Command, bool Json, bool NonInteractive, bool ReadOnly, bool DryRun,
     int? Top, bool All, string? Continuation, bool RequireComplete, string? Search, int? PipelineId = null, int? RunId = null,
-    string? Confirmation = null, string? RefName = null, string? ParametersFile = null, string? VariablesFile = null, bool ShowYaml = false);
+    string? Confirmation = null, string? RefName = null, string? ParametersFile = null, string? VariablesFile = null, bool ShowYaml = false,
+    int? BuildId = null, BuildFilters? BuildFilters = null);
 
 internal static class ServiceCommands
 {
@@ -43,6 +44,17 @@ internal static class ServiceCommands
         if (options.Command == "project search" && string.IsNullOrWhiteSpace(options.Search))
             throw new AdoException("search_required", "Project search requires --name with a nonempty name fragment.", ExitCode.Usage);
         bool pipelineCommand = options.Command.StartsWith("pipeline ", StringComparison.Ordinal);
+        bool buildCommand = options.Command.StartsWith("build ", StringComparison.Ordinal);
+        if (buildCommand)
+        {
+            EndpointBuilder.ProjectSegment(profile.Project);
+            (options.BuildFilters ?? new()).Validate();
+            if (options.Command == "build get" && options.BuildId is null or <= 0)
+                throw new AdoException("build_required", "Supply a positive --build-id.", ExitCode.Usage);
+            // Validate pagination before credential acquisition as well as at endpoint construction.
+            if (options.Command == "build list")
+                _ = EndpointBuilder.Build(Operations.BuildList, organization, profile.Project!, top: top, continuation: options.Continuation, filters: options.BuildFilters);
+        }
         if (pipelineCommand)
         {
             EndpointBuilder.ProjectSegment(profile.Project);
@@ -100,6 +112,8 @@ internal static class ServiceCommands
             using var authentication = new TokenAuthentication(reference.Type, secret);
             using var client = testHandler is null ? ServiceTransport.CreateClient() : new HttpClient(testHandler, disposeHandler: false) { Timeout = Timeout.InfiniteTimeSpan };
             var transport = new ServiceTransport(client, authentication, organization, profile.Timeouts.RequestSeconds, options.ReadOnly, options.DryRun);
+            if (buildCommand)
+                return await BuildCommands.ReadAsync(new BuildsClient(transport, organization, profile.Project!), options, top, limit, output, error, deadline.Token);
             if (runRequest is not null)
             {
                 if (serverPreview)

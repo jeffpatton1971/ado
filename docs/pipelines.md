@@ -175,8 +175,9 @@ listing and run-history retrieval for impldevmpc, in addition to Core project ch
 Individual pipeline/run get and run submission remain unverified against the live service.
 The user also verified local run-start dry-run for pipeline 1128. Server preview is
 covered by mocked tests, including forced preview flags, policy guards, separate
-confirmations, cancellation, bounded responses and YAML omission/redaction. Live
-server preview remains unverified.
+confirmations, cancellation, bounded responses and YAML omission/redaction. The user
+reported successful live server preview for pipeline 1128, returning 13,778 YAML
+characters with expanded content omitted. No run creation was requested.
 The development agent has made no live Azure DevOps requests or pipeline submissions.
 
 Sources, verified before implementation:
