@@ -20,7 +20,7 @@ agent has not accessed the live organization or submitted runs.
 | project list | dev.azure.com | Core Projects 7.1 | Read | Numeric continuation header | N/A | None | vso.project; endpoint also documents vso.profile | Mock HTTP verified |
 | project get | dev.azure.com | Core Projects 7.1 | Read | None | N/A | None | Same as list | Mock HTTP verified |
 | project search | dev.azure.com | Core Projects 7.1 | Read | Bounded list plus client name filter | N/A | None | Same as list | Mock HTTP verified |
-| auth check | dev.azure.com / feeds.dev.azure.com | Core / Build / Artifacts 7.1 | Read | Selected project, build, artifact-list or feed probe | N/A | None | Selected endpoint's read scope | Metadata access only; new probes mock-tested, user validation pending |
+| auth check | dev.azure.com / feeds.dev.azure.com | Core / Build / Artifacts 7.1 | Read | Selected project, build, artifact-list or feed probe | N/A | None | Selected endpoint's read scope | Metadata access only; new probes mock-tested; user verified organization-scoped automation feed probe; build/artifact probes pending |
 | pipeline list | dev.azure.com | Pipelines 7.1 | Read | Opaque header continuation | N/A | None | vso.build | Mock HTTP verified |
 | pipeline get | dev.azure.com | Pipelines 7.1 | Read | None | N/A | None | vso.build | Mock HTTP verified |
 | pipeline runs | dev.azure.com | Pipelines Runs 7.1 | Read | No paging; server caps at 10,000 | N/A | None | vso.build | Mock HTTP verified |

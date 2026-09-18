@@ -3,7 +3,10 @@
 `AuthProbeTests` verifies selected build, artifact-list and organization-feed GET
 routes, no fallback project request, 401/403/404 failure propagation and required
 context rejection before credential retrieval. Live commands are documented in
-[authentication](authentication.md); new probes await user validation.
+[authentication](authentication.md). The user verified the organization-scoped
+automation feed probe: accessConfirmed:true, authenticationType:pat and
+checkedCapability:"feed get", with credentialValidity:not_independently_verified.
+Build/artifact probes and live JSON automation remain pending.
 
 Local NuGet manifest smoke test (no token/configuration required):
 

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record successful user validation of the organization-scoped automation feed
+  access probe, retaining endpoint-only access and credential-validity limitations.
+
 - Add explicit build, artifact-metadata and scoped feed access probes to auth check,
   preserving project defaults and endpoint-specific permission limitations.
 
