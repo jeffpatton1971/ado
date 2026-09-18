@@ -18,8 +18,12 @@ with `exclude="Build,Analyzers"`. Archive SHA-256:
 `d229edb039c1555af0f136f67d4d1d12a526f56e1820be943598c091fd45b2d9`;
 manifest SHA-256:
 `42124df9879ecfe80c705cce0fc198862900e78cb3ea64b5788d494c396b7366`.
-Both match the prior local text inspection. This verifies the local reader;
-successful CLI content download and remote origin remain separately unverified.
+Both match the prior local text inspection. Subsequently, the user verified CLI
+download from organization-scoped automation for the same package/version:
+18,092 bytes with the identical archive SHA-256. Exact package/version GUIDs matched
+the earlier resolution. External PowerShell extraction succeeded and the user
+removed the extracted directory. This verifies live content retrieval and digest
+agreement, not publisher authenticity, signatures or dependency compatibility.
 
 ## Read-only diagnostic workflow acceptance
 

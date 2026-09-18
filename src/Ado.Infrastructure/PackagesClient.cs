@@ -31,7 +31,7 @@ public sealed class PackagesClient(ServiceTransport transport, string organizati
         var resolution = new PackageResolution(transport.Redact(feed), package, versionMatches[0], "exact_name_and_literal_version",
             ["NuGet names match case-insensitively; versions match a reported display or normalized string exactly, with case preserved.",
              "Separate metadata reads are not a snapshot. Visibility filters and permissions can hide packages or versions.",
-             "No package was downloaded. This does not establish download permission, compatibility, authenticity or dependency closure."]);
+             "Metadata resolution alone does not download content or establish download permission, compatibility, authenticity or dependency closure."]);
         return new([resolution], versions.Meta with { ScannedCount = packages.Items.Count + versions.Items.Count });
     }
 

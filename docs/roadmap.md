@@ -172,7 +172,7 @@ warning); continuation and version reads remain pending. Exact NuGet name/litera
 version resolution to service GUIDs is now implemented with bounded complete scans;
 live resolution is verified for automation's Json.Input.Provider 1.1.0. Exact NuGet
 download now resolves metadata then saves bounded content with SHA-256 and isolated
-storage redirects; live validation is pending. Structured local package inspection
+storage redirects; user verified Json.Input.Provider 1.1.0 download and matching digest. Structured local package inspection
 is implemented and user-verified for Json.Input.Provider 1.1.0. Version-range/dependency-graph solving is outside this exact
 version lookup and is not an additional M1 acceptance gate.
 
@@ -180,14 +180,14 @@ version lookup and is not an additional M1 acceptance gate.
   and project scopes, pagination and explicit permissions/completeness diagnostics.
 - [ ] Resolve Core, YAML, JSON and other requested dependency versions to exact
   package identities; distinguish not found, inaccessible and incomplete searches.
-- [ ] Download an exact NuGet package with credential isolation, explicit destination,
+- [x] Download an exact NuGet package with credential isolation, explicit destination,
   byte/time bounds, no overwrite and reported digest.
   Implemented as package download using the documented 7.1-preview.1 content route,
   with local dry-run and ZIP-envelope checks. Mock transfer/failure tests pass;
-  live content retrieval remains unverified and nuspec/signature checks are separate.
-  The user verified destination-exists refusal before credential prompting and
-  PowerShell extraction of an existing local nupkg; that file's origin/digest remain
-  unestablished by the reported output.
+  user verified organization-scoped automation download of Json.Input.Provider 1.1.0
+  (18,092 bytes), matching the previously inspected archive SHA-256. External
+  PowerShell extraction succeeded. Destination-exists refusal was also verified.
+  Nuspec/signature checks are separate; this does not prove publisher authenticity.
 - [ ] Inspect selected .nuspec, manifest and assembly entries using the bounded
   archive facilities from M1.2; never execute downloaded code.
   Local nuspec text/hash inspection is user-verified for Json.Input.Provider 1.1.0

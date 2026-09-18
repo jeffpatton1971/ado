@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record successful live Json.Input.Provider 1.1.0 download and digest agreement;
+  clarify that nested resolution limitations describe metadata resolution alone.
+
 - Record user verification of structured Json.Input.Provider 1.1.0 inspection,
   including dependency declarations and matching archive/manifest hashes.
 
