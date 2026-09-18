@@ -28,7 +28,7 @@ agent has not accessed the live organization or submitted runs.
 | pipeline run preview | dev.azure.com | Pipelines Runs 7.1 | POST preview; blocked read-only | None | Local; no credentials/HTTP | Preview-specific exact target | vso.build_execute | Mock HTTP verified; user-reported live success |
 | build list | dev.azure.com | Build 7.1 | Read | Opaque header continuation | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
 | feed list/get | feeds.dev.azure.com | Artifacts Feed Management 7.1 | Read | Local list bound; no documented server paging | N/A | None | vso.packaging | Mock HTTP/CLI tests; project list (testing-upstream) and organization get (automation) verified live |
-| package list | feeds.dev.azure.com | Artifacts 7.1 | Read | Bounded numeric offset | N/A | None | vso.packaging | Mock HTTP/CLI; live pending; see packages.md |
+| package list | feeds.dev.azure.com | Artifacts 7.1 | Read | Bounded numeric offset | N/A | None | vso.packaging | Mock HTTP/CLI; live automation/NuGet listing and bound warning verified; resume pending |
 | package versions / version get | feeds.dev.azure.com | Artifacts 7.1 | Read | Local version-list bound / exact GUID | N/A | None | vso.packaging | Mock HTTP/CLI; live pending; name/version-string resolution not implemented |
 | build get | dev.azure.com | Build 7.1 | Read | None | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
 | build diagnose | dev.azure.com | Build and Timeline 7.1 | Read | Bounded timeline scan; optional history | N/A | None | vso.build | Mock verified; user-reported live table success (18722); log references only |

@@ -167,7 +167,8 @@ output and allowlisted identity fields. Project feed list is verified live for
 rseng/impldevmpc (`testing-upstream`); organization-scoped get is verified for
 rseng's `automation` feed. Organization listing, project get and live JSON remain pending.
 Package listing, bounded version inventory and exact version-GUID retrieval are
-implemented; live verification is pending. Dependency resolution by name/version
+implemented. NuGet listing in automation is verified live (20 rows and a bound
+warning); continuation and version reads remain pending. Dependency resolution by name/version
 string, exact NuGet download and structured package inspection remain outstanding.
 
 - [ ] List/get feeds, packages and exact versions, supporting applicable organization

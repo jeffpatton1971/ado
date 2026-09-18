@@ -44,7 +44,9 @@ availability. An empty search does not prove absence; HTTP 401/403/404 retain th
 error categories, including masked-not-found ambiguity. These calls do not establish
 download permission, compatibility or package contents. Name/version-string resolution,
 exact NuGet download and package semantic inspection remain outstanding for M1.
-Live verification of these commands is pending.
+The user verified NuGet package listing in the organization-scoped automation feed
+with 20 returned rows and a bounded-search warning. Live continuation, version listing
+and exact version retrieval remain pending.
 
 References: [packages](https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/artifact-details/get-packages?view=azure-devops-rest-7.1),
 [versions](https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/artifact-details/get-package-versions?view=azure-devops-rest-7.1),

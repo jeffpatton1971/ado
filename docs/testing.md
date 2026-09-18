@@ -153,7 +153,13 @@ Package tests cover scoped routes, encoded protocol/name filters, numeric offset
 resumption, short pages, repeated-page rejection, non-deleted version listing,
 local truncation, exact version-GUID validation, omitted sensitive payloads,
 redaction, table escaping and 401/403/404 errors. Invalid selectors fail before
-credential acquisition. Package live checks are pending. See [syntax](packages.md).
+credential acquisition. On 2026-09-18 the user verified organization-scoped package
+listing in rseng's automation feed, protocol NuGet, limit 20. The table returned 20
+package identities and the bounded-search warning. One returned package was
+`Json.Input.Provider`, ID `2894f7c9-8ec5-4679-a5d8-b5836dc971ee`.
+This verifies listing and table warning behavior, not exhaustion or a successful
+resume. Live JSON continuation, version listing and exact-version retrieval remain
+pending. See [syntax](packages.md).
 
 Live read-only tests require an explicitly authorized organization/project. Remote
 mutation tests require separate approval of exact disposable target, effect/cost,

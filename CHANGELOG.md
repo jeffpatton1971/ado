@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record live NuGet package listing in the organization-scoped automation feed,
+  including the 20-item bound warning; continuation and version reads remain pending.
+
 - Add package list, package versions and package version get with explicit feed
   scope, bounded offset/local enumeration, exact GUID lookup and allowlisted metadata.
 
