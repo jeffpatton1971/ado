@@ -185,6 +185,9 @@ version lookup and is not an additional M1 acceptance gate.
   Implemented as package download using the documented 7.1-preview.1 content route,
   with local dry-run and ZIP-envelope checks. Mock transfer/failure tests pass;
   live content retrieval remains unverified and nuspec/signature checks are separate.
+  The user verified destination-exists refusal before credential prompting and
+  PowerShell extraction of an existing local nupkg; that file's origin/digest remain
+  unestablished by the reported output.
 - [ ] Inspect selected .nuspec, manifest and assembly entries using the bounded
   archive facilities from M1.2; never execute downloaded code.
 - [ ] Keep preview-only provenance features explicitly opted in and separate from

@@ -177,6 +177,13 @@ byte ceilings, non-ZIP content, 403, temporary cleanup, dry-run without credenti
 and existing destination preservation. Build artifact tests also exercise the shared
 bounded transfer implementation. Live NuGet download remains pending; tests do not
 claim nuspec/signature verification or package compatibility.
+On 2026-09-18 the user ran package download for Json.Input.Provider 1.1.0 against
+an existing destination and received `destination_exists` before any token prompt.
+The user then successfully expanded that existing nupkg with PowerShell and listed
+its contents: a nuspec, plugin.json, documentation, lib/net9.0 DLL/XML and ZIP/NuGet
+metadata entries. This verifies the live no-overwrite guard and external extraction
+of an existing local file. The pasted output does not establish the file's download
+origin or digest and is not evidence of a successful CLI content transfer.
 
 Live read-only tests require an explicitly authorized organization/project. Remote
 mutation tests require separate approval of exact disposable target, effect/cost,

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record live NuGet destination-exists refusal and external extraction of an
+  existing nupkg, separately from still-pending CLI transfer/digest verification.
+
 - Add exact NuGet package download after bounded metadata resolution, using the
   documented content API, isolated storage redirects, no-overwrite publication,
   SHA-256 reporting and ZIP-envelope checks. Local dry-run performs no HTTP or writes.
