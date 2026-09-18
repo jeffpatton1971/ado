@@ -312,6 +312,12 @@ reads through the resolver; standalone version commands were subsequently verifi
 as recorded above. Live JSON remains unverified. Resolution itself downloads no
 package and does not prove downloadability or compatibility.
 
+NuGetInspectionTests also constructs a package containing plugin.json and a binary
+DLL entry with invalid UTF-8. Exact selection through the JSON/non-interactive CLI
+verifies member lengths and hashes, complete metadata and omitted text, with no
+configuration or HTTP access. This tests byte inspection, not assembly loading or
+compatibility. No executable package content is required by the fixture.
+
 NuGet download mocks cover metadata resolution followed by exact content routing,
 direct and redirected ZIP bytes/hash, credential isolation, unsafe-host rejection,
 byte ceilings, non-ZIP content, 403, temporary cleanup, dry-run without credentials

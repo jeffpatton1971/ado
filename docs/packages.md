@@ -10,6 +10,12 @@ are rejected. Unsupported namespaces fail explicitly. This is not full schema
 validation, signature verification or dependency/compatibility resolution.
 See the [nuspec reference](https://learn.microsoft.com/en-us/nuget/reference/nuspec).
 
+Use `artifact inspect --file <local.nupkg> --entry <exact-member-path>` to select
+a plugin manifest or DLL and report its byte length and SHA-256. Binary members
+do not require text decoding. This does not load assemblies or inspect their API
+surface, dependencies or runtime compatibility. Synthetic CLI tests cover both
+manifest and binary DLL selection without configuration or network access.
+
 These commands inspect Azure Artifacts metadata without downloading packages:
 
 - `ado package list --feed NAME_OR_ID` returns package GUID, name, normalized name

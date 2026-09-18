@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Audit M1 source-provenance and package acceptance against live and synthetic
+  evidence; document supported provenance limits and add NuGet manifest/binary
+  member inspection coverage without network access or assembly execution.
+
 - Record live JSON/non-interactive package pagination with stdin credentials,
   distinct result pages and explicit partial-result metadata.
 

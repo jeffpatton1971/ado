@@ -1,5 +1,7 @@
 using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Ado.Cli;
 using Ado.Domain;
 using Ado.Infrastructure;
@@ -10,6 +12,49 @@ namespace Ado.Tests;
 [TestClass]
 public sealed class NuGetInspectionTests
 {
+    [TestMethod]
+    public async Task SelectedManifestAndBinaryAssemblyAreInspectedAsBytesWithoutRemoteAccess()
+    {
+        string path = Zip("<package><metadata><id>Example</id><version>1.0.0</version></metadata></package>");
+        var members = new Dictionary<string, byte[]>
+        {
+            ["plugin.json"] = Encoding.UTF8.GetBytes("{\"entryAssembly\":\"Example.dll\"}"),
+            // Intentionally invalid UTF-8 and not a loadable assembly: inspection must treat it as bytes.
+            ["lib/net10.0/Example.dll"] = [0x4d, 0x5a, 0, 0xff, 0xfe, 0x80, 0x01]
+        };
+        try
+        {
+            using (var archive = ZipFile.Open(path, ZipArchiveMode.Update))
+                foreach (var member in members)
+                {
+                    using var stream = archive.CreateEntry(member.Key).Open();
+                    stream.Write(member.Value);
+                }
+            string digest = Convert.ToHexStringLower(SHA256.HashData(await File.ReadAllBytesAsync(path)));
+            using var handler = new TransportTests.FakeHandler(_ => throw new AssertFailedException("Local inspection made an HTTP request"));
+            foreach (var member in members)
+            {
+                using var output = new StringWriter(); using var error = new StringWriter();
+                int exit = await CliApp.RunAsync(["artifact", "inspect", "--file", path, "--entry", member.Key,
+                    "--expected-sha256", digest, "--config", path + ".missing", "--json", "--non-interactive", "--read-only"],
+                    output, error, environment: _ => null, testHandler: handler);
+                Assert.AreEqual(0, exit, error.ToString());
+                using var json = JsonDocument.Parse(output.ToString());
+                var data = json.RootElement.GetProperty("data");
+                Assert.AreEqual(digest, data.GetProperty("sha256").GetString());
+                var entries = data.GetProperty("entries");
+                Assert.AreEqual(1, entries.GetArrayLength());
+                Assert.AreEqual(member.Key, entries[0].GetProperty("path").GetString());
+                Assert.AreEqual(member.Value.Length, entries[0].GetProperty("bytes").GetInt32());
+                Assert.AreEqual(Convert.ToHexStringLower(SHA256.HashData(member.Value)), entries[0].GetProperty("sha256").GetString());
+                Assert.AreEqual(JsonValueKind.Null, entries[0].GetProperty("textLines").ValueKind);
+                Assert.AreEqual("complete", json.RootElement.GetProperty("meta").GetProperty("completeness").GetString());
+            }
+            Assert.AreEqual(0, handler.Calls);
+        }
+        finally { File.Delete(path); }
+    }
+
     private static string Zip(string xml, bool duplicate = false)
     {
         string path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".nupkg");

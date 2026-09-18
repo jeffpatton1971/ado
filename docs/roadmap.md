@@ -169,18 +169,22 @@ all repository, PR or shared-template revisions used by a run. Pipeline run get 
 reports the run's repository resource aliases, types, refs and resolved versions,
 with explicit unavailable states; it does not infer template usage or fetch current HEAD.
 
-- [ ] Discover runs by repository, branch, exact SHA, PR and pipeline, using
+- [x] Discover runs by repository, branch, exact SHA, PR and pipeline, using
   documented endpoint capabilities and bounded client filtering where necessary.
   Report scan completeness; never imply an unbounded search was exhaustive.
   Repository-scoped `--pr-number` now covers GitHub/TfsGit PR validation builds
   using `refs/pull/N/merge` and the pullRequest reason. Other provider/ref conventions
-  and PR head-to-merge mapping remain outstanding. Live GitHub PR discovery was
+  and PR head-to-merge mapping are documented unsupported cases for M1. Live GitHub PR discovery was
   verified for global-build/rackspace-output-terraform PR 8 (definition 1124,
   build 18856); TfsGit and PR pagination remain mock-tested only.
-- [ ] Report repository identity, exact source commit, PR/merge context and resolved
+- [x] Report repository identity, exact source commit, PR/merge context and resolved
   repository resources/shared-template revisions where the service exposes them.
   Build PR context now distinguishes trigger reason and merge-ref inference, labels
   reported merge revisions and leaves historical PR head revisions unresolved.
+  Live build 18856 verifies repository/merge context; run 18722 reports self and
+  buildAutomationTool resource revisions. Synthetic tests preserve unavailable
+  versions and avoid current-branch reads. Resource revisions do not prove every
+  template was used; unavailable template/checkout mappings remain unknown.
 - [x] Distinguish run-time revisions from current definition or branch contents;
   mark unavailable provenance unknown rather than substituting current HEAD.
   RunRepositoryProvenanceTests verifies reported resources and unavailable states
@@ -218,8 +222,12 @@ storage redirects; user verified Json.Input.Provider 1.1.0 download and matching
 is implemented and user-verified for Json.Input.Provider 1.1.0. Version-range/dependency-graph solving is outside this exact
 version lookup and is not an additional M1 acceptance gate.
 
-- [ ] List/get feeds, packages and exact versions, supporting applicable organization
+- [x] List/get feeds, packages and exact versions, supporting applicable organization
   and project scopes, pagination and explicit permissions/completeness diagnostics.
+  Scoped feed/package contract tests cover both route forms, errors and bounds.
+  Live organization package listing/resumption, version list/get and exact resolution
+  complement project feed listing and organization feed retrieval. Remaining live
+  scope/format combinations are coverage limits, not missing command implementations.
 - [ ] Resolve Core, YAML, JSON and other requested dependency versions to exact
   package identities; distinguish not found, inaccessible and incomplete searches.
 - [x] Download an exact NuGet package with credential isolation, explicit destination,
@@ -230,7 +238,7 @@ version lookup and is not an additional M1 acceptance gate.
   (18,092 bytes), matching the previously inspected archive SHA-256. External
   PowerShell extraction succeeded. Destination-exists refusal was also verified.
   Nuspec/signature checks are separate; this does not prove publisher authenticity.
-- [ ] Inspect selected .nuspec, manifest and assembly entries using the bounded
+- [x] Inspect selected .nuspec, manifest and assembly entries using the bounded
   archive facilities from M1.2; never execute downloaded code.
   Local nuspec text/hash inspection is user-verified for Json.Input.Provider 1.1.0
   (18,092-byte archive, 9 entries). package inspect reports identity, dependency
@@ -240,8 +248,15 @@ version lookup and is not an additional M1 acceptance gate.
   Synthetic JSON/non-interactive workflows now connect direct/redirected package
   downloads to inspection and evidence export, checking hash agreement, local-only
   reads, metadata-only evidence and refusal to publish on expected-hash mismatch.
-- [ ] Keep preview-only provenance features explicitly opted in and separate from
+  A synthetic package additionally verifies exact manifest and binary DLL byte/hash
+  selection through JSON without config or HTTP access. Assembly inspection is
+  byte-level only; no assembly loading, execution or API/compatibility analysis.
+- [x] Keep preview-only provenance features explicitly opted in and separate from
   basic package availability. Record scope/API and verification limits.
+  No package provenance endpoint is implemented or called implicitly. Metadata
+  reads use Artifacts 7.1; explicitly requested content download uses 7.1-preview.1
+  and does not claim publisher/build provenance. This item does not require adding
+  an optional preview provenance command to M1.
 
 ## M1: requirements from day one
 
