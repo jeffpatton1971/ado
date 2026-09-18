@@ -78,8 +78,9 @@ public static class Operations
         Documentation = "https://learn.microsoft.com/en-us/rest/api/azure/devops/build/artifacts/get-artifact?view=azure-devops-rest-7.1"
     };
     public static readonly OperationDescriptor BuildArtifactDownload = BuildArtifactGet with { Command = "build artifact download", SupportsDryRun = true };
+    public static readonly OperationDescriptor BuildArtifactEvidence = BuildArtifactDownload with { Command = "build artifact evidence" };
     public static readonly OperationDescriptor PipelineArtifactSignedContent = Pipeline("build artifact download", "artifacts/get", "none");
-    public static IReadOnlyList<OperationDescriptor> All { get; } = [ReleaseList, ReleaseGet, ReleaseEnvironments, ReleaseApprovals, ReleaseDeployments, ReleaseTasks, ReleaseTaskLog, ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet, PipelineRunStart, PipelineRunPreview, BuildList, BuildGet, BuildTimeline, BuildDiagnose, BuildLogs, BuildLogGet, BuildArtifactList, BuildArtifactGet, BuildArtifactDownload];
+    public static IReadOnlyList<OperationDescriptor> All { get; } = [ReleaseList, ReleaseGet, ReleaseEnvironments, ReleaseApprovals, ReleaseDeployments, ReleaseTasks, ReleaseTaskLog, ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet, PipelineRunStart, PipelineRunPreview, BuildList, BuildGet, BuildTimeline, BuildDiagnose, BuildLogs, BuildLogGet, BuildArtifactList, BuildArtifactGet, BuildArtifactDownload, BuildArtifactEvidence];
 
     private static OperationDescriptor Pipeline(string command, string endpoint, string pagination) => new(command,
         ServiceHost.Core, "7.1", false, true, "none", false, pagination, "vso.build",

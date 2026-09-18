@@ -160,6 +160,9 @@ public static class CliApp
         var artifactEvidence = new Command("evidence", "Export selected member metadata and hashes to a new JSON file; optional origin labels are unverified.");
         foreach (var option in new Option[] { archiveFile, archiveEntry, expectedHash, destination, buildId, artifactName }) artifactEvidence.Options.Add(option);
         artifact.Subcommands.Add(artifactEvidence);
+        var buildArtifactEvidence = new Command("evidence", "Download one build artifact and export authenticated metadata plus selected member hashes to a new JSON file.");
+        foreach (var option in new Option[] { buildId, artifactName, archiveEntry, destination, maxBytes, downloadTimeout, runUrl }) buildArtifactEvidence.Options.Add(option);
+        buildArtifact.Subcommands.Add(buildArtifactEvidence);
         root.Subcommands.Add(artifact);
         var release = new Command("release", "Inspect classic releases; separate from YAML pipeline runs.");
         var releaseList = new Command("list", "List classic releases newest created first.");
@@ -215,7 +218,7 @@ public static class CliApp
             if (args.Length == 0 || parsed.Action is System.CommandLine.Help.HelpAction)
             {
                 if (jsonOutput)
-                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build diagnose", "build timeline", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download", "artifact inspect", "artifact extract", "artifact evidence", "release list", "release get", "release environments", "release approvals", "release deployments", "release tasks", "release task log" } }, true);
+                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build diagnose", "build timeline", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download", "build artifact evidence", "artifact inspect", "artifact extract", "artifact evidence", "release list", "release get", "release environments", "release approvals", "release deployments", "release tasks", "release task log" } }, true);
                 else
                 {
                     var helpArgs = args.Length == 0 ? new[] { "--help" } : args;
@@ -285,6 +288,7 @@ public static class CliApp
                 : selectedCommand == buildDiagnose ? "build diagnose"
                 : selectedCommand == buildArtifactList ? "build artifact list" : selectedCommand == buildArtifactGet ? "build artifact get"
                 : selectedCommand == buildArtifactDownload ? "build artifact download"
+                : selectedCommand == buildArtifactEvidence ? "build artifact evidence"
                 : selectedCommand == releaseList ? "release list" : selectedCommand == releaseGet ? "release get"
                 : selectedCommand == releaseEnvironments ? "release environments"
                 : selectedCommand == releaseApprovals ? "release approvals"
@@ -312,7 +316,7 @@ public static class CliApp
                 targetBuildId = target.BuildId;
             }
             CredentialSelection? selection = null;
-            if (serviceCommand is not null && serviceCommand != "doctor" && !(serviceCommand is "pipeline run start" or "pipeline run preview" or "build artifact download" && parsed.GetValue(dryRun)))
+            if (serviceCommand is not null && serviceCommand != "doctor" && !(serviceCommand is "pipeline run start" or "pipeline run preview" or "build artifact download" or "build artifact evidence" && parsed.GetValue(dryRun)))
                 selection = CredentialSelection.Resolve(configuredAuth, parsed.GetValue(authType), parsed.GetValue(token) is not null,
                     parsed.GetValue(tokenStdin), parsed.GetValue(tokenPrompt), parsed.GetValue(credentialProvider),
                     parsed.GetValue(credentialService), parsed.GetValue(credentialAccount), environment);
@@ -332,7 +336,7 @@ public static class CliApp
                         targetBuildId, new(parsed.GetValue(definitionId), parsed.GetValue(buildStatus), parsed.GetValue(buildResult), parsed.GetValue(branch)),
                         parsed.GetValue(logId), parsed.GetValue(startLine), parsed.GetValue(endLine), parsed.GetValue(artifactName),
                         parsed.GetValue(destination), parsed.GetValue(maxBytes), parsed.GetValue(downloadTimeout), parsed.GetValue(releaseId), parsed.GetValue(releaseDefinitionId),
-                        parsed.GetValue(environmentId), parsed.GetValue(deploymentId), parsed.GetValue(taskId), parsed.GetValue(includeHistory)),
+                        parsed.GetValue(environmentId), parsed.GetValue(deploymentId), parsed.GetValue(taskId), parsed.GetValue(includeHistory), parsed.GetValue(archiveEntry)),
                     output, error, input ?? Console.In, environment, testHandler, testNativeProvider, cancellationToken);
             }
             if (parsed.GetValue(effective))

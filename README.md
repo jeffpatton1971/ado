@@ -29,6 +29,8 @@ fixed bounds and exact selection. `artifact extract` writes one exact member to
 an explicit new file with no overwrite; bulk directory extraction is not supported.
 `artifact evidence` exports selected member metadata, hashes and verification limits
 to a new JSON file; optional run/artifact labels remain explicitly unverified.
+`build artifact evidence` reads authenticated metadata, downloads the artifact and
+exports selected member hashes with the observed build/artifact association.
 
 Windows x64 tests pass locally, including a disposable synthetic Credential Manager
 round-trip. User-run live project listing/retrieval and pipeline listing/run-history checks

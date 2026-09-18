@@ -187,3 +187,43 @@ the exported file and live dry-run/overwrite/origin-label checks remain pending;
 synthetic tests
 cover allowlisted output, omitted payloads/paths, origin labeling, dry-run, overwrite
 refusal and validation failures without publication.
+
+## Evidence from authenticated service reads
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- build artifact evidence --config ./config.json --build-id 18522 --artifact-name CompiledOutputs --entry "CompiledOutputs/src/plugin.json" --destination "$env:TEMP\ado-service-evidence-18522.json" --token-prompt --output table --read-only
+```
+
+This command uses the selected profile and credentials to read build details and
+exact artifact metadata, download through the existing Container or PipelineArtifact
+adapter, and inspect one exact member. --run-url can supply build context. The
+destination must be a new JSON file. Read-only permits these GETs and explicit local
+output. --dry-run is a local plan only: no credentials, HTTP or writes.
+
+Download bounds are the lower of configured/explicit --max-bytes and 64 MiB.
+--download-timeout may lower the configured timeout; the overall operation deadline
+covers metadata, download, inspection and publication. Existing archive/member limits
+apply. The full artifact is downloaded to a temporary file beside the output; member
+selection does not reduce transfer. On success the ZIP is deleted before JSON is
+published through a no-overwrite rename. Failures attempt cleanup; filesystem failures
+may prevent it. Destination race limitations are the same as extraction/download;
+use a directory under your control.
+
+The schemaVersion:1 document kind is azure_devops_build_artifact_member. It contains
+organization/project, build details (including sourceVersion), artifact ID/name/type,
+archive digest/size/count, selected member digest/sizes/path, completeness and limits.
+originVerification:authenticated_metadata_and_download records use of the selected
+credential for scoped service reads and download through that service or validated
+signed storage. Storage never receives the PAT. Raw contents/logs, signed URLs and
+local input paths are omitted. Active credentials are redacted from exported service
+and member strings; arbitrary names are not guaranteed secret-free.
+
+This observes the service-to-content association during the operation. Separate reads
+are not a transactional snapshot. Public reads do not independently prove credential
+validity. Hashes identify received bytes, not publisher authenticity or reproducible
+builds. SourceVersion is the reported build source; shared-template revisions,
+package semantics and unselected-member integrity remain unverified.
+
+Mock tests cover both artifact types, storage credential isolation, archive hashes,
+metadata association, omitted content/URLs, cleanup on missing selection, no-dispatch
+dry-run and overwrite refusal. Live service-backed evidence remains pending.

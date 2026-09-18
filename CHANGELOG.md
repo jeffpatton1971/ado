@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add build artifact evidence to combine authenticated build/artifact metadata
+  with downloaded archive and selected-member hashes. Reuse isolated storage
+  downloads, bounded inspection, temporary cleanup and no-overwrite JSON publication.
+
 - Record user-reported successful local artifact evidence export for plugin.json
   from the build 18522 ZIP, with matching hashes and explicitly absent origin/hash
   assertions; remote provenance remains unverified.

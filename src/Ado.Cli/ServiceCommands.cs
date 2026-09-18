@@ -11,7 +11,7 @@ public sealed record ServiceOptions(string Command, bool Json, bool NonInteracti
     string? Confirmation = null, string? RefName = null, string? ParametersFile = null, string? VariablesFile = null, bool ShowYaml = false,
     int? BuildId = null, BuildFilters? BuildFilters = null, int? LogId = null, long? StartLine = null, long? EndLine = null, string? ArtifactName = null,
     string? Destination = null, long? MaxBytes = null, int? DownloadTimeout = null, int? ReleaseId = null, int? ReleaseDefinitionId = null,
-    int? EnvironmentId = null, int? DeploymentId = null, int? TaskId = null, bool IncludeHistory = false);
+    int? EnvironmentId = null, int? DeploymentId = null, int? TaskId = null, bool IncludeHistory = false, string? ArchiveEntry = null);
 
 internal static class ServiceCommands
 {
@@ -67,7 +67,7 @@ internal static class ServiceCommands
             if (options.Command is "build logs" or "build log get")
                 _ = EndpointBuilder.BuildLog(options.Command == "build logs" ? Operations.BuildLogs : Operations.BuildLogGet,
                     organization, profile.Project!, options.BuildId!.Value, options.LogId, options.StartLine, options.EndLine);
-            if (options.Command is "build artifact list" or "build artifact get" or "build artifact download")
+            if (options.Command is "build artifact list" or "build artifact get" or "build artifact download" or "build artifact evidence")
                 _ = EndpointBuilder.BuildArtifact(options.Command == "build artifact list" ? Operations.BuildArtifactList : Operations.BuildArtifactGet,
                     organization, profile.Project!, options.BuildId!.Value, options.ArtifactName);
             // Validate pagination before credential acquisition as well as at endpoint construction.
@@ -87,8 +87,36 @@ internal static class ServiceCommands
         try
         {
             DownloadTarget? downloadTarget = null;
+            DownloadTarget? evidenceTarget = null;
             long maxBytes = options.MaxBytes ?? profile.Downloads.MaxBytes;
             int downloadSeconds = options.DownloadTimeout ?? profile.Downloads.TimeoutSeconds;
+            if (options.Command == "build artifact evidence")
+            {
+                if (string.IsNullOrEmpty(options.ArchiveEntry) || options.ArchiveEntry.Length > 2048 || options.ArchiveEntry.EndsWith('/') || options.ArchiveEntry.Any(char.IsControl))
+                    throw new AdoException("archive_entry_required", "Evidence export requires one exact file --entry.", ExitCode.Usage);
+                if (maxBytes <= 0 || maxBytes > profile.Downloads.MaxBytes || downloadSeconds <= 0 || downloadSeconds > profile.Downloads.TimeoutSeconds)
+                    throw new AdoException("invalid_download_bounds", "Download overrides must be positive and within configured ceilings.", ExitCode.Usage);
+                maxBytes = Math.Min(maxBytes, 64 * 1024 * 1024);
+                evidenceTarget = DownloadTarget.Validate(options.Destination);
+                if (options.DryRun)
+                {
+                    await OutputWriter.SuccessAsync(output, new
+                    {
+                        action = options.Command,
+                        dryRun = true,
+                        written = false,
+                        organization,
+                        project = profile.Project,
+                        buildId = options.BuildId,
+                        artifactName = options.ArtifactName,
+                        entry = options.ArchiveEntry,
+                        destination = evidenceTarget.Path,
+                        maxBytes,
+                        note = "Local plan only; no credentials, HTTP requests or writes. Metadata and content are not yet verified."
+                    }, options.Json);
+                    return 0;
+                }
+            }
             if (options.Command == "build artifact download")
             {
                 if (maxBytes <= 0 || maxBytes > profile.Downloads.MaxBytes || downloadSeconds <= 0 || downloadSeconds > profile.Downloads.TimeoutSeconds)
@@ -158,6 +186,16 @@ internal static class ServiceCommands
             using var authentication = new TokenAuthentication(reference.Type, secret);
             using var client = testHandler is null ? ServiceTransport.CreateClient() : new HttpClient(testHandler, disposeHandler: false) { Timeout = Timeout.InfiniteTimeSpan };
             var transport = new ServiceTransport(client, authentication, organization, profile.Timeouts.RequestSeconds, options.ReadOnly, options.DryRun);
+            if (evidenceTarget is not null)
+            {
+                using var downloadService = testHandler is null ? BuildArtifactDownloader.CreateClient() : new HttpClient(testHandler, false) { Timeout = Timeout.InfiniteTimeSpan };
+                using var contentClient = testHandler is null ? BuildArtifactDownloader.CreateClient() : new HttpClient(testHandler, false) { Timeout = Timeout.InfiniteTimeSpan };
+                var downloader = new BuildArtifactDownloader(downloadService, contentClient, authentication, organization, profile.Project!);
+                var evidenceResult = await new BuildArtifactEvidence(transport, downloader, organization, profile.Project!).ExportAsync(options.BuildId!.Value,
+                    options.ArtifactName!, options.ArchiveEntry!, evidenceTarget, maxBytes, downloadSeconds, deadline.Token);
+                await OutputWriter.SuccessAsync(output, evidenceResult, options.Json, new(Organization: organization, Project: profile.Project));
+                return 0;
+            }
             if (options.Command == "release task log")
                 return await ReleaseCommands.TaskLogAsync(new ReleasesClient(transport, organization, profile.Project!), options, limit, output, error, deadline.Token);
             if (options.Command is "release list" or "release get" or "release environments" or "release approvals" or "release deployments" or "release tasks")
