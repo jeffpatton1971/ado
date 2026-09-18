@@ -33,6 +33,12 @@ internal static class BuildCommands
                 await output.WriteLineAsync("REPOSITORY ID  TYPE  NAME");
                 await output.WriteLineAsync($"{OutputWriter.TerminalSafe(build.Repository?.Id ?? "unknown")}  {OutputWriter.TerminalSafe(build.Repository?.Type ?? "unknown")}  {OutputWriter.TerminalSafe(build.Repository?.Name ?? "unknown")}");
                 await output.WriteLineAsync("note: Repository identity and source version are reported by the build; commit contents and additional repository revisions were not verified.");
+                if (build.PullRequestContext is { } pr)
+                {
+                    await output.WriteLineAsync($"PR NUMBER {pr.Number?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "unknown"}  EVIDENCE {pr.Evidence}");
+                    await output.WriteLineAsync($"BUILT VERSION KIND {pr.BuiltVersionKind}  PR HEAD VERSION unknown ({pr.HeadVersionStatus})");
+                    await output.WriteLineAsync("note: PR number is inferred from the repository's merge ref. PR details and historical head-to-merge mapping were not retrieved.");
+                }
             }
             if (incomplete) await error.WriteLineAsync(result.Meta.Truncated
                 ? "warning: Results are truncated; JSON includes the continuation token. Resume with the same filters."

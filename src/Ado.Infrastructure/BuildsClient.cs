@@ -91,9 +91,11 @@ public sealed class BuildsClient(ServiceTransport transport, string organization
         }
         // Only repository identity is exposed; omit properties, URLs, credentials and checkout settings.
         // Also omit personal identities, parameters, logs/URLs and trigger metadata.
+        string? reason = Text(value, "reason", 64), branch = Text(value, "sourceBranch", 2048), version = Text(value, "sourceVersion", 1024);
         return new(id, Text(value, "buildNumber", 1024), definitionId, Text(definition, "name", 1024),
-            Text(value, "status", 64), Text(value, "result", 64), Text(value, "reason", 64),
-            Text(value, "sourceBranch", 2048), Text(value, "sourceVersion", 1024), Date("queueTime"), Date("startTime"), Date("finishTime"), repository);
+            Text(value, "status", 64), Text(value, "result", 64), reason,
+            branch, version, Date("queueTime"), Date("startTime"), Date("finishTime"), repository,
+            BuildPullRequestAnalysis.Analyze(reason, branch, version, repository?.Type));
     }
 
     private string? Text(JsonElement value, string name, int maximum)

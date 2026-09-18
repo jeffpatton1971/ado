@@ -145,6 +145,8 @@ with explicit unavailable states; it does not infer template usage or fetch curr
   build 18856); TfsGit and PR pagination remain mock-tested only.
 - [ ] Report repository identity, exact source commit, PR/merge context and resolved
   repository resources/shared-template revisions where the service exposes them.
+  Build PR context now distinguishes trigger reason and merge-ref inference, labels
+  reported merge revisions and leaves historical PR head revisions unresolved.
 - [ ] Distinguish run-time revisions from current definition or branch contents;
   mark unavailable provenance unknown rather than substituting current HEAD.
 - [ ] Verify that similarly named successful runs, different commits and retry

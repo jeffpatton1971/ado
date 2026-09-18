@@ -97,6 +97,16 @@ of pipeline 1128 with `reported_versions`: two gitHub resources (`self` and
 `buildAutomationTool`) with refs and exact revisions. Missing-resource states and
 other repository types remain mock-tested only; template usage is not established.
 
+Build JSON includes nullable `pullRequestContext`; build get also renders it in table
+output. For GitHub/TfsGit, a canonical positive `refs/pull/N/merge` ref supplies an
+inferred PR number. Evidence distinguishes `pull_request_reason_and_merge_ref`,
+`pull_request_reason_only` and `merge_ref_only`. Only the combined reason/ref with
+a nonblank source version labels that version `reported_merge_commit`; other cases
+remain `unknown`. No matching evidence produces null context, not a claim that the
+build has no PR association. `headVersion` remains null with `not_resolved` status.
+This adds context to embedded build diagnostics/evidence too; it does not retrieve
+PR details or establish historical head-to-merge mapping. Mock-tested; live pending.
+
 Build list `--pr-number` discovers PR validation builds using the documented
 `refs/pull/N/merge` source ref and `reasonFilter=pullRequest`. It requires a positive
 number plus `--repository-id` and `--repository-type GitHub` or `TfsGit`; this prevents

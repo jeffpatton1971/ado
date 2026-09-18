@@ -36,6 +36,10 @@ public sealed class BuildPrDiscoveryTests
         using var json = JsonDocument.Parse(first.Output);
         Assert.AreEqual("next+page", json.RootElement.GetProperty("meta").GetProperty("continuationToken").GetString());
         Assert.AreEqual(MergeSha, json.RootElement.GetProperty("data")[0].GetProperty("sourceVersion").GetString());
+        var context = json.RootElement.GetProperty("data")[0].GetProperty("pullRequestContext");
+        Assert.AreEqual(42, context.GetProperty("number").GetInt32());
+        Assert.AreEqual("reported_merge_commit", context.GetProperty("builtVersionKind").GetString());
+        Assert.AreEqual(JsonValueKind.Null, context.GetProperty("headVersion").ValueKind);
         var second = await Run([.. args, "--continuation-token", "next+page"], handler);
         Assert.AreEqual(0, second.Exit, second.Output);
         Assert.AreEqual(2, calls);

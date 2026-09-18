@@ -159,7 +159,7 @@ public sealed class BuildCommandTests
     [DataRow(false)]
     public async Task GetShowsSourceAndRepositoryIdentity(bool jsonOutput)
     {
-        using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json("""{"id":34,"definition":{"id":12},"sourceVersion":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","repository":{"id":"owner/repo","name":"repo\u001b[31m","type":"GitHub","url":"secret-sentinel"}}"""));
+        using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json("""{"id":34,"definition":{"id":12},"reason":"pullRequest","sourceBranch":"refs/pull/8/merge","sourceVersion":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","repository":{"id":"owner/repo","name":"repo\u001b[31m","type":"GitHub","url":"secret-sentinel"}}"""));
         var result = await RunAsync(["get", "--build-id", "34"], handler, json: jsonOutput);
         Assert.AreEqual(0, result.Exit, result.Output);
         Assert.IsFalse(result.Output.Contains("secret-sentinel", StringComparison.Ordinal));
@@ -167,11 +167,14 @@ public sealed class BuildCommandTests
         {
             using var json = JsonDocument.Parse(result.Output);
             Assert.AreEqual("owner/repo", json.RootElement.GetProperty("data").GetProperty("repository").GetProperty("id").GetString());
+            Assert.AreEqual(8, json.RootElement.GetProperty("data").GetProperty("pullRequestContext").GetProperty("number").GetInt32());
         }
         else
         {
             StringAssert.Contains(result.Output, "SOURCE VERSION " + new string('a', 40));
             StringAssert.Contains(result.Output, "owner/repo  GitHub  repo\\u001b[31m");
+            StringAssert.Contains(result.Output, "PR NUMBER 8  EVIDENCE pull_request_reason_and_merge_ref");
+            StringAssert.Contains(result.Output, "BUILT VERSION KIND reported_merge_commit  PR HEAD VERSION unknown (not_resolved)");
             Assert.IsFalse(result.Output.Contains('\u001b'));
         }
     }

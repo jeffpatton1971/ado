@@ -102,6 +102,11 @@ This verifies table rendering of service-reported repository resources; it does 
 independently verify commit contents, all checkouts or shared-template usage.
 Live JSON output, missing-resource states and other repository types remain unverified.
 
+PR context tests cover reason-plus-ref inference, reason-only and ref-only evidence,
+canonical positive PR numbers, malformed/overflow refs, unsupported repository types,
+missing revisions and an explicitly unresolved head version. List JSON and get
+JSON/table tests verify integration. Live context rendering remains pending.
+
 PR discovery mocks cover GitHub/TfsGit repository-scoped merge refs, pullRequest
 reason filtering, continuation preservation, rejection of wrong/missing repository
 identity, wrong refs and non-PR reasons, and validation before authentication.
