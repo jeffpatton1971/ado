@@ -97,6 +97,21 @@ of pipeline 1128 with `reported_versions`: two gitHub resources (`self` and
 `buildAutomationTool`) with refs and exact revisions. Missing-resource states and
 other repository types remain mock-tested only; template usage is not established.
 
+Build list `--pr-number` discovers PR validation builds using the documented
+`refs/pull/N/merge` source ref and `reasonFilter=pullRequest`. It requires a positive
+number plus `--repository-id` and `--repository-type GitHub` or `TfsGit`; this prevents
+a PR number from silently spanning repositories. A conflicting `--branch` is rejected
+before credential acquisition. Returned rows must match repository ID/type, ref and
+reason or the operation fails with `invalid_service_response`. Existing definition,
+status, result, SHA and pagination options compose with this filter.
+Coverage is limited to this validation trigger/ref convention, not every build
+associated with a PR. This does not query GitHub checks or Azure Repos PR details.
+`--source-sha` still matches the build's merge commit, not the PR source/head commit.
+An empty complete result means no matches in the filtered service listing; it does
+not prove a PR has no builds under other conventions. Resume with all original filters.
+See [build variables](https://learn.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops)
+and the Build List API below. PR discovery is mock-tested; live verification is pending.
+
 Build list supports server-side `--repository-id` and `--repository-type` filters
 (for example `TfsGit`). `--source-sha` accepts a full 40-character Git SHA and matches
 the reported build source version locally, case-insensitively. With this flag,

@@ -3,10 +3,23 @@ using Ado.Domain;
 namespace Ado.Application;
 
 public sealed record BuildFilters(int? DefinitionId = null, string? Status = null, string? Result = null, string? Branch = null,
-    string? RepositoryId = null, string? RepositoryType = null, string? SourceSha = null)
+    string? RepositoryId = null, string? RepositoryType = null, string? SourceSha = null, int? PrNumber = null)
 {
+    public string? EffectiveBranch => PrNumber is { } number
+        ? "refs/pull/" + number.ToString(System.Globalization.CultureInfo.InvariantCulture) + "/merge" : Branch;
+
     public void Validate()
     {
+        if (PrNumber is <= 0)
+            throw new AdoException("invalid_pr_number", "--pr-number must be positive.", ExitCode.Usage);
+        if (PrNumber is not null)
+        {
+            if (string.IsNullOrWhiteSpace(RepositoryId) ||
+                !(string.Equals(RepositoryType, "GitHub", StringComparison.OrdinalIgnoreCase) || string.Equals(RepositoryType, "TfsGit", StringComparison.OrdinalIgnoreCase)))
+                throw new AdoException("pr_repository_required", "--pr-number requires --repository-id and --repository-type GitHub or TfsGit.", ExitCode.Usage);
+            if (Branch is not null && !string.Equals(Branch, EffectiveBranch, StringComparison.Ordinal))
+                throw new AdoException("conflicting_pr_branch", "--branch conflicts with the PR merge ref selected by --pr-number.", ExitCode.Usage);
+        }
         foreach (var value in new[] { RepositoryId, RepositoryType })
             if (value is not null && (string.IsNullOrWhiteSpace(value) || value.Length > 1024 || value.Any(char.IsControl)))
                 throw new AdoException("invalid_repository_filter", "Repository filters must be nonempty, at most 1024 characters and contain no control characters.", ExitCode.Usage);

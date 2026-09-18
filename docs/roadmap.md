@@ -138,6 +138,9 @@ with explicit unavailable states; it does not infer template usage or fetch curr
 - [ ] Discover runs by repository, branch, exact SHA, PR and pipeline, using
   documented endpoint capabilities and bounded client filtering where necessary.
   Report scan completeness; never imply an unbounded search was exhaustive.
+  Repository-scoped `--pr-number` now covers GitHub/TfsGit PR validation builds
+  using `refs/pull/N/merge` and the pullRequest reason. Other provider/ref conventions,
+  PR head-to-merge mapping and live PR verification remain outstanding.
 - [ ] Report repository identity, exact source commit, PR/merge context and resolved
   repository resources/shared-template revisions where the service exposes them.
 - [ ] Distinguish run-time revisions from current definition or branch contents;

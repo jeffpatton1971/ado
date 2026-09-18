@@ -19,6 +19,8 @@ internal static class BuildCommands
         }
         else
         {
+            if (options.BuildFilters?.PrNumber is not null)
+                await output.WriteLineAsync("note: PR search covers validation builds on the selected repository's merge ref. Source versions identify built merge commits; PR head commits and other trigger/ref conventions are not resolved.");
             if (options.BuildFilters?.SourceSha is not null)
                 await output.WriteLineAsync($"SCANNED {result.Meta.ScannedCount}  MATCHED {result.Items.Count}  COMPLETENESS {result.Meta.Completeness}");
             await output.WriteLineAsync("BUILD ID  DEFINITION ID  NUMBER  STATUS  RESULT  BRANCH");

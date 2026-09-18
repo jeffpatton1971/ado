@@ -102,6 +102,12 @@ This verifies table rendering of service-reported repository resources; it does 
 independently verify commit contents, all checkouts or shared-template usage.
 Live JSON output, missing-resource states and other repository types remain unverified.
 
+PR discovery mocks cover GitHub/TfsGit repository-scoped merge refs, pullRequest
+reason filtering, continuation preservation, rejection of wrong/missing repository
+identity, wrong refs and non-PR reasons, and validation before authentication.
+A PR head SHA cannot match a different built merge SHA. Live PR discovery is pending;
+no particular PR number has yet been provided for the user's repository.
+
 Build discovery tests cover repository query encoding, full-SHA validation before
 credential lookup, exact case-insensitive source matching, nonmatching scan limits,
 continuation resumption, retained partial JSON and missing-source completeness.

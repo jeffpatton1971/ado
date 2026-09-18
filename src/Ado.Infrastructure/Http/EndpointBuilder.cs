@@ -111,7 +111,8 @@ public static partial class EndpointBuilder
             Add("definitions", filters.DefinitionId?.ToString(System.Globalization.CultureInfo.InvariantCulture));
             Add("statusFilter", filters.Status);
             Add("resultFilter", filters.Result);
-            Add("branchName", filters.Branch);
+            Add("branchName", filters.EffectiveBranch);
+            if (filters.PrNumber is not null) Add("reasonFilter", "pullRequest");
             Add("repositoryId", filters.RepositoryId);
             Add("repositoryType", filters.RepositoryType);
             Add("queryOrder", "queueTimeDescending");

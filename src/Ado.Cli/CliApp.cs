@@ -116,7 +116,8 @@ public static class CliApp
         var repositoryId = new Option<string>("--repository-id") { Description = "Service repository ID filter." };
         var repositoryType = new Option<string>("--repository-type") { Description = "Service repository type filter, for example TfsGit." };
         var sourceSha = new Option<string>("--source-sha") { Description = "Exact full Git SHA; locally filters at most --limit scanned builds. Resume with the same filters and continuation token." };
-        foreach (var option in new Option[] { top, all, continuation, requireComplete, definitionId, buildStatus, buildResult, branch, repositoryId, repositoryType, sourceSha }) buildList.Options.Add(option);
+        var prNumber = new Option<int?>("--pr-number") { Description = "PR validation builds on refs/pull/N/merge; requires repository-id and repository-type GitHub or TfsGit. source-sha matches the built merge commit, not PR head." };
+        foreach (var option in new Option[] { top, all, continuation, requireComplete, definitionId, buildStatus, buildResult, branch, repositoryId, repositoryType, sourceSha, prNumber }) buildList.Options.Add(option);
         buildGet.Options.Add(buildId);
         foreach (var command in new[] { buildLogs, buildLogGet, buildTimeline, buildDiagnose })
             foreach (var option in new Option[] { buildId, all, requireComplete }) command.Options.Add(option);
@@ -336,7 +337,7 @@ public static class CliApp
                     new(serviceCommand, jsonOutput, parsed.GetValue(nonInteractive), parsed.GetValue(readOnly), parsed.GetValue(dryRun),
                         parsed.GetValue(top), parsed.GetValue(all), parsed.GetValue(continuation), parsed.GetValue(requireComplete), parsed.GetValue(searchName), parsed.GetValue(pipelineId), parsed.GetValue(runId),
                         parsed.GetValue(confirm), parsed.GetValue(refName), parsed.GetValue(parametersFile), parsed.GetValue(variablesFile), parsed.GetValue(showYaml),
-                        targetBuildId, new(parsed.GetValue(definitionId), parsed.GetValue(buildStatus), parsed.GetValue(buildResult), parsed.GetValue(branch), parsed.GetValue(repositoryId), parsed.GetValue(repositoryType), parsed.GetValue(sourceSha)),
+                        targetBuildId, new(parsed.GetValue(definitionId), parsed.GetValue(buildStatus), parsed.GetValue(buildResult), parsed.GetValue(branch), parsed.GetValue(repositoryId), parsed.GetValue(repositoryType), parsed.GetValue(sourceSha), parsed.GetValue(prNumber)),
                         parsed.GetValue(logId), parsed.GetValue(startLine), parsed.GetValue(endLine), parsed.GetValue(artifactName),
                         parsed.GetValue(destination), parsed.GetValue(maxBytes), parsed.GetValue(downloadTimeout), parsed.GetValue(releaseId), parsed.GetValue(releaseDefinitionId),
                         parsed.GetValue(environmentId), parsed.GetValue(deploymentId), parsed.GetValue(taskId), parsed.GetValue(includeHistory), parsed.GetValue(archiveEntry)),
