@@ -1,5 +1,8 @@
 # Capability matrix
 
+User-verified classic Container metadata fixture: build 7826, artifact drop (5163).
+Listing succeeded; Container download and evidence export remain pending.
+
 The user verified macOS installation and macos-keychain-backed auth check, including
 non-interactive and repeated access. This covers successful native credential reads;
 Linux Secret Service and macOS native failure/re-authorization paths remain unverified.

@@ -176,6 +176,10 @@ On 2026-09-17 the user successfully downloaded CompiledOutputs from build 18522
 the signed PipelineArtifact path for that output; live Container download remains unverified.
 The user rechecked build 18522: CompiledOutputs (17112) and NuGetPackages (17115)
 both report PipelineArtifact. Neither is a classic Container live-test fixture.
+The user subsequently found a classic Container fixture with build artifact list:
+build 7826, artifact ID 5163, name drop, resourceType Container. This verifies live
+Container metadata listing only; download, ZIP inspection and evidence export for
+this fixture remain pending. No content from it has been retained in the repository.
 The download symlink test skipped in the current Windows session because creating a
 synthetic symlink requires unavailable privileges; the Linux/macOS CI suites passed
 this coverage (their only skipped test was the Windows native credential test).

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record live classic Container artifact listing for build 7826, drop (5163);
+  content transfer and evidence validation remain pending.
+
 - Record user-verified macOS installation and Keychain-backed authentication,
   including non-interactive and repeated access; retain Linux native-store and live
   retry/Container validation gaps.

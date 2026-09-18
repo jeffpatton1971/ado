@@ -96,7 +96,9 @@ URL-to-diagnosis-to-targeted-log tests now exercise both, including failure path
 ### M1.2 — Build artifacts and selected evidence (rank 2)
 
 Available: artifact list/get and download of one named artifact to a new ZIP file.
-PipelineArtifact download was user-verified; Container live validation is pending.
+PipelineArtifact download was user-verified. Container metadata listing is now
+user-verified for build 7826, artifact drop (5163); its download/evidence validation
+remains pending.
 The user extracted a ZIP externally. ado now inspects local ZIP inventories and
 hashes exact selected members; single-member extraction to an explicit new file
 is implemented with shared validation and no-overwrite publication.
