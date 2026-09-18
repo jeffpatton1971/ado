@@ -59,8 +59,12 @@ internal static class ServiceCommands
             _ = EndpointBuilder.Feed(options.Command == "feed list" ? Operations.FeedList : Operations.FeedGet, organization, feedProject, options.Feed);
             if (packageCommand)
             {
-                var operation = options.Command == "package list" ? Operations.PackageList : options.Command == "package versions" ? Operations.PackageVersions : Operations.PackageVersionGet;
-                _ = EndpointBuilder.Package(operation, organization, feedProject, options.Feed, options.PackageQuery ?? new(), top, PackageQuery.Offset(options.Continuation));
+                if (options.Command == "package resolve") (options.PackageQuery ?? new()).Validate(options.Command);
+                else
+                {
+                    var operation = options.Command == "package list" ? Operations.PackageList : options.Command == "package versions" ? Operations.PackageVersions : Operations.PackageVersionGet;
+                    _ = EndpointBuilder.Package(operation, organization, feedProject, options.Feed, options.PackageQuery ?? new(), top, PackageQuery.Offset(options.Continuation));
+                }
             }
         }
         if (options.Command == "release task log")

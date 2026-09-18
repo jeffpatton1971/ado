@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add bounded exact NuGet name/literal-version resolution to service identities,
+  requiring complete metadata scans and preserving incomplete/not-found distinctions.
+
 - Record live NuGet package listing in the organization-scoped automation feed,
   including the 20-item bound warning; continuation and version reads remain pending.
 

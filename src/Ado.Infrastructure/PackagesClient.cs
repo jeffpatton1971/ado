@@ -8,6 +8,33 @@ namespace Ado.Infrastructure;
 
 public sealed class PackagesClient(ServiceTransport transport, string organization, string? project, string feed)
 {
+    public async Task<CollectionResult<PackageResolution>> ResolveAsync(PackageQuery query, int pageSize, int limit, CancellationToken cancellationToken)
+    {
+        query.Validate("package resolve");
+        var packages = await ListAsync(new(Protocol: "NuGet", Name: query.Name), pageSize, limit, null, cancellationToken);
+        if (packages.Meta.Completeness != "complete")
+            throw new AdoException("package_search_incomplete", "The bounded package scan is incomplete; no exact resolution is asserted. Raise --limit or use --all within configured bounds.", ExitCode.Partial);
+        var matches = packages.Items.Where(item => string.Equals(item.Name, query.Name, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(item.NormalizedName, query.Name, StringComparison.OrdinalIgnoreCase)).ToArray();
+        if (matches.Length == 0)
+            throw new AdoException("package_not_found_in_visible_results", "No exact NuGet name matched the visible filtered listing. Scope, permissions and service visibility filters can affect results.", ExitCode.NotFound);
+        if (matches.Length != 1) throw Invalid();
+        var package = matches[0];
+        var versions = await VersionsAsync(new(PackageId: package.Id.ToString("D")), limit, false, cancellationToken);
+        if (versions.Meta.Completeness != "complete")
+            throw new AdoException("version_search_incomplete", "The bounded version inventory is incomplete; no exact resolution is asserted. Raise --limit or use --all within configured bounds.", ExitCode.Partial);
+        var versionMatches = versions.Items.Where(item => string.Equals(item.Version, query.Version, StringComparison.Ordinal)
+            || string.Equals(item.NormalizedVersion, query.Version, StringComparison.Ordinal)).ToArray();
+        if (versionMatches.Length == 0)
+            throw new AdoException("version_not_found_in_visible_results", "No literal display/normalized version matched the visible non-deleted inventory. Version ranges and inferred normalization are not supported.", ExitCode.NotFound);
+        if (versionMatches.Length != 1) throw Invalid();
+        var resolution = new PackageResolution(transport.Redact(feed), package, versionMatches[0], "exact_name_and_literal_version",
+            ["NuGet names match case-insensitively; versions match a reported display or normalized string exactly, with case preserved.",
+             "Separate metadata reads are not a snapshot. Visibility filters and permissions can hide packages or versions.",
+             "No package was downloaded. This does not establish download permission, compatibility, authenticity or dependency closure."]);
+        return new([resolution], versions.Meta with { ScannedCount = packages.Items.Count + versions.Items.Count });
+    }
+
     public async Task<CollectionResult<PackageInfo>> ListAsync(PackageQuery query, int pageSize, int limit, string? continuation, CancellationToken cancellationToken)
     {
         query.Validate("package list");

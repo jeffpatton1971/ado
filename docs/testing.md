@@ -161,6 +161,11 @@ This verifies listing and table warning behavior, not exhaustion or a successful
 resume. Live JSON continuation, version listing and exact-version retrieval remain
 pending. See [syntax](packages.md).
 
+Package resolution mocks verify exact name/version selection, rejection of similarly
+named packages and different versions, ambiguous identity failures, independent
+package/version bounds (exit 10), and invalid selectors before authentication.
+Live resolution remains pending; it does not imply downloadability or compatibility.
+
 Live read-only tests require an explicitly authorized organization/project. Remote
 mutation tests require separate approval of exact disposable target, effect/cost,
 cleanup and reconciliation plan. No live test is automatically invoked by CI.

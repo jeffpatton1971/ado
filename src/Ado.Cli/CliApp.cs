@@ -71,11 +71,13 @@ public static class CliApp
         var packageVersions = new Command("versions", "List non-deleted versions of a package GUID; bounded locally.");
         var packageVersion = new Command("version", "Inspect an exact package version identity.");
         var packageVersionGet = new Command("get", "Get a version by its service GUID, not a version range.");
+        var packageResolve = new Command("resolve", "Resolve an exact NuGet name and literal version to service GUIDs using bounded metadata reads.");
+        var packageVersionText = new Option<string>("--package-version") { Description = "Literal display or normalized version string; no ranges, wildcards or inferred normalization." };
         var packageId = new Option<string>("--package-id") { Description = "Package GUID from package list." };
         var versionId = new Option<string>("--version-id") { Description = "Version GUID from package versions." };
         var packageProtocol = new Option<string>("--protocol") { Description = "Service protocol filter, for example NuGet." };
         var packageName = new Option<string>("--name") { Description = "Server-side package name substring filter." };
-        foreach (var command in new[] { packageList, packageVersions, packageVersionGet })
+        foreach (var command in new[] { packageList, packageVersions, packageVersionGet, packageResolve })
         {
             command.Options.Add(feedScope);
             command.Options.Add(feedSelector);
@@ -84,8 +86,9 @@ public static class CliApp
         foreach (var option in new Option[] { all, requireComplete, packageId }) packageVersions.Options.Add(option);
         packageVersionGet.Options.Add(packageId);
         packageVersionGet.Options.Add(versionId);
+        foreach (var option in new Option[] { packageName, packageVersionText, all, top }) packageResolve.Options.Add(option);
         packageVersion.Subcommands.Add(packageVersionGet);
-        foreach (var command in new[] { packageList, packageVersions, packageVersion }) package.Subcommands.Add(command);
+        foreach (var command in new[] { packageList, packageVersions, packageVersion, packageResolve }) package.Subcommands.Add(command);
         root.Subcommands.Add(package);
         foreach (var command in new[] { list, search })
         {
@@ -311,7 +314,8 @@ public static class CliApp
                 return 0;
             }
             var selectedCommand = parsed.CommandResult.Command;
-            string? serviceCommand = selectedCommand == packageList ? "package list" : selectedCommand == packageVersions ? "package versions"
+            string? serviceCommand = selectedCommand == packageResolve ? "package resolve"
+                : selectedCommand == packageList ? "package list" : selectedCommand == packageVersions ? "package versions"
                 : selectedCommand == packageVersionGet ? "package version get"
                 : selectedCommand == feedList ? "feed list" : selectedCommand == feedGet ? "feed get"
                 : selectedCommand == list ? "project list" : selectedCommand == get ? "project get"
@@ -375,7 +379,7 @@ public static class CliApp
                         parsed.GetValue(destination), parsed.GetValue(maxBytes), parsed.GetValue(downloadTimeout), parsed.GetValue(releaseId), parsed.GetValue(releaseDefinitionId),
                         parsed.GetValue(environmentId), parsed.GetValue(deploymentId), parsed.GetValue(taskId), parsed.GetValue(includeHistory), parsed.GetValue(archiveEntry),
                         parsed.GetValue(feedSelector), parsed.GetValue(feedScope) ?? "project",
-                        new(parsed.GetValue(packageId), parsed.GetValue(versionId), parsed.GetValue(packageProtocol), parsed.GetValue(packageName))),
+                        new(parsed.GetValue(packageId), parsed.GetValue(versionId), parsed.GetValue(packageProtocol), parsed.GetValue(packageName), parsed.GetValue(packageVersionText))),
                     output, error, input ?? Console.In, environment, testHandler, testNativeProvider, cancellationToken);
             }
             if (parsed.GetValue(effective))

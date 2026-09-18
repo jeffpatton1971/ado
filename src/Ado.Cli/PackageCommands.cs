@@ -8,6 +8,19 @@ internal static class PackageCommands
     public static async Task<int> ReadAsync(PackagesClient client, ServiceOptions options, int top, int limit,
         TextWriter output, TextWriter error, CancellationToken cancellationToken)
     {
+        if (options.Command == "package resolve")
+        {
+            var result = await client.ResolveAsync(options.PackageQuery ?? new(), top, limit, cancellationToken);
+            var item = result.Items[0];
+            if (options.Json) await OutputWriter.SuccessAsync(output, item, true, result.Meta);
+            else
+            {
+                await output.WriteLineAsync("PACKAGE ID  NAME  VERSION ID  VERSION");
+                await output.WriteLineAsync($"{item.Package.Id}  {OutputWriter.TerminalSafe(item.Package.Name)}  {item.Version.Id}  {OutputWriter.TerminalSafe(item.Version.Version)}");
+                foreach (var note in item.Limitations) await output.WriteLineAsync("note: " + note);
+            }
+            return 0;
+        }
         if (options.Command == "package list")
         {
             var result = await client.ListAsync(options.PackageQuery ?? new(), top, limit, options.Continuation, cancellationToken);

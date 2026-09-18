@@ -168,8 +168,11 @@ rseng/impldevmpc (`testing-upstream`); organization-scoped get is verified for
 rseng's `automation` feed. Organization listing, project get and live JSON remain pending.
 Package listing, bounded version inventory and exact version-GUID retrieval are
 implemented. NuGet listing in automation is verified live (20 rows and a bound
-warning); continuation and version reads remain pending. Dependency resolution by name/version
-string, exact NuGet download and structured package inspection remain outstanding.
+warning); continuation and version reads remain pending. Exact NuGet name/literal
+version resolution to service GUIDs is now implemented with bounded complete scans;
+live validation is pending. Exact NuGet download and structured package inspection
+remain outstanding. Version-range/dependency-graph solving is outside this exact
+version lookup and is not an additional M1 acceptance gate.
 
 - [ ] List/get feeds, packages and exact versions, supporting applicable organization
   and project scopes, pagination and explicit permissions/completeness diagnostics.

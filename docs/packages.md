@@ -12,6 +12,21 @@ These commands inspect Azure Artifacts metadata without downloading packages:
   retrieves an exact version identity, verifying its returned GUID. This does not
   accept a version string/range, normalize a dependency requirement or select latest.
   Deleted metadata can be returned by this direct read and is not called downloadable.
+- `ado package resolve --feed NAME_OR_ID --name EXACT_NAME --package-version LITERAL`
+  resolves one NuGet name/version to package and version GUIDs. Names match display
+  or normalized names case-insensitively; versions match a reported display or
+  normalized string using exact case-sensitive text. No version-range evaluation,
+  inferred normalization, latest fallback or dependency-graph traversal is performed.
+  Use the service's version spelling (for example, `1.0.0`, not an assumed `1.0`).
+  Both scans must be complete within bounds; otherwise exit 10 reports an incomplete
+  search without claiming a resolution, even when a candidate was encountered.
+  Absent exact matches in complete visible inventories return exit 6 with a
+  scope/visibility-qualified message. Ambiguous exact matches fail as invalid service
+  responses. `--limit` applies separately to package candidates and version inventory;
+  `--all` uses the configured maximum. Resolve starts at offset zero, accepts no
+  continuation, and shares one operation deadline across its reads. Its JSON
+  scanned count sums package candidates and version rows. These separate reads are
+  not a transactional snapshot. Visibility defaults from the underlying lists apply.
 
 Use `--scope organization` for the user's automation feed. The default project scope
 uses the configured project. Scope, feed and IDs are explicit; returned links are
@@ -42,8 +57,9 @@ raise the bounded limit. `--top` and `--continuation-token` are rejected here.
 Completeness describes returned metadata in the selected scope/filter, not global
 availability. An empty search does not prove absence; HTTP 401/403/404 retain their
 error categories, including masked-not-found ambiguity. These calls do not establish
-download permission, compatibility or package contents. Name/version-string resolution,
-exact NuGet download and package semantic inspection remain outstanding for M1.
+download permission, compatibility or package contents. Version-range/dependency-graph
+solving is outside this command. Exact NuGet download and package semantic inspection
+remain outstanding for M1.
 The user verified NuGet package listing in the organization-scoped automation feed
 with 20 returned rows and a bounded-search warning. Live continuation, version listing
 and exact version retrieval remain pending.
