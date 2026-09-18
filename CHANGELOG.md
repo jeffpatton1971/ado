@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add a low-priority post-M1 roadmap option for Entra-authenticated, read-only PAT
+  expiry inspection; no token lifecycle command is implemented by this change.
+
 ## 1.0.0
 
 Initial stable-version candidate for the standalone `ado` Azure DevOps Services CLI.

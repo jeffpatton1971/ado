@@ -319,6 +319,29 @@ are bypassed by this CLI.
 
 ## Tracking rules
 
+### Low-priority post-M1 option: PAT expiry inspection
+
+Nice to have; not a 1.0.0 release gate or a change to the ranked feature priorities.
+Add an explicitly requested, read-only PAT metadata lookup using the PAT Lifecycle
+Management API and an externally acquired Microsoft Entra user access token.
+
+- List bounded token metadata and retrieve an exact authorizationId; names alone
+  must not silently select among ambiguous matches.
+- Report service-provided validFrom/validTo, UTC expiry and remaining lifetime,
+  with an optional approaching-expiry warning threshold and stable JSON output.
+- Keep metadata lookup separate from ordinary auth check. A successful resource
+  read does not reveal PAT expiry, and a future expiry does not prove current access.
+- Never return token secret fields or infer expiry from the supplied PAT string.
+  Missing or inaccessible metadata stays unknown; any locally declared expiry
+  must be labelled user-supplied rather than service-verified.
+- No creation, renewal, rotation or revocation; no automatic Entra sign-in/refresh.
+  Verify delegated permissions and API requirements when implementing the feature.
+
+References: [PAT lifecycle authentication](https://learn.microsoft.com/en-us/rest/api/azure/devops/tokens/?view=azure-devops-rest-7.1),
+[PAT metadata](https://learn.microsoft.com/en-us/rest/api/azure/devops/tokens/pats/list?view=azure-devops-rest-7.1).
+
+### Backlog maintenance
+
 Check off items only with implementation and relevant validation evidence. Update
 this backlog, capability matrix and changelog in each feature commit. Keep live
 coverage separate from mocks; do not mark a milestone complete solely because its
