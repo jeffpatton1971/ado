@@ -1,0 +1,53 @@
+# Local artifact inspection
+
+`artifact inspect` reads an existing ZIP downloaded by `build artifact download`
+or another tool. It makes no service requests, loads no profile/configuration and
+retrieves no credentials. It does not extract files or print member content.
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- artifact inspect --file "$env:TEMP\ado-CompiledOutputs-18522.zip" --output table --read-only --limit 100
+```
+
+Use `--entry` with an exact, case-sensitive path from the inventory to inspect and
+hash one member. Directories have no content digest. Selection happens locally
+after the full archive has already been downloaded; it does not reduce network
+transfer. The file may need downloading again if the prior smoke-test ZIP was removed.
+
+The archive SHA-256 is always computed. `--expected-sha256` accepts an independently
+obtained digest. A bounded in-memory snapshot ensures the bytes inspected match
+the archive digest even if the source file changes. The option requires an
+exact 64-digit archive digest; mismatch exits 7 before parsing entries. The JSON
+field `expectedHashMatches` is null when no expected digest was supplied and true
+when comparison succeeds. A computed digest alone is not authenticity verification.
+Member hashes are computed only for an explicitly selected file. Listing metadata
+does not establish integrity of every compressed member or validate package semantics.
+
+The fixed inspection ceilings are 64 MiB archive size, 64 MiB per member, 256 MiB
+declared total expanded size, 10000 entries and a 60-second deadline. The central
+directory is parsed within the archive-size ceiling before its entry count is
+checked. Actual selected-member reads are bounded and checked against declared size.
+Cancellation is checked during hashing, reads and entry validation; synchronous ZIP
+metadata parsing is not preempted. These inspection limits are independent of download
+limits. Unsupported/encrypted ZIP features may fail with a safe archive error.
+
+All entry names are checked before limiting output. Traversal/absolute paths,
+backslashes, alternate-stream separators, control/format characters, trailing dots
+or spaces, case-insensitive duplicate paths, file/directory conflicts and ZIP Unix
+symlink entries are refused. Local file paths with reparse-point/symlink ancestors
+are refused; Windows network/device/alternate-stream paths are unsupported. These
+checks are for inspection, not a promise that the archive is safe to extract with
+an unrelated tool. No extraction capability is implemented yet.
+
+Default output limit is 100, configurable only by `--limit` (1–10000) for this local
+command. Config/profile and credential settings do not apply. `--json` or
+`--output json` emits the stable envelope; `--non-interactive` and `--read-only`
+are compatible. `--require-complete` returns exit 10 while retaining truncated
+inventory data. Completeness describes the selected inventory, not all archive
+contents or remote artifact provenance. JSON reports the total entry count even
+when selecting one member. `--dry-run` still performs this local read.
+
+Tests generate temporary ZIPs and cover digests, exact selection, unsafe names,
+collisions, links, file/entry ceilings, invalid ZIPs, cancellation and partial JSON.
+Live inspection of a downloaded build artifact remains pending. File names may
+themselves contain sensitive information; inspection output is not a sanitized
+evidence export. No raw archive content is retained by the command.

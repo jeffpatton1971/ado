@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add local artifact inspect for bounded ZIP inventories, exact member selection,
+  archive/member SHA-256 and expected archive digest comparison. Validate entry
+  paths/collisions and links without credentials, network calls or extraction.
+
 - Verify the read-only URL-to-diagnosis-to-log JSON workflow end to end with mocked
   service responses, including retries, bounded content, missing logs and denied
   access. Mark M1.1 automated acceptance complete; live automation coverage remains open.

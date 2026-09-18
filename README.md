@@ -22,6 +22,10 @@ See [configuration and global parameters](docs/configuration.md),
 [classic releases](docs/releases.md), and
 the [capability matrix](docs/capabilities.md).
 
+`artifact inspect` lists a downloaded ZIP's entries and computes archive/selected
+member hashes locally. See [artifact inspection](docs/artifact-inspection.md) for
+fixed bounds and exact selection. Extraction is not yet implemented.
+
 Windows x64 tests pass locally, including a disposable synthetic Credential Manager
 round-trip. User-run live project listing/retrieval and pipeline listing/run-history checks
 succeeded. macOS/Linux native keyring execution and live run submission remain pending.

@@ -80,13 +80,19 @@ URL-to-diagnosis-to-targeted-log tests now exercise both, including failure path
 
 Available: artifact list/get and download of one named artifact to a new ZIP file.
 PipelineArtifact download was user-verified; Container live validation is pending.
-The user extracted a ZIP externally; ado itself does not inspect or extract archives.
+The user extracted a ZIP externally. ado now inspects local ZIP inventories and
+hashes exact selected members; safe extraction is still unimplemented.
 
 - [ ] Add bounded archive inventory and explicit member selection for evidence ZIPs,
   package inventories, manifests and reports. State whether selection reduces
   network transfer or happens after downloading the selected artifact.
+  artifact inspect provides local inventory and exact member metadata/hash selection.
+  Raw/structured content inspection and live artifact validation remain open; selection
+  does not reduce download transfer.
 - [ ] Report artifact identity, size and SHA-256; compare an expected hash when
   supplied. A computed digest alone must not be called authenticity verification.
+  Local archive/member digests and expected archive hash comparison are implemented;
+  remote artifact identity binding and evidence export remain open.
 - [ ] Add opt-in safe extraction: reject path traversal, absolute paths, unsafe
   links, duplicate/colliding paths and existing destinations; bound entry count,
   expanded bytes and execution time; clean up interrupted temporary output.

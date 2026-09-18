@@ -4,6 +4,7 @@ using Ado.Application;
 using Ado.Domain;
 using Ado.Infrastructure.Configuration;
 using Ado.Infrastructure.Http;
+using Ado.Infrastructure;
 
 namespace Ado.Cli;
 
@@ -144,6 +145,14 @@ public static class CliApp
             command.Options.Add(runUrl);
         build.Subcommands.Add(buildArtifact);
         root.Subcommands.Add(build);
+        var artifact = new Command("artifact", "Inspect local downloaded artifact archives.");
+        var artifactInspect = new Command("inspect", "List a bounded ZIP inventory or hash one exact entry; no extraction or network access.");
+        var archiveFile = new Option<string>("--file") { Description = "Existing local ZIP file." };
+        var archiveEntry = new Option<string>("--entry") { Description = "Exact case-sensitive archive path to inspect and hash." };
+        var expectedHash = new Option<string>("--expected-sha256") { Description = "Expected SHA-256 of the archive file." };
+        foreach (var option in new Option[] { archiveFile, archiveEntry, expectedHash, requireComplete }) artifactInspect.Options.Add(option);
+        artifact.Subcommands.Add(artifactInspect);
+        root.Subcommands.Add(artifact);
         var release = new Command("release", "Inspect classic releases; separate from YAML pipeline runs.");
         var releaseList = new Command("list", "List classic releases newest created first.");
         var releaseGet = new Command("get", "Get safe classic release metadata by ID.");
@@ -198,7 +207,7 @@ public static class CliApp
             if (args.Length == 0 || parsed.Action is System.CommandLine.Help.HelpAction)
             {
                 if (jsonOutput)
-                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build diagnose", "build timeline", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download", "release list", "release get", "release environments", "release approvals", "release deployments", "release tasks", "release task log" } }, true);
+                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build diagnose", "build timeline", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download", "artifact inspect", "release list", "release get", "release environments", "release approvals", "release deployments", "release tasks", "release task log" } }, true);
                 else
                 {
                     var helpArgs = args.Length == 0 ? new[] { "--help" } : args;
@@ -207,6 +216,26 @@ public static class CliApp
                 return 0;
             }
 
+            if (parsed.CommandResult.Command == artifactInspect)
+            {
+                var inspection = await ArtifactArchiveInspector.InspectAsync(parsed.GetValue(archiveFile), parsed.GetValue(archiveEntry),
+                    parsed.GetValue(expectedHash), parsed.GetValue(limit) ?? 100, cancellationToken);
+                bool partial = inspection.Meta.Completeness != "complete";
+                if (jsonOutput)
+                {
+                    if (partial && parsed.GetValue(requireComplete)) await OutputWriter.PartialValueAsync(output, inspection.Data, inspection.Meta);
+                    else await OutputWriter.SuccessAsync(output, inspection.Data, true, inspection.Meta);
+                }
+                else
+                {
+                    await output.WriteLineAsync($"ARCHIVE SHA256 {inspection.Data.Sha256}  BYTES {inspection.Data.ArchiveBytes}  ENTRIES {inspection.Data.TotalEntries}");
+                    await output.WriteLineAsync("PATH  TYPE  BYTES  COMPRESSED BYTES  SHA256");
+                    foreach (var entry in inspection.Data.Entries)
+                        await output.WriteLineAsync($"{OutputWriter.TerminalSafe(entry.Path)}  {(entry.Directory ? "directory" : "file")}  {entry.Bytes}  {entry.CompressedBytes}  {entry.Sha256 ?? "not computed"}");
+                    if (partial) await error.WriteLineAsync("warning: Archive inventory is truncated; raise --limit within the 10000-entry ceiling.");
+                }
+                return partial && parsed.GetValue(requireComplete) ? (int)ExitCode.Partial : 0;
+            }
             var location = ConfigurationPaths.Resolve(parsed.GetValue(configPath), environment);
             if (parsed.CommandResult.Command == paths)
             {
