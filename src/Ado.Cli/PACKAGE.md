@@ -3,20 +3,25 @@
 Development build of `PattonTech.Ado.Cli`; the executable is `ado`.
 Azure DevOps Server/on-premises is not supported. The .NET tool requires .NET 10.
 
-Currently implements configuration inspection, isolated named profiles, project
-list/get/search, pipeline definition/run inspection, guarded run submission, endpoint access
-checks, server-side YAML preview, and local diagnostics. Run start supports local --dry-run and requires exact
---confirm before submission; uncertain delivery returns exit 8 without automatic retry. Authentication accepts
-PATs or externally supplied Entra tokens through stdin, environment, masked prompt,
-or native credential stores. Native macOS/Linux execution remains pending validation.
-Server preview uses a separate confirmation and is blocked by --read-only; expanded
-YAML is omitted unless --show-yaml is requested. Build list/get support bounded history
-and safe execution metadata. Build logs/log get provide a bounded log index and
-terminal-safe content, with optional service line ranges. Build artifact list/get inspect
-output metadata without exposing download URLs. Build artifact download writes a bounded
-ZIP to an explicit new file, without extraction, overwrite or credentials on storage
-redirects. Live transfer validation is pending. Build queue/cancel and release/feed commands
-are not implemented in this development build.
+Includes project and pipeline discovery, build diagnosis/timelines/logs, build artifact
+downloads and evidence, local archive inspection/extraction, classic release inspection,
+feed/package discovery, exact NuGet download and local nuspec inspection. Named profiles,
+service-specific access probes and JSON/non-interactive output support automation.
+
+PATs and externally supplied Entra tokens can come from stdin, environment, masked
+prompts or existing native credential-store items. Plaintext configuration tokens are
+rejected. Automatic Entra login/refresh is not implemented. Native macOS/Linux store
+validation remains open, separately from passing CLI tests/install checks on those OSes.
+
+Run start and server YAML preview support credential-free local dry-run and require
+exact confirmation before dispatch. --read-only blocks both remote actions while
+allowing explicitly requested local downloads/extraction/evidence files. Downloads
+never overwrite and isolate credentials from storage redirects. Hashes identify bytes,
+not publisher authenticity. Build queue/cancel, dependency solving and administrative
+writes are not implemented. M1 acceptance remains in progress.
+
+For source installation, workstation setup, profiles, examples and release status,
+see the [repository README](https://github.com/jeffpatton1971/ado/blob/feature/ado-foundation/README.md).
 
 ```text
 ado --help

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Restructure the README around workstation setup, source installation, configuration,
+  credential providers, practical workflows, automation and exit codes; refresh package
+  documentation and CI status while retaining the exact SDK 10.0.400 pin.
+
 - Record passing hosted CI on Windows x64, Linux x64 and macOS Arm64, including
   packaged CLI execution, plus successful self-contained builds for all six RIDs.
 
