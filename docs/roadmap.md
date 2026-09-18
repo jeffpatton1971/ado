@@ -232,8 +232,10 @@ version lookup and is not an additional M1 acceptance gate.
   package identities; distinguish not found, inaccessible and incomplete searches.
   JSON 1.1.0 and Rackspace.BAT.Core.Abstractions 2.8.0 are user-verified in
   automation. Core resolution with --limit 100 refused incomplete version evidence;
-  --all then resolved the exact version. YAML package name/version remains to be
-  selected and verified. Resolution is metadata evidence, not download permission.
+  --all then resolved the exact version. YAML name discovery and version inventory
+  are user-verified for Yaml.Input.Provider; 2.5.0 is reported listed/latest.
+  Exact YAML resolution remains pending; the downstream-required version is not
+  established by listing. Resolution is metadata evidence, not download permission.
 - [x] Download an exact NuGet package with credential isolation, explicit destination,
   byte/time bounds, no overwrite and reported digest.
   Implemented as package download using the documented 7.1-preview.1 content route,

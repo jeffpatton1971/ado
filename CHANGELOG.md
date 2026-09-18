@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record live YAML package discovery and version inventory; exact YAML resolution
+  remains pending.
+
 - Record live Core 2.8.0 resolution: incomplete bounded inventory refusal followed
   by successful exact metadata resolution with --all.
 

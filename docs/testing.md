@@ -301,6 +301,14 @@ Exact version retrieval returned GUID `945356c8-1454-4477-b38e-e9f37aed193c`,
 version 1.1.0, listed/latest true and deleted unknown. The output does not establish
 unrestricted visibility or interpret a missing deleted flag as false.
 
+The user verified organization-scoped NuGet name search for Yaml, returning
+Yaml.Input.Provider and YamlDotNet. Version inventory for Yaml.Input.Provider
+(`5b2d651a-0ec3-4533-830e-c45f7bbe72d2`) with --all --require-complete returned
+without a truncation warning. Version 2.5.0 has ID
+`f350c717-cd33-48b2-aa43-67216d8e8fc8`, listed/latest true and deleted unknown.
+This establishes visible metadata, not the version required by a downstream
+project; exact YAML resolution and content retrieval are not claimed by this check.
+
 Package resolution mocks verify exact name/version selection, rejection of similarly
 named packages and different versions, ambiguous identity failures, independent
 package/version bounds (exit 10), and invalid selectors before authentication.
