@@ -79,7 +79,10 @@ are complete; missing/null approval arrays mark completeness unknown. A missing
 environments array is invalid. --require-complete retains data with exit 10 for
 truncated or unknown results. This is a snapshot, not a complete approval audit trail.
 Mock tests cover route, phases, limits, identity mismatches, malformed responses,
-redaction, terminal escaping and strict completeness. Live verification is pending.
+redaction, terminal escaping and strict completeness. The user verified release 1492
+returned approval 3614 for environment 1499 (ib-tasks): preDeploy, approved,
+isAutomated true, attempt 1, rank 1. This approval does not explain the environment's
+rejected status.
 
 References:
 

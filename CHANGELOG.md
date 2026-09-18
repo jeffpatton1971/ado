@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Record user-reported live approval inspection for release 1492: approval 3614
+  was pre-deployment, approved and automated for environment 1499.
 - Add read-only release approvals with bounded pre/post-deployment status summaries,
   identity checks, omitted private approval payloads and explicit completeness.
 - Record user-reported release environment inspection for release 1492:
