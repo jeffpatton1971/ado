@@ -51,6 +51,9 @@ jobs:
       - name: Install and verify packaged command (no publication)
         shell: pwsh
         run: ./scripts/Test-ToolPackage.ps1
+      - name: Verify live integration harness with synthetic responses
+        shell: pwsh
+        run: ./scripts/Test-LiveIntegrationHarness.ps1
 
   cross-compile:
     runs-on: ubuntu-latest

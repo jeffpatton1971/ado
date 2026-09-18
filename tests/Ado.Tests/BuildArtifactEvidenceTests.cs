@@ -58,6 +58,7 @@ public sealed class BuildArtifactEvidenceTests
             Assert.IsFalse(result.Output.Contains("raw-content-secret", StringComparison.Ordinal));
             if (missingEntry) return;
             string evidenceText = await File.ReadAllTextAsync(target);
+            if (!OperatingSystem.IsWindows()) Assert.AreEqual(UnixFileMode.UserRead | UnixFileMode.UserWrite, File.GetUnixFileMode(target));
             Assert.IsFalse(evidenceText.Contains("raw-content-secret", StringComparison.Ordinal));
             Assert.IsFalse(evidenceText.Contains("secret-sentinel", StringComparison.Ordinal));
             using var evidence = JsonDocument.Parse(evidenceText);

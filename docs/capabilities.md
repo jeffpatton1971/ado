@@ -1,5 +1,10 @@
 # Capability matrix
 
+PR hardening adds cross-element log credential redaction, exact project-get and
+project-scoped feed identity checks, and owner-only Unix extraction/evidence files.
+The optional [live integration workflow](live-integration.md) is manually configured;
+its synthetic harness runs in ordinary CI and does not imply live service coverage.
+
 User-verified classic Container metadata fixture: build 7826, artifact drop (5163).
 Listing, 654-byte ZIP download, local two-entry inventory/hash and external extraction
 succeeded. Selected-member hashing and service-backed evidence export also succeeded,

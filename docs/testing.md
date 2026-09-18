@@ -1,5 +1,22 @@
 # Verification and CI
 
+## PR review hardening and optional live integration
+
+Regression coverage now checks credentials spanning JSON log-array boundaries
+(including encoded and multiline forms before truncation), project-get identity,
+missing feed project names and owner-only Unix extraction/evidence file modes.
+The libsecret ABI uses ALL=2, UNLOCK=4 and LOAD_SECRETS=8; the original values
+were correct. A test now verifies non-interactive flags omit UNLOCK, referencing
+the [upstream header](https://github.com/GNOME/libsecret/blob/master/libsecret/secret-types.h).
+
+The optional manual workflow and setup are described in [live integration](live-integration.md).
+Synthetic harness checks exercise success, failure-output suppression, invalid
+configuration and cleanup in ordinary three-OS CI. Adding the workflow does not
+claim live verification or configure any GitHub secret/environment.
+Local review verification passed: locked restore, Release build, 574 tests passed
+with one platform-dependent skip, formatting, 1.0.0 packing/isolated installation,
+synthetic live harness and the documented fixture configuration validation.
+
 ## 1.0.0 candidate verification — 2026-09-18
 
 After updating the authoritative version and internal project lock references,

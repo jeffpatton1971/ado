@@ -51,7 +51,7 @@ public sealed class FeedsClient(ServiceTransport transport, string organization,
             projectName = Text(returnedProject, "name");
         }
         if (project is not null && (projectId is null || (Guid.TryParse(project, out var requestedId)
-            ? projectId != requestedId : projectName is not null && !string.Equals(projectName, project, StringComparison.OrdinalIgnoreCase)))) throw Invalid();
+            ? projectId != requestedId : !string.Equals(projectName, project, StringComparison.OrdinalIgnoreCase)))) throw Invalid();
         return new(id, name, projectId is null ? "organization" : "project", projectId, projectName);
     }
 

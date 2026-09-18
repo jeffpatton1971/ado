@@ -12,6 +12,25 @@ namespace Ado.Tests;
 public sealed class BuildLogClientTests
 {
     [TestMethod]
+    [DataRow("synthetic", "syn", "thetic")]
+    [DataRow("syn\nthetic", "syn", "thetic")]
+    [DataRow("syn\r\nthetic", "syn", "thetic")]
+    [DataRow("synthetic", "OnN5bn", "RoZXRpYw==")]
+    public async Task RedactsAcrossArrayBoundariesBeforeTruncation(string token, string first, string second)
+    {
+        using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json(JsonSerializer.Serialize(new[] { "before", first, second, "", "after" })));
+        using var http = new HttpClient(handler);
+        using var auth = new TokenAuthentication("pat", new(token));
+        var client = new BuildLogsClient(new(http, auth, "example"), "example", "Backend");
+        var full = await client.GetAsync(34, 2, null, null, 100, CancellationToken.None);
+        CollectionAssert.AreEqual(new[] { "before", "[REDACTED]", "[REDACTED]", "", "after" }, full.Data.Lines.ToArray());
+        Assert.AreEqual(5, full.Meta.ScannedCount);
+        var limited = await client.GetAsync(34, 2, null, null, 2, CancellationToken.None);
+        CollectionAssert.AreEqual(new[] { "before", "[REDACTED]" }, limited.Data.Lines.ToArray());
+        Assert.IsTrue(limited.Meta.Truncated);
+        Assert.AreEqual(5, limited.Meta.ScannedCount);
+    }
+    [TestMethod]
     public void RoutesEncodeProjectAndUseInt64LinePositions()
     {
         Assert.AreEqual("https://dev.azure.com/example/My%20Project/_apis/build/builds/34/logs?api-version=7.1",

@@ -46,6 +46,19 @@ public sealed class DownloadTarget
     }
 
     internal string TemporaryPath() => System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path)!, ".ado-" + Guid.NewGuid().ToString("N") + ".partial");
+    internal static FileStream CreatePrivateFile(string path, int bufferSize = 4096)
+    {
+        var options = new FileStreamOptions
+        {
+            Mode = FileMode.CreateNew,
+            Access = FileAccess.Write,
+            Share = FileShare.None,
+            BufferSize = bufferSize,
+            Options = FileOptions.Asynchronous
+        };
+        if (!OperatingSystem.IsWindows()) options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+        return new FileStream(path, options);
+    }
     private static AdoException Invalid() => new("invalid_destination",
         "Choose a new local file in an existing directory without symlink/reparse-point ancestors. Network/device paths and alternate streams are not supported.", ExitCode.Safety);
 }

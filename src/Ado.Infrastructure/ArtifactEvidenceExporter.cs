@@ -46,7 +46,7 @@ public static class ArtifactEvidenceExporter
             if (dryRun) return new(target.Path, true, false, evidence);
             target.Check();
             string candidate = target.TemporaryPath();
-            await using (var output = new FileStream(candidate, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous))
+            await using (var output = DownloadTarget.CreatePrivateFile(candidate))
             {
                 temporary = candidate;
                 await JsonSerializer.SerializeAsync(output, evidence, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true }, deadline.Token);

@@ -11,7 +11,7 @@ of BuildAutomationTool. Keep the executable name `ado`, package identity
 - Do not introduce shell execution or assembly loading from service or downloaded content.
 - Do not log authorization headers, PATs, Entra tokens, environment dumps, credential-store results or signed download URLs.
 - Do not add token storage, login persistence, plaintext fallback, `--insecure`, an unrestricted HTTP command or blind retries of writes.
-- Keep credential-store access read-only behind platform adapters. Use synthetic credentials in tests; never use real Azure DevOps credentials in fixtures, examples or CI.
+- Keep credential-store access read-only behind platform adapters. Use synthetic credentials in tests; never put real credentials in fixtures, examples or ordinary CI. Only the explicitly authorized optional live-integration workflow may use protected environment credentials under the constraints in AGENTS.md and docs/live-integration.md.
 - Enforce remote mutations through `SafetyPolicy`; preserve centralized read-only checks, local dry-run behavior and exact-target confirmation. New destructive operations require exact-target confirmation. `--read-only` permits explicitly requested local file writes, not remote mutations or server YAML preview.
 - Preserve isolated download clients and validated HTTPS storage redirects without forwarding service credentials/cookies. Do not introduce arbitrary cross-origin redirects.
 - Resolve names unambiguously or require an ID. Never replace missing exact source/version evidence with a similarly named or successful result, current HEAD or latest version.

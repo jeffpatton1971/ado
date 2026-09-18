@@ -22,6 +22,11 @@ The release candidate is **1.0.0**, covering the M1 read-only diagnostics scope.
 
 ## Workstation setup
 
+An optional [live cross-platform integration workflow](docs/live-integration.md)
+can test an installed package against retained Azure DevOps fixtures. It runs
+manually from main using a separately configured GitHub environment; ordinary
+PR CI needs no Azure DevOps credentials.
+
 Windows, macOS and Linux are supported platforms. Windows and macOS have also
 been exercised through user-reported live commands; Linux support is backed by
 hosted CI tests and packaged-tool checks. Linux Secret Service has not yet been

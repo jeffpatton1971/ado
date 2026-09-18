@@ -51,6 +51,7 @@ public sealed class ArtifactExtractionTests
             if (!dryRun)
             {
                 byte[] bytes = await File.ReadAllBytesAsync(target);
+                if (!OperatingSystem.IsWindows()) Assert.AreEqual(UnixFileMode.UserRead | UnixFileMode.UserWrite, File.GetUnixFileMode(target));
                 Assert.AreEqual("manifest payload", Encoding.UTF8.GetString(bytes));
                 Assert.AreEqual(Convert.ToHexStringLower(SHA256.HashData(bytes)), result.GetProperty("memberSha256").GetString());
             }

@@ -12,6 +12,18 @@ public sealed class ServiceCommandTests
     private const string Project = """{"id":"00000000-0000-0000-0000-000000000001","name":"Demo","state":"wellFormed"}""";
 
     [TestMethod]
+    [DataRow("Other", 9)]
+    [DataRow("00000000-0000-0000-0000-000000000002", 9)]
+    [DataRow("demo", 0)]
+    [DataRow("00000000-0000-0000-0000-000000000001", 0)]
+    public async Task ProjectGetMustMatchRequestedIdentity(string selector, int expected)
+    {
+        using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json(Project));
+        var result = await RunAsync(["project", "get", "--project", selector], handler);
+        Assert.AreEqual(expected, result.Exit, result.Output);
+    }
+
+    [TestMethod]
     public async Task ProjectGetUsesBearerStdinWithoutIncidentalStdout()
     {
         using var handler = new TransportTests.FakeHandler(request =>
@@ -19,12 +31,12 @@ public sealed class ServiceCommandTests
             Assert.AreEqual("Bearer", request.Headers.Authorization!.Scheme);
             Assert.AreEqual("opaque bearer", request.Headers.Authorization.Parameter);
             StringAssert.Contains(request.RequestUri!.AbsoluteUri, "Demo%20Project");
-            return TransportTests.Json(Project);
+            return TransportTests.Json(Project.Replace("Demo", "Demo Project", StringComparison.Ordinal));
         });
         var result = await RunAsync(["project", "get", "--project", "Demo Project", "--token-stdin", "--auth-type", "entra-token"], handler, new StringReader("opaque bearer\n"));
         Assert.AreEqual(0, result.Exit);
         using var json = JsonDocument.Parse(result.Output);
-        Assert.AreEqual("Demo", json.RootElement.GetProperty("data").GetProperty("name").GetString());
+        Assert.AreEqual("Demo Project", json.RootElement.GetProperty("data").GetProperty("name").GetString());
         Assert.IsFalse(result.Output.Contains("opaque bearer", StringComparison.Ordinal));
     }
 
@@ -90,7 +102,7 @@ public sealed class ServiceCommandTests
     public async Task HumanOutputEscapesTerminalControlCharacters()
     {
         using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json(Project.Replace("Demo", "Demo\\u001b[31m", StringComparison.Ordinal)));
-        var result = await RunAsync(["project", "get", "--project", "Demo", "--output", "table"], handler, json: false);
+        var result = await RunAsync(["project", "get", "--project", "00000000-0000-0000-0000-000000000001", "--output", "table"], handler, json: false);
         Assert.AreEqual(0, result.Exit);
         Assert.IsFalse(result.Output.Contains('\u001b'));
         StringAssert.Contains(result.Output, "\\u001b");

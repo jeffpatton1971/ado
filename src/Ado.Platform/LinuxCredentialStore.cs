@@ -29,9 +29,9 @@ internal sealed class LinuxCredentialStore : INativeCredentialStore
             Attribute("account", account);
             cancellable = g_cancellable_new();
             registration = cancellationToken.Register(() => g_cancellable_cancel(cancellable));
-            // ALL=2, LOAD_SECRETS=8, UNLOCK=4. Omit UNLOCK to guarantee no unlock prompt.
+            // libsecret/secret-types.h: ALL=1<<1, UNLOCK=1<<2, LOAD_SECRETS=1<<3.
             items = secret_service_search_sync(IntPtr.Zero, IntPtr.Zero, attributes,
-                2 | 8 | (nonInteractive ? 0 : 4), cancellable, out error);
+                SearchFlags(nonInteractive), cancellable, out error);
             cancellationToken.ThrowIfCancellationRequested();
             if (error != IntPtr.Zero)
                 throw new AdoException("credential_provider_unavailable", "Secret Service could not be reached or read. Check the session bus and keyring; headless CI should use stdin/environment injection.", ExitCode.Authentication);
@@ -68,6 +68,8 @@ internal sealed class LinuxCredentialStore : INativeCredentialStore
             NativeLibrary.Free(library);
         }
     }, cancellationToken);
+
+    internal static int SearchFlags(bool nonInteractive) => (1 << 1) | (1 << 3) | (nonInteractive ? 0 : 1 << 2);
 
     [StructLayout(LayoutKind.Sequential)] private struct GList { public IntPtr Data, Next, Previous; }
     [DllImport(Glib)] private static extern IntPtr g_hash_table_new(IntPtr hash, IntPtr equal);

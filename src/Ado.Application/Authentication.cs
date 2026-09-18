@@ -28,6 +28,7 @@ public interface IAuthenticationProvider : IDisposable
 {
     void Apply(HttpRequestMessage request);
     string Redact(string text);
+    IReadOnlyList<string> RedactLines(IReadOnlyList<string> lines);
 }
 
 public sealed class TokenAuthentication : IAuthenticationProvider
@@ -55,5 +56,39 @@ public sealed class TokenAuthentication : IAuthenticationProvider
     }
     public string Redact(string text) => text.Replace(Convert.ToBase64String(Encoding.UTF8.GetBytes(":" + secret.Read())), "[REDACTED]", StringComparison.Ordinal)
         .Replace(secret.Read(), "[REDACTED]", StringComparison.Ordinal);
+    public IReadOnlyList<string> RedactLines(IReadOnlyList<string> lines)
+    {
+        // Match both chunked strings and logical LF/CRLF lines before applying output bounds.
+        // Preserve every original array element and redact only the matched characters.
+        var masks = lines.Select(line => new bool[line.Length]).ToArray();
+        string[] secrets = [secret.Read(), Convert.ToBase64String(Encoding.UTF8.GetBytes(":" + secret.Read()))];
+        foreach (string separator in new[] { "", "\n", "\r\n" })
+        {
+            string joined = string.Join(separator, lines);
+            var matched = new bool[joined.Length];
+            foreach (string token in secrets)
+                for (int start = 0; start <= joined.Length - token.Length;)
+                {
+                    int at = joined.IndexOf(token, start, StringComparison.Ordinal);
+                    if (at < 0) break;
+                    Array.Fill(matched, true, at, token.Length);
+                    start = at + token.Length;
+                }
+            int offset = 0;
+            for (int i = 0; i < lines.Count; i++)
+            {
+                for (int j = 0; j < lines[i].Length; j++) masks[i][j] |= matched[offset + j];
+                offset += lines[i].Length + separator.Length;
+            }
+        }
+        return lines.Select((line, i) =>
+        {
+            var output = new StringBuilder();
+            for (int j = 0; j < line.Length; j++)
+                if (!masks[i][j]) output.Append(line[j]);
+                else if (j == 0 || !masks[i][j - 1]) output.Append("[REDACTED]");
+            return output.ToString();
+        }).ToArray();
+    }
     public void Dispose() => secret.Dispose();
 }

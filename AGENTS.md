@@ -18,7 +18,7 @@ package identity is `PattonTech.Ado.Cli`.
 - Preserve JSON envelopes, exit codes, cancellation and non-interactive behavior. JSON/non-interactive commands must not prompt.
 - New writes must not retry after ambiguous failures. Report uncertain delivery and read back state where practical; never infer that an unconfirmed write failed safely.
 - Keep downloads and archives bounded. Reject unsafe paths, links and collisions; never overwrite destinations or execute extracted code. Hashes identify bytes, not publisher authenticity or dependency compatibility.
-- Do not use real Azure DevOps credentials in tests, fixtures, examples or CI. Do not commit the ignored repository-local `config.json`, raw logs, signed URLs or private downloaded content.
+- Do not use real Azure DevOps credentials in synthetic tests, fixtures, examples or ordinary CI. The explicitly authorized optional live-integration workflow may consume an environment secret only from reviewed main code, with environment branch restrictions and read-only operations; see docs/live-integration.md. Do not commit the ignored repository-local `config.json`, raw logs, signed URLs or private downloaded content.
 - Live Azure DevOps mutations require separate approval naming the exact action, disposable organization/project/resources and cleanup plan. Pipeline execution can publish or deploy; a successful read or preview does not authorize execution.
 - Preserve the exact SDK `10.0.400` pin in `global.json` unless the user explicitly requests a change.
 

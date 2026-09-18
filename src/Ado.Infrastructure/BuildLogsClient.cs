@@ -69,12 +69,14 @@ public sealed class BuildLogsClient(ServiceTransport transport, string organizat
         }
         else if (value.ValueKind == JsonValueKind.Array)
         {
+            var rawLines = new List<string>();
             foreach (var line in value.EnumerateArray())
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (line.ValueKind != JsonValueKind.String) throw Invalid();
-                Add(line.GetString()!);
+                rawLines.Add(line.GetString()!);
             }
+            foreach (string line in transport.RedactLines(rawLines)) Add(line);
         }
         else throw Invalid();
         bool truncated = count > limit;

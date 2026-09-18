@@ -310,6 +310,12 @@ are bypassed by this CLI.
 
 ## M3 and later: can wait
 
+Optional live integration is implemented in `.github/workflows/live-integration.yml`:
+manual main-only Windows/Linux/macOS installed-tool checks using an environment
+secret and retained, non-sensitive fixtures. Setup and environment protections are
+documented in [live integration](live-integration.md). It remains optional and
+unexecuted against real Azure DevOps; ordinary PR CI tests the harness synthetically.
+
 | Rank | Feature | Scope |
 |---|---|---|
 | 9 | Agent pools/queues | Offline agents, unmet demands, queue delays and allowlisted non-secret capabilities |

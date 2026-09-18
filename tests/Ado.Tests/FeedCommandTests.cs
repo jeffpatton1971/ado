@@ -10,6 +10,17 @@ public sealed class FeedCommandTests
 {
     private const string Id = "346e12cd-29da-48fb-9e85-ec354e24cbb6";
     private const string ProjectId = "1eb126bc-7c99-4a2d-ac2b-77db1b2134da";
+
+    [TestMethod]
+    [DataRow("list")]
+    [DataRow("get")]
+    public async Task MissingProjectNameCannotConfirmNameScopedFeed(string command)
+    {
+        string feed = JsonSerializer.Serialize(new { id = Id, name = "packages", project = new { id = ProjectId } });
+        using var handler = new TransportTests.FakeHandler(_ => TransportTests.Json(command == "get" ? feed : "{\"value\":[" + feed + "]}"));
+        var result = await Run([command, .. (command == "get" ? new[] { "--feed", "packages" } : Array.Empty<string>())], handler);
+        Assert.AreEqual(9, result.Exit, result.Output);
+    }
     private static string Feed(bool project = true, string name = "packages") => JsonSerializer.Serialize(new
     {
         id = Id,

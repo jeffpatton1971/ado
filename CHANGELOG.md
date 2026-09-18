@@ -31,6 +31,11 @@ Tagging and publication are separate release actions, pending candidate verifica
 
 ### Safety and automation
 
+- Redact selected credentials across JSON log-array boundaries before truncation;
+  preserve element counts and enforce project/feed response identity checks.
+- Create extraction and evidence files with owner-only Unix permissions. Verify
+  libsecret ABI search flags without enabling non-interactive unlock prompts.
+
 - Versioned JSON envelopes, non-interactive operation, stable exit codes,
   cancellation, endpoint-specific pagination and explicit completeness metadata.
 - No token persistence, generic unrestricted HTTP command or execution of service
@@ -41,6 +46,9 @@ Tagging and publication are separate release actions, pending candidate verifica
   observed outcomes and byte identities without claiming authenticity or causality.
 
 ### Platforms and verification
+
+- Optional main-only, manually dispatched live read-only integration on all three
+  platforms, with environment-secret isolation and synthetic harness tests in CI.
 
 - Windows, macOS and Linux support with exact .NET SDK 10.0.400 for development.
 - Three-OS CI builds, tests, formatting, dependency audit and isolated tool-install

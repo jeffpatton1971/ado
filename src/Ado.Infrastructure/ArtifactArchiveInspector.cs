@@ -121,7 +121,7 @@ public static class ArtifactArchiveInspector
                     {
                         target.Check();
                         string candidate = target.TemporaryPath();
-                        extraction = new FileStream(candidate, FileMode.CreateNew, FileAccess.Write, FileShare.None, 65536, FileOptions.Asynchronous);
+                        extraction = DownloadTarget.CreatePrivateFile(candidate, 65536);
                         temporary = candidate;
                     }
                     await using var extractionOutput = extraction;

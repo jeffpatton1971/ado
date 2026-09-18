@@ -9,6 +9,13 @@ namespace Ado.Tests;
 public sealed class NativeCredentialTests
 {
     [TestMethod]
+    public void LinuxSearchUsesNativeFlagsAndNeverUnlocksNonInteractively()
+    {
+        Assert.AreEqual(10, LinuxCredentialStore.SearchFlags(true));
+        Assert.AreEqual(14, LinuxCredentialStore.SearchFlags(false));
+        Assert.AreEqual(0, LinuxCredentialStore.SearchFlags(true) & 4);
+    }
+    [TestMethod]
     public void WindowsErrorMappingDistinguishesMissingCredentialAndSession()
     {
         Assert.AreEqual("credential_not_found", NativeCredentialErrors.Windows(1168).Code);

@@ -25,6 +25,7 @@ public sealed class ServiceTransport(HttpClient client, IAuthenticationProvider 
     { Timeout = Timeout.InfiniteTimeSpan };
 
     public string Redact(string text) => authentication.Redact(text);
+    public IReadOnlyList<string> RedactLines(IReadOnlyList<string> lines) => authentication.RedactLines(lines);
 
     public Task<JsonResponse> StartPipelineAsync(string project, int pipelineId, string body,
         string? confirmation, CancellationToken cancellationToken) =>

@@ -39,6 +39,7 @@ public sealed class ArtifactEvidenceTests
             Assert.AreEqual(0, handler.Calls);
             Assert.AreEqual("", error.ToString());
             Assert.AreEqual(!dryRun, File.Exists(destination));
+            if (!dryRun && !OperatingSystem.IsWindows()) Assert.AreEqual(UnixFileMode.UserRead | UnixFileMode.UserWrite, File.GetUnixFileMode(destination));
             using var result = JsonDocument.Parse(output.ToString());
             string manifest = dryRun ? result.RootElement.GetProperty("data").GetProperty("evidence").GetRawText() : await File.ReadAllTextAsync(destination);
             Assert.IsFalse(manifest.Contains("raw-content-secret-sentinel", StringComparison.Ordinal));

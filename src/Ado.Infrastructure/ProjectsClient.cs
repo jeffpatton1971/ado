@@ -11,7 +11,10 @@ public sealed class ProjectsClient(ServiceTransport transport, string organizati
     public async Task<ProjectResult> GetAsync(string project, CancellationToken cancellationToken)
     {
         using var response = await transport.GetAsync(Operations.ProjectGet, EndpointBuilder.Project(Operations.ProjectGet, organization, project), cancellationToken);
-        return new([Parse(response.Document.RootElement)], new(Organization: organization, Project: project, RequestId: response.RequestId));
+        var item = Parse(response.Document.RootElement);
+        if (Guid.TryParse(project, out var requestedId) ? item.Id != requestedId
+            : !string.Equals(item.Name, project, StringComparison.OrdinalIgnoreCase)) throw InvalidResponse();
+        return new([item], new(Organization: organization, Project: project, RequestId: response.RequestId));
     }
 
     public async Task<ProjectResult> ListAsync(int pageSize, int limit, string? continuationToken, string? search, CancellationToken cancellationToken)
