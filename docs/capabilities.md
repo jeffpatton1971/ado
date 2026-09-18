@@ -14,6 +14,7 @@ agent has not accessed the live organization or submitted runs.
 | config show [--effective] | Local | None | Read | None | N/A | None | None | Implemented |
 | doctor | Local | None | Read | None | N/A | None | None | Implemented; no token retrieval/network |
 | artifact extract | Local | None | Explicit local file write | One exact member; archive/member bounds | Validates/hashes; no writes | Explicit destination; no overwrite | None | Synthetic ZIP verified; user reported successful plugin.json extraction (18522) |
+| artifact evidence | Local | None | Explicit local JSON write | One exact member; shared archive bounds | Proposed manifest; no writes | Explicit destination; no overwrite | None | Synthetic ZIP verified; live pending; optional origin labels unverified |
 | artifact inspect | Local | None | Read | Local entry limit; exact member selection | Local read | None | None | Synthetic ZIP verified; user verified downloaded artifact inventory/archive hash and exact-member hash (18522); no extraction |
 | project list | dev.azure.com | Core Projects 7.1 | Read | Numeric continuation header | N/A | None | vso.project; endpoint also documents vso.profile | Mock HTTP verified |
 | project get | dev.azure.com | Core Projects 7.1 | Read | None | N/A | None | Same as list | Mock HTTP verified |

@@ -140,3 +140,42 @@ CompiledOutputs/src/plugin.json from the build 18522 archive to a new local file
 matched the preceding inspections. This is a user-reported successful write;
 independent destination rehash, live overwrite refusal and live dry-run remain
 unverified (synthetic tests cover those behaviors).
+
+## Export selected evidence
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- artifact evidence --file "$env:TEMP\ado-CompiledOutputs-18522.zip" --entry "CompiledOutputs/src/plugin.json" --destination "$env:TEMP\ado-evidence-18522.json" --output table --read-only
+```
+
+artifact evidence exports a versioned JSON manifest for one exact local member.
+It reuses archive/member validation and hashing, requires a new explicit destination,
+and publishes through a temporary file without overwrite. --dry-run reads and hashes
+the selection, then returns the proposed evidence with written:false without writing.
+--expected-sha256 compares the archive hash before export. No extraction is performed.
+The shared archive ceilings and a 60-second total export deadline apply. Failed
+publication attempts clean up the temporary file when the filesystem permits it.
+
+The exported document has schemaVersion:1 and kind:local_archive_member. It includes
+archive bytes/hash/entry count/expected-hash comparison; selected member path,
+expanded/compressed sizes and hash; origin verification; selection completeness;
+and explicit limitations. It excludes member text, raw logs, credentials, absolute
+input paths and the output path. CLI output additionally reports destination,
+dryRun and written alongside the manifest. Table mode prints a formatted object.
+
+Optional origin labels must be supplied together as explicit --organization,
+--project, --build-id and --artifact-name arguments. They appear under claimedOrigin
+with originVerification:user_supplied_unverified. Without those flags, claimedOrigin
+is null and originVerification is not_supplied. Profiles/environment do not supply
+origin labels or credentials for this local command. No live service reads or
+cryptographic binding to a build are performed; a supplied label is not evidence
+that the ZIP came from that build. Expected digest equality also does not establish
+publisher authenticity without independently trusted provenance.
+
+complete_for_selected_member means that member was fully read and hashed, not that
+all archive members, build evidence or package semantics were validated. Selected
+member names and origin labels may still contain sensitive information; the fixed
+field selection is not general secret detection. Do not describe this export as a
+sanitized copy of arbitrary source content. Filesystem race limitations are the
+same as selected extraction. Live evidence export remains pending; synthetic tests
+cover allowlisted output, omitted payloads/paths, origin labeling, dry-run, overwrite
+refusal and validation failures without publication.

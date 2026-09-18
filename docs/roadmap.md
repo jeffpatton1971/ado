@@ -97,7 +97,8 @@ is implemented with shared validation and no-overwrite publication.
 - [ ] Report artifact identity, size and SHA-256; compare an expected hash when
   supplied. A computed digest alone must not be called authenticity verification.
   Local archive/member digests and expected archive hash comparison are implemented;
-  remote artifact identity binding and evidence export remain open.
+  local evidence export is implemented; verified remote artifact identity binding
+  remains open.
 - [ ] Add opt-in safe extraction: reject path traversal, absolute paths, unsafe
   links, duplicate/colliding paths and existing destinations; bound entry count,
   expanded bytes and execution time; clean up interrupted temporary output.
@@ -109,6 +110,10 @@ is implemented with shared validation and no-overwrite publication.
   Bulk directory-tree extraction is not implemented.
 - [ ] Produce a minimal sanitized evidence manifest identifying the selected
   run/artifact/files, digests and limitations. No automatic raw-log retention.
+  artifact evidence exports allowlisted local archive/member metadata and hashes,
+  with no raw contents or absolute input paths. Optional run/artifact labels are
+  explicitly user_supplied_unverified. Live export and verified service provenance
+  remain open; names/labels are not claimed to be secret-free.
 - [ ] Validate both supported artifact types and failure/cleanup cases, recording
   live versus mocked coverage separately.
 

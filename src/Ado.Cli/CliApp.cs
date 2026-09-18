@@ -157,6 +157,9 @@ public static class CliApp
         var artifactExtract = new Command("extract", "Extract one exact ZIP member to an explicit new file; no overwrite or network access.");
         foreach (var option in new Option[] { archiveFile, archiveEntry, expectedHash, destination }) artifactExtract.Options.Add(option);
         artifact.Subcommands.Add(artifactExtract);
+        var artifactEvidence = new Command("evidence", "Export selected member metadata and hashes to a new JSON file; optional origin labels are unverified.");
+        foreach (var option in new Option[] { archiveFile, archiveEntry, expectedHash, destination, buildId, artifactName }) artifactEvidence.Options.Add(option);
+        artifact.Subcommands.Add(artifactEvidence);
         root.Subcommands.Add(artifact);
         var release = new Command("release", "Inspect classic releases; separate from YAML pipeline runs.");
         var releaseList = new Command("list", "List classic releases newest created first.");
@@ -212,7 +215,7 @@ public static class CliApp
             if (args.Length == 0 || parsed.Action is System.CommandLine.Help.HelpAction)
             {
                 if (jsonOutput)
-                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build diagnose", "build timeline", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download", "artifact inspect", "artifact extract", "release list", "release get", "release environments", "release approvals", "release deployments", "release tasks", "release task log" } }, true);
+                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build diagnose", "build timeline", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download", "artifact inspect", "artifact extract", "artifact evidence", "release list", "release get", "release environments", "release approvals", "release deployments", "release tasks", "release task log" } }, true);
                 else
                 {
                     var helpArgs = args.Length == 0 ? new[] { "--help" } : args;
@@ -221,6 +224,16 @@ public static class CliApp
                 return 0;
             }
 
+            if (parsed.CommandResult.Command == artifactEvidence)
+            {
+                EvidenceOrigin? origin = parsed.GetValue(organization) is not null || parsed.GetValue(project) is not null
+                    || parsed.GetValue(buildId) is not null || parsed.GetValue(artifactName) is not null
+                    ? new(parsed.GetValue(organization), parsed.GetValue(project), parsed.GetValue(buildId), parsed.GetValue(artifactName)) : null;
+                var exported = await ArtifactEvidenceExporter.ExportAsync(parsed.GetValue(archiveFile), parsed.GetValue(archiveEntry),
+                    parsed.GetValue(destination), parsed.GetValue(expectedHash), origin, parsed.GetValue(dryRun), cancellationToken);
+                await OutputWriter.SuccessAsync(output, exported, jsonOutput);
+                return 0;
+            }
             if (parsed.CommandResult.Command == artifactExtract)
             {
                 var extraction = await ArtifactArchiveInspector.ExtractAsync(parsed.GetValue(archiveFile), parsed.GetValue(archiveEntry),

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add artifact evidence for a versioned local archive/member manifest with hashes,
+  sizes and verification limits; omit raw contents and absolute input paths.
+  Optional origin labels are unverified; dry-run and no-overwrite publication supported.
+
 - Record user-reported successful extraction of plugin.json from build 18522:
   527 bytes written with archive/member hashes matching earlier inspections.
 
