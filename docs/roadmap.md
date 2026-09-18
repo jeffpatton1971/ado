@@ -166,8 +166,9 @@ Feed list/get is implemented for explicit project or organization scope, with bo
 output and allowlisted identity fields. Project feed list is verified live for
 rseng/impldevmpc (`testing-upstream`); organization-scoped get is verified for
 rseng's `automation` feed. Organization listing, project get and live JSON remain pending.
-Package/version
-lookup, exact NuGet download and structured package inspection are not implemented yet.
+Package listing, bounded version inventory and exact version-GUID retrieval are
+implemented; live verification is pending. Dependency resolution by name/version
+string, exact NuGet download and structured package inspection remain outstanding.
 
 - [ ] List/get feeds, packages and exact versions, supporting applicable organization
   and project scopes, pagination and explicit permissions/completeness diagnostics.

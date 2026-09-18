@@ -66,6 +66,27 @@ public static class CliApp
         foreach (var option in new Option[] { all, requireComplete }) feedList.Options.Add(option);
         feedGet.Options.Add(feedSelector);
         root.Subcommands.Add(feedCommand);
+        var package = new Command("package", "Inspect Azure Artifacts package identities and versions.");
+        var packageList = new Command("list", "List package identities with bounded offset pagination; no version inventory.");
+        var packageVersions = new Command("versions", "List non-deleted versions of a package GUID; bounded locally.");
+        var packageVersion = new Command("version", "Inspect an exact package version identity.");
+        var packageVersionGet = new Command("get", "Get a version by its service GUID, not a version range.");
+        var packageId = new Option<string>("--package-id") { Description = "Package GUID from package list." };
+        var versionId = new Option<string>("--version-id") { Description = "Version GUID from package versions." };
+        var packageProtocol = new Option<string>("--protocol") { Description = "Service protocol filter, for example NuGet." };
+        var packageName = new Option<string>("--name") { Description = "Server-side package name substring filter." };
+        foreach (var command in new[] { packageList, packageVersions, packageVersionGet })
+        {
+            command.Options.Add(feedScope);
+            command.Options.Add(feedSelector);
+        }
+        foreach (var option in new Option[] { top, all, continuation, requireComplete, packageProtocol, packageName }) packageList.Options.Add(option);
+        foreach (var option in new Option[] { all, requireComplete, packageId }) packageVersions.Options.Add(option);
+        packageVersionGet.Options.Add(packageId);
+        packageVersionGet.Options.Add(versionId);
+        packageVersion.Subcommands.Add(packageVersionGet);
+        foreach (var command in new[] { packageList, packageVersions, packageVersion }) package.Subcommands.Add(command);
+        root.Subcommands.Add(package);
         foreach (var command in new[] { list, search })
         {
             foreach (var option in new Option[] { top, all, continuation, requireComplete }) command.Options.Add(option);
@@ -290,7 +311,9 @@ public static class CliApp
                 return 0;
             }
             var selectedCommand = parsed.CommandResult.Command;
-            string? serviceCommand = selectedCommand == feedList ? "feed list" : selectedCommand == feedGet ? "feed get"
+            string? serviceCommand = selectedCommand == packageList ? "package list" : selectedCommand == packageVersions ? "package versions"
+                : selectedCommand == packageVersionGet ? "package version get"
+                : selectedCommand == feedList ? "feed list" : selectedCommand == feedGet ? "feed get"
                 : selectedCommand == list ? "project list" : selectedCommand == get ? "project get"
                 : selectedCommand == search ? "project search" : selectedCommand == check ? "auth check" : selectedCommand == doctor ? "doctor"
                 : selectedCommand == pipelineList ? "pipeline list" : selectedCommand == pipelineGet ? "pipeline get"
@@ -351,7 +374,8 @@ public static class CliApp
                         parsed.GetValue(logId), parsed.GetValue(startLine), parsed.GetValue(endLine), parsed.GetValue(artifactName),
                         parsed.GetValue(destination), parsed.GetValue(maxBytes), parsed.GetValue(downloadTimeout), parsed.GetValue(releaseId), parsed.GetValue(releaseDefinitionId),
                         parsed.GetValue(environmentId), parsed.GetValue(deploymentId), parsed.GetValue(taskId), parsed.GetValue(includeHistory), parsed.GetValue(archiveEntry),
-                        parsed.GetValue(feedSelector), parsed.GetValue(feedScope) ?? "project"),
+                        parsed.GetValue(feedSelector), parsed.GetValue(feedScope) ?? "project",
+                        new(parsed.GetValue(packageId), parsed.GetValue(versionId), parsed.GetValue(packageProtocol), parsed.GetValue(packageName))),
                     output, error, input ?? Console.In, environment, testHandler, testNativeProvider, cancellationToken);
             }
             if (parsed.GetValue(effective))

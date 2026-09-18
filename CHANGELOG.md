@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add package list, package versions and package version get with explicit feed
+  scope, bounded offset/local enumeration, exact GUID lookup and allowlisted metadata.
+
 - Record live organization-scoped retrieval of the automation feed in rseng.
 
 - Record live project feed discovery for testing-upstream in rseng/impldevmpc;

@@ -12,7 +12,7 @@ public sealed record ServiceOptions(string Command, bool Json, bool NonInteracti
     int? BuildId = null, BuildFilters? BuildFilters = null, int? LogId = null, long? StartLine = null, long? EndLine = null, string? ArtifactName = null,
     string? Destination = null, long? MaxBytes = null, int? DownloadTimeout = null, int? ReleaseId = null, int? ReleaseDefinitionId = null,
     int? EnvironmentId = null, int? DeploymentId = null, int? TaskId = null, bool IncludeHistory = false, string? ArchiveEntry = null,
-    string? Feed = null, string FeedScope = "project");
+    string? Feed = null, string FeedScope = "project", PackageQuery? PackageQuery = null);
 
 internal static class ServiceCommands
 {
@@ -49,13 +49,19 @@ internal static class ServiceCommands
         bool pipelineCommand = options.Command.StartsWith("pipeline ", StringComparison.Ordinal);
         bool buildCommand = options.Command.StartsWith("build ", StringComparison.Ordinal);
         bool feedCommand = options.Command.StartsWith("feed ", StringComparison.Ordinal);
+        bool packageCommand = options.Command.StartsWith("package ", StringComparison.Ordinal);
         string? feedProject = null;
-        if (feedCommand)
+        if (feedCommand || packageCommand)
         {
             if (options.FeedScope is not ("project" or "organization"))
                 throw new AdoException("invalid_feed_scope", "--scope must be project or organization.", ExitCode.Usage);
             if (options.FeedScope == "project") { EndpointBuilder.ProjectSegment(profile.Project); feedProject = profile.Project; }
             _ = EndpointBuilder.Feed(options.Command == "feed list" ? Operations.FeedList : Operations.FeedGet, organization, feedProject, options.Feed);
+            if (packageCommand)
+            {
+                var operation = options.Command == "package list" ? Operations.PackageList : options.Command == "package versions" ? Operations.PackageVersions : Operations.PackageVersionGet;
+                _ = EndpointBuilder.Package(operation, organization, feedProject, options.Feed, options.PackageQuery ?? new(), top, PackageQuery.Offset(options.Continuation));
+            }
         }
         if (options.Command == "release task log")
         {
@@ -198,6 +204,8 @@ internal static class ServiceCommands
             var transport = new ServiceTransport(client, authentication, organization, profile.Timeouts.RequestSeconds, options.ReadOnly, options.DryRun);
             if (feedCommand)
                 return await FeedCommands.ReadAsync(new(transport, organization, feedProject), options, limit, output, error, deadline.Token);
+            if (packageCommand)
+                return await PackageCommands.ReadAsync(new(transport, organization, feedProject, options.Feed!), options, top, limit, output, error, deadline.Token);
             if (evidenceTarget is not null)
             {
                 using var downloadService = testHandler is null ? BuildArtifactDownloader.CreateClient() : new HttpClient(testHandler, false) { Timeout = Timeout.InfiniteTimeSpan };

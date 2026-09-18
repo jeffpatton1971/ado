@@ -149,6 +149,12 @@ ID `09093787-fb1b-4624-be02-8b4a92580114`, name automation, organization scope,
 and no project association. Organization listing, project-scoped get and live JSON
 remain pending. See [feed syntax](feeds.md).
 
+Package tests cover scoped routes, encoded protocol/name filters, numeric offset
+resumption, short pages, repeated-page rejection, non-deleted version listing,
+local truncation, exact version-GUID validation, omitted sensitive payloads,
+redaction, table escaping and 401/403/404 errors. Invalid selectors fail before
+credential acquisition. Package live checks are pending. See [syntax](packages.md).
+
 Live read-only tests require an explicitly authorized organization/project. Remote
 mutation tests require separate approval of exact disposable target, effect/cost,
 cleanup and reconciliation plan. No live test is automatically invoked by CI.

@@ -9,6 +9,21 @@ public sealed record OperationDescriptor(string Command, ServiceHost Service, st
 
 public static class Operations
 {
+    public static readonly OperationDescriptor PackageList = new("package list", ServiceHost.Feeds, "7.1", false,
+        false, "none", false, "numeric offset", "vso.packaging",
+        "https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/artifact-details/get-packages?view=azure-devops-rest-7.1");
+    public static readonly OperationDescriptor PackageVersions = PackageList with
+    {
+        Command = "package versions",
+        Pagination = "client bound; no documented paging",
+        Documentation = "https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/artifact-details/get-package-versions?view=azure-devops-rest-7.1"
+    };
+    public static readonly OperationDescriptor PackageVersionGet = PackageVersions with
+    {
+        Command = "package version get",
+        Pagination = "none",
+        Documentation = "https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/artifact-details/get-package-version?view=azure-devops-rest-7.1"
+    };
     public static readonly OperationDescriptor FeedList = new("feed list", ServiceHost.Feeds, "7.1", false,
         false, "none", false, "client bound; no documented paging", "vso.packaging",
         "https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/feed-management/get-feeds?view=azure-devops-rest-7.1");
@@ -89,7 +104,7 @@ public static class Operations
     public static readonly OperationDescriptor BuildArtifactDownload = BuildArtifactGet with { Command = "build artifact download", SupportsDryRun = true };
     public static readonly OperationDescriptor BuildArtifactEvidence = BuildArtifactDownload with { Command = "build artifact evidence" };
     public static readonly OperationDescriptor PipelineArtifactSignedContent = Pipeline("build artifact download", "artifacts/get", "none");
-    public static IReadOnlyList<OperationDescriptor> All { get; } = [FeedList, FeedGet, ReleaseList, ReleaseGet, ReleaseEnvironments, ReleaseApprovals, ReleaseDeployments, ReleaseTasks, ReleaseTaskLog, ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet, PipelineRunStart, PipelineRunPreview, BuildList, BuildGet, BuildTimeline, BuildDiagnose, BuildLogs, BuildLogGet, BuildArtifactList, BuildArtifactGet, BuildArtifactDownload, BuildArtifactEvidence];
+    public static IReadOnlyList<OperationDescriptor> All { get; } = [PackageList, PackageVersions, PackageVersionGet, FeedList, FeedGet, ReleaseList, ReleaseGet, ReleaseEnvironments, ReleaseApprovals, ReleaseDeployments, ReleaseTasks, ReleaseTaskLog, ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet, PipelineRunStart, PipelineRunPreview, BuildList, BuildGet, BuildTimeline, BuildDiagnose, BuildLogs, BuildLogGet, BuildArtifactList, BuildArtifactGet, BuildArtifactDownload, BuildArtifactEvidence];
 
     private static OperationDescriptor Pipeline(string command, string endpoint, string pagination) => new(command,
         ServiceHost.Core, "7.1", false, true, "none", false, pagination, "vso.build",

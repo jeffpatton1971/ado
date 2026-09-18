@@ -6,6 +6,32 @@ namespace Ado.Infrastructure.Http;
 
 public static partial class EndpointBuilder
 {
+    public static Uri Package(OperationDescriptor operation, string organization, string? project, string? feed,
+        PackageQuery filters, int top = 100, int skip = 0)
+    {
+        if (operation != Operations.PackageList && operation != Operations.PackageVersions && operation != Operations.PackageVersionGet)
+            throw new AdoException("unsupported_operation", "Unsupported package operation.", ExitCode.Usage);
+        filters.Validate(operation.Command);
+        var baseUri = Feed(Operations.FeedGet, organization, project, feed);
+        string path = baseUri.AbsolutePath + "/packages";
+        string query = "api-version=7.1&includeUrls=false";
+        if (operation == Operations.PackageList)
+        {
+            if (top < 1 || skip < 0) throw new AdoException("invalid_pagination", "Package page size must be positive and offset nonnegative.", ExitCode.Usage);
+            query += "&includeAllVersions=false&includeDeleted=false&includeDescription=false&%24top="
+                + top.ToString(System.Globalization.CultureInfo.InvariantCulture) + "&%24skip=" + skip.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (filters.Protocol is not null) query += "&protocolType=" + Uri.EscapeDataString(filters.Protocol);
+            if (filters.Name is not null) query += "&packageNameQuery=" + Uri.EscapeDataString(filters.Name);
+        }
+        else
+        {
+            path += "/" + Guid.Parse(filters.PackageId!).ToString("D") + "/versions";
+            if (operation == Operations.PackageVersionGet) path += "/" + Guid.Parse(filters.VersionId!).ToString("D");
+            else query += "&isDeleted=false";
+        }
+        return new UriBuilder(baseUri) { Path = path, Query = query }.Uri;
+    }
+
     public static Uri Feed(OperationDescriptor operation, string organization, string? project, string? feed = null)
     {
         ValidateOrganization(organization);
