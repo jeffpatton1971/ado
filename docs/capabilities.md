@@ -34,6 +34,7 @@ agent has not accessed the live organization or submitted runs.
 | release get | vsrm.dev.azure.com | Release 7.1 | Read | None | N/A | None | vso.release | Mock HTTP verified; user-reported live success (1492) |
 | release environments | vsrm.dev.azure.com | Release 7.1 | Read | Local environment bound; no continuation | N/A | None | vso.release | Mock HTTP verified; user-reported live success (1492/1499) |
 | release approvals | vsrm.dev.azure.com | Release 7.1 | Read | Local approval bound; no continuation | N/A | None | vso.release | Mock HTTP verified; user-reported live success (1492/3614) |
+| release deployments | vsrm.dev.azure.com | Release 7.1 | Read | Local attempt bound; no continuation | N/A | None | vso.release | Mock HTTP verified; live pending |
 
 Output schema starts at version 1. Azure DevOps Services only.
 

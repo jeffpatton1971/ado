@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add release deployments for bounded deployment-attempt summaries with status,
+  operation status and started state; no deployment actions or task payloads.
 - Record user-reported live approval inspection for release 1492: approval 3614
   was pre-deployment, approved and automated for environment 1499.
 - Add read-only release approvals with bounded pre/post-deployment status summaries,

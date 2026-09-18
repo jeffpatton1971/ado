@@ -1,6 +1,7 @@
 # Classic release inspection
 
-`release list`, `release get`, `release environments` and `release approvals` inspect classic Azure DevOps
+`release list`, `release get`, `release environments`, `release approvals` and
+`release deployments` inspect classic Azure DevOps
 releases, separate from YAML pipeline runs and builds. All require an organization and project and use
 the Release API 7.1 on vsrm.dev.azure.com. The documented read scope is vso.release;
 successful Build API reads do not establish release access.
@@ -83,6 +84,26 @@ redaction, terminal escaping and strict completeness. The user verified release 
 returned approval 3614 for environment 1499 (ib-tasks): preDeploy, approved,
 isAutomated true, attempt 1, rank 1. This approval does not explain the environment's
 rejected status.
+
+## Deployment attempts
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- release deployments --config ./config.json --release-id 1492 --token-prompt --output table --read-only --limit 100
+```
+
+This makes one Get Release request and summarizes each environment's deploySteps:
+step ID, deployment ID, release/environment IDs, environment name, attempt, status,
+operationStatus and hasStarted. The two status fields are preserved separately.
+Results follow service order. Task/phase payloads, issues, identities and logs are
+omitted. This command does not start or cancel deployments.
+
+--limit/--all bound output across environments. Empty deploySteps arrays are complete;
+missing/null arrays make completeness unknown. --require-complete keeps results but
+returns exit 10 for unknown or truncated output. There is no continuation token,
+and the 4 MiB response ceiling applies. Completeness concerns the embedded arrays,
+not an independent audit of all historic deployment attempts. Mock tests cover routes,
+bounds, invalid identities/payloads, redaction and CLI completeness. Live verification
+is pending.
 
 References:
 
