@@ -26,6 +26,15 @@ Microsoft recommends Entra identities for new production integrations; PATs suit
 personal/local and legacy ad hoc workflows. Managed identity, service principal and
 workload federation acquisition are future provider work.
 
+See the [README Entra examples](../README.md#microsoft-entra-id-access-tokens) for
+a complete environment-backed profile, external Azure CLI acquisition piped into
+stdin, masked PowerShell input and native-store references. Authentication type
+and credential provider are separate: all supported token sources can supply an
+`entra-token`. Supply an Azure DevOps access token, never an application client
+secret or refresh token. Native stores do not provide token refresh.
+Bearer transport/stdin contracts have synthetic coverage; live Entra access remains
+unverified. Azure CLI sign-in/cache behavior belongs to Azure CLI, not ado.
+
 `--token` warns because process listings and shell history may expose it. Prefer
 `--token-stdin`, a masked `--token-prompt`, `ADO_TOKEN` from CI secret injection, or a
 native reference. Stdin reads to EOF, accepts one line and removes only one final LF

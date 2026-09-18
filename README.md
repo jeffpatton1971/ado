@@ -303,7 +303,7 @@ ado auth check --config ./config.json --non-interactive --json --read-only
 
 Approve the expected executable on the first invocation; choose **Always Allow** if subsequent unattended access is intended. The second invocation verifies prompt-free access. Moving or rebuilding the executable may require approval again. Successful macOS Keychain access, including non-interactive and repeated checks, is user-verified. Linux native-store and macOS failure/re-authorization paths remain unverified.
 
-### Automation and Entra tokens
+### Automation
 
 For a PowerShell 7 one-off check, let the shell collect masked input and pass it through stdin:
 
@@ -324,6 +324,71 @@ printf '%s\n' "$ADO_TOKEN" | ado auth check --config ./config.json --token-stdin
 ```
 
 JSON mode is non-interactive and cannot be combined with `--token-prompt`. `--token` is supported but warns because process listings/history can expose it. For an externally acquired Azure DevOps Entra access token, add `--auth-type entra-token` or set the profile's authentication type accordingly. Automatic Entra login, acquisition and refresh are not implemented.
+
+### Microsoft Entra ID access tokens
+
+`ado` supports existing Azure DevOps Entra access tokens with authentication type
+`entra-token`, sending them as Bearer tokens. Token acquisition is external: `ado`
+does not sign in, invoke Azure CLI, refresh tokens or persist a login. An expired
+token must be replaced by your external authentication process.
+
+For CI or another process that injects the access token into `ADO_TOKEN`, use this
+complete configuration:
+
+```json
+{
+  "schemaVersion": 1,
+  "defaultProfile": "work",
+  "profiles": {
+    "work": {
+      "organization": "example-org",
+      "project": "Example Project",
+      "authentication": {
+        "type": "entra-token",
+        "provider": "environment"
+      },
+      "output": "table"
+    }
+  }
+}
+```
+
+With `ADO_TOKEN` supplied by your secret manager:
+
+```text
+ado auth check --config ./config.json --non-interactive --json --read-only
+```
+
+For a local user, sign in separately with `az login` using the tenant connected to
+your Azure DevOps organization. Follow [Microsoft's Azure CLI token guidance](https://learn.microsoft.com/en-us/azure/devops/cli/entra-tokens?view=azure-devops)
+to select the appropriate account/subscription. Then pipe an Azure DevOps token
+directly into `ado` (PowerShell 7, bash or zsh):
+
+```text
+az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken --output tsv | ado auth check --config ./config.json --auth-type entra-token --token-stdin --non-interactive --json --read-only
+```
+
+The explicit `--auth-type` also makes this command work with a PAT-configured
+profile. The resource ID requests an Azure DevOps token; an Azure Resource Manager
+token is not interchangeable. The signed-in identity still needs Azure DevOps
+access. Azure CLI manages its own sign-in/cache independently of `ado`.
+
+If you already have an access token, PowerShell can collect it through masked input:
+
+```powershell
+Read-Host "Entra access token" -MaskInput | ado auth check --config ./config.json --auth-type entra-token --token-stdin --non-interactive --json --read-only
+```
+
+Native stores also work with Entra tokens. In any of the macOS, Windows or Linux
+configurations above, set `authentication.type` to `entra-token`, retain that OS's
+provider, and use a separate existing credential reference such as service
+`ado/example-org/entra` and account `azure-devops-access-token`. Its secret must
+contain the access token, not a client secret or refresh token. `ado` only reads
+the item; external tooling must replace it when the token expires.
+
+Bearer transport and stdin selection have synthetic tests. Live Entra sign-in and
+service access have not yet been user-verified. Service-principal, managed-identity
+and federated token acquisition are not built-in providers.
 
 ## Examples
 

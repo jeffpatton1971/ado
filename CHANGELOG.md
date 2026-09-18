@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Document existing Entra Bearer authentication with a complete profile, external
+  Azure CLI/stdin examples, native-store references and acquisition/refresh limits.
+
 - Add complete README configurations for macOS Keychain, Windows Credential
   Manager and Linux Secret Service, including credential lookup labels and checks.
 
