@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Record user-reported successful local artifact evidence export for plugin.json
+  from the build 18522 ZIP, with matching hashes and explicitly absent origin/hash
+  assertions; remote provenance remains unverified.
+
 - Add artifact evidence for a versioned local archive/member manifest with hashes,
   sizes and verification limits; omit raw contents and absolute input paths.
   Optional origin labels are unverified; dry-run and no-overwrite publication supported.

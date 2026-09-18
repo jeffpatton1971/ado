@@ -176,6 +176,14 @@ all archive members, build evidence or package semantics were validated. Selecte
 member names and origin labels may still contain sensitive information; the fixed
 field selection is not general secret detection. Do not describe this export as a
 sanitized copy of arbitrary source content. Filesystem race limitations are the
-same as selected extraction. Live evidence export remains pending; synthetic tests
+same as selected extraction. The user reported successful evidence export on
+2026-09-18 for CompiledOutputs/src/plugin.json from the downloaded build 18522 ZIP:
+written:true, 4,455,202 archive bytes, 270 entries and 527 selected-member bytes.
+Archive/member hashes matched the previous inspections. No origin or expected
+digest was supplied; claimedOrigin:null, originVerification:not_supplied and
+expectedHashMatches:null correctly preserve those limits. The displayed manifest
+contained metadata and limitations, without member text. Independent readback of
+the exported file and live dry-run/overwrite/origin-label checks remain pending;
+synthetic tests
 cover allowlisted output, omitted payloads/paths, origin labeling, dry-run, overwrite
 refusal and validation failures without publication.

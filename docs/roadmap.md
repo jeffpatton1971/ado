@@ -112,8 +112,9 @@ is implemented with shared validation and no-overwrite publication.
   run/artifact/files, digests and limitations. No automatic raw-log retention.
   artifact evidence exports allowlisted local archive/member metadata and hashes,
   with no raw contents or absolute input paths. Optional run/artifact labels are
-  explicitly user_supplied_unverified. Live export and verified service provenance
-  remain open; names/labels are not claimed to be secret-free.
+  explicitly user_supplied_unverified. The user reported a successful local export
+  for plugin.json from build 18522 with matching hashes and no origin labels.
+  Verified service provenance remains open; names/labels are not claimed to be secret-free.
 - [ ] Validate both supported artifact types and failure/cleanup cases, recording
   live versus mocked coverage separately.
 
