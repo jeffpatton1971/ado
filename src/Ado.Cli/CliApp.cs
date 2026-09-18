@@ -52,7 +52,7 @@ public static class CliApp
         var search = new Command("search", "Filter a bounded project scan by name (client-side substring match).");
         var top = new Option<int?>("--top") { Description = "Requested page size." };
         var all = new Option<bool>("--all") { Description = "Scan up to the configured maximum." };
-        var continuation = new Option<string>("--continuation-token") { Description = "Endpoint continuation token (numeric for projects, opaque for pipelines/builds)." };
+        var continuation = new Option<string>("--continuation-token") { Description = "Endpoint continuation token (numeric for projects/releases, opaque for pipelines/builds)." };
         var requireComplete = new Option<bool>("--require-complete") { Description = "Exit 10 if results are truncated or completeness is unknown." };
         var searchName = new Option<string>("--name") { Description = "Project name fragment." };
         foreach (var command in new[] { list, search })
@@ -135,6 +135,16 @@ public static class CliApp
         buildArtifact.Subcommands.Add(buildArtifactDownload);
         build.Subcommands.Add(buildArtifact);
         root.Subcommands.Add(build);
+        var release = new Command("release", "Inspect classic releases; separate from YAML pipeline runs.");
+        var releaseList = new Command("list", "List classic releases newest created first.");
+        var releaseGet = new Command("get", "Get safe classic release metadata by ID.");
+        var releaseId = new Option<int?>("--release-id") { Description = "Positive classic release ID." };
+        var releaseDefinitionId = new Option<int?>("--definition-id") { Description = "Filter by classic release definition ID." };
+        foreach (var option in new Option[] { top, all, continuation, requireComplete, releaseDefinitionId }) releaseList.Options.Add(option);
+        releaseGet.Options.Add(releaseId);
+        release.Subcommands.Add(releaseList);
+        release.Subcommands.Add(releaseGet);
+        root.Subcommands.Add(release);
         var auth = new Command("auth", "Check access using the selected credential.");
         var check = new Command("check", "Test project endpoint access; other services are not checked.");
         auth.Subcommands.Add(check);
@@ -159,7 +169,7 @@ public static class CliApp
             if (args.Length == 0 || parsed.Action is System.CommandLine.Help.HelpAction)
             {
                 if (jsonOutput)
-                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build timeline", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download" } }, true);
+                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build timeline", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download", "release list", "release get" } }, true);
                 else
                 {
                     var helpArgs = args.Length == 0 ? new[] { "--help" } : args;
@@ -184,7 +194,8 @@ public static class CliApp
                 : selectedCommand == buildLogs ? "build logs" : selectedCommand == buildLogGet ? "build log get"
                 : selectedCommand == buildTimeline ? "build timeline"
                 : selectedCommand == buildArtifactList ? "build artifact list" : selectedCommand == buildArtifactGet ? "build artifact get"
-                : selectedCommand == buildArtifactDownload ? "build artifact download" : null;
+                : selectedCommand == buildArtifactDownload ? "build artifact download"
+                : selectedCommand == releaseList ? "release list" : selectedCommand == releaseGet ? "release get" : null;
             if (selectedCommand != show && serviceCommand is null)
                 throw new AdoException("command_required", "Choose a command. Use ado --help for supported syntax.", ExitCode.Usage);
 
@@ -213,7 +224,7 @@ public static class CliApp
                         parsed.GetValue(confirm), parsed.GetValue(refName), parsed.GetValue(parametersFile), parsed.GetValue(variablesFile), parsed.GetValue(showYaml),
                         parsed.GetValue(buildId), new(parsed.GetValue(definitionId), parsed.GetValue(buildStatus), parsed.GetValue(buildResult), parsed.GetValue(branch)),
                         parsed.GetValue(logId), parsed.GetValue(startLine), parsed.GetValue(endLine), parsed.GetValue(artifactName),
-                        parsed.GetValue(destination), parsed.GetValue(maxBytes), parsed.GetValue(downloadTimeout)),
+                        parsed.GetValue(destination), parsed.GetValue(maxBytes), parsed.GetValue(downloadTimeout), parsed.GetValue(releaseId), parsed.GetValue(releaseDefinitionId)),
                     output, error, input ?? Console.In, environment, testHandler, testNativeProvider, cancellationToken);
             }
             if (parsed.GetValue(effective))

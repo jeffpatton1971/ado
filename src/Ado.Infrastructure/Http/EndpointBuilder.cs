@@ -168,6 +168,35 @@ public static partial class EndpointBuilder
         }.Uri;
     }
 
+    public static Uri Release(OperationDescriptor operation, string organization, string project, int? releaseId = null,
+        int? top = null, string? continuation = null, int? definitionId = null)
+    {
+        ValidateOrganization(organization);
+        string path = $"/{organization}/{ProjectSegment(project)}/_apis/release/releases";
+        string query = "api-version=" + operation.ApiVersion;
+        if (operation == Operations.ReleaseGet)
+        {
+            if (releaseId is null or <= 0) throw new AdoException("release_required", "Supply a positive --release-id.", ExitCode.Usage);
+            if (top is not null || continuation is not null || definitionId is not null)
+                throw new AdoException("invalid_release_query", "Release get does not support list filters or pagination.", ExitCode.Usage);
+            path += "/" + releaseId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+        else if (operation == Operations.ReleaseList)
+        {
+            if (releaseId is not null || top is <= 0 || definitionId is <= 0)
+                throw new AdoException("invalid_release_query", "Release list requires positive page size and definition ID when supplied.", ExitCode.Usage);
+            if (continuation is not null && (continuation.Length is 0 or > 10 || !continuation.All(char.IsAsciiDigit)
+                || !int.TryParse(continuation, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out _)))
+                throw new AdoException("invalid_pagination", "Release continuation tokens must be nonnegative 32-bit integers.", ExitCode.Usage);
+            query += "&queryOrder=descending";
+            if (top is not null) query += "&%24top=" + top.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (continuation is not null) query += "&continuationToken=" + continuation;
+            if (definitionId is not null) query += "&definitionId=" + definitionId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+        else throw new AdoException("unsupported_operation", "This release endpoint is not registered.", ExitCode.Usage);
+        return new UriBuilder("https", Host(ServiceHost.Release)) { Path = path, Query = query }.Uri;
+    }
+
     public static void ValidateDestination(Uri uri, ServiceHost service, string organization, string? project = null)
     {
         ValidateOrganization(organization);

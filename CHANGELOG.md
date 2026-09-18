@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add classic release list/get on the Release service host, with numeric pagination,
+  a definition filter, safe metadata output and read-only support.
 - Record user-reported successful build timeline retrieval for build 18722,
   locating the failed task at log 21.
 - Add build timeline with bounded job/task results, parent IDs, error/warning counts

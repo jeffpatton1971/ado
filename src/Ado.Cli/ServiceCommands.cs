@@ -10,7 +10,7 @@ public sealed record ServiceOptions(string Command, bool Json, bool NonInteracti
     int? Top, bool All, string? Continuation, bool RequireComplete, string? Search, int? PipelineId = null, int? RunId = null,
     string? Confirmation = null, string? RefName = null, string? ParametersFile = null, string? VariablesFile = null, bool ShowYaml = false,
     int? BuildId = null, BuildFilters? BuildFilters = null, int? LogId = null, long? StartLine = null, long? EndLine = null, string? ArtifactName = null,
-    string? Destination = null, long? MaxBytes = null, int? DownloadTimeout = null);
+    string? Destination = null, long? MaxBytes = null, int? DownloadTimeout = null, int? ReleaseId = null, int? ReleaseDefinitionId = null);
 
 internal static class ServiceCommands
 {
@@ -46,6 +46,10 @@ internal static class ServiceCommands
             throw new AdoException("search_required", "Project search requires --name with a nonempty name fragment.", ExitCode.Usage);
         bool pipelineCommand = options.Command.StartsWith("pipeline ", StringComparison.Ordinal);
         bool buildCommand = options.Command.StartsWith("build ", StringComparison.Ordinal);
+        if (options.Command is "release list" or "release get")
+            _ = options.Command == "release get"
+                ? EndpointBuilder.Release(Operations.ReleaseGet, organization, profile.Project!, options.ReleaseId)
+                : EndpointBuilder.Release(Operations.ReleaseList, organization, profile.Project!, top: top, continuation: options.Continuation, definitionId: options.ReleaseDefinitionId);
         if (buildCommand)
         {
             EndpointBuilder.ProjectSegment(profile.Project);
@@ -146,6 +150,8 @@ internal static class ServiceCommands
             using var authentication = new TokenAuthentication(reference.Type, secret);
             using var client = testHandler is null ? ServiceTransport.CreateClient() : new HttpClient(testHandler, disposeHandler: false) { Timeout = Timeout.InfiniteTimeSpan };
             var transport = new ServiceTransport(client, authentication, organization, profile.Timeouts.RequestSeconds, options.ReadOnly, options.DryRun);
+            if (options.Command is "release list" or "release get")
+                return await ReleaseCommands.ReadAsync(new ReleasesClient(transport, organization, profile.Project!), options, top, limit, output, error, deadline.Token);
             if (downloadTarget is not null)
             {
                 var metadata = await new BuildArtifactsClient(transport, organization, profile.Project!).GetAsync(options.BuildId!.Value, options.ArtifactName!, deadline.Token);
