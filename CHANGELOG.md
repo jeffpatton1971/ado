@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record accepted Windows/macOS/Linux support for M1, with live Windows/macOS use,
+  hosted Linux CI evidence and explicit native-store/architecture coverage limits.
+
 - Record successful full Windows candidate verification for 0.1.0: locked restore,
   Release build, 563 tests passed/one skipped, formatting, pack and installed-tool smoke.
 

@@ -34,6 +34,10 @@ Core, YAML and JSON package resolution. Before declaring M1 complete, reconcile
 day-one platform/automation evidence and documented limitations, run final local
 verification and prepare the candidate version/changelog for human release review.
 Unavailable live retry history remains a documented, non-blocking limitation.
+The user accepted Windows, macOS and Linux support on 2026-09-18: live use on
+Windows/macOS plus hosted Linux CI is sufficient for M1 platform acceptance.
+Unverified Linux native-store and architecture-specific runtime cases remain
+documented coverage limits, not blockers requiring additional user hardware.
 The user completed the full local verification sequence for 0.1.0 after ca46b76:
 locked restore, Release build, 563 passing tests/one skip, formatting, packing and
 installed-tool smoke checks. Candidate hosted CI and final version/changelog review

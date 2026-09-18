@@ -22,6 +22,14 @@ The development version is **0.1.0**. M1 remains in progress; no tagged release 
 
 ## Workstation setup
 
+Windows, macOS and Linux are supported platforms. Windows and macOS have also
+been exercised through user-reported live commands; Linux support is backed by
+hosted CI tests and packaged-tool checks. Linux Secret Service has not yet been
+verified in a native desktop session. Report platform-specific problems through
+[GitHub Issues](https://github.com/jeffpatton1971/ado/issues), including the OS,
+architecture, ado version and redacted error output. Architecture-specific runtime
+coverage is documented in [verification](docs/testing.md).
+
 Building, testing and packing requires **Git and .NET SDK 10.0.400**. The runtime alone is insufficient. [global.json](global.json) pins that exact SDK with roll-forward disabled: installing only 10.0.401 or a later SDK does not satisfy the pin. Other SDK versions can coexist with 10.0.400.
 
 | OS | Identify architecture | Result |

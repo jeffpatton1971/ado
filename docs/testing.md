@@ -20,6 +20,13 @@ release checks. No tag or publication is implied by these results.
 
 ## Workflow verification
 
+Platform support decision (2026-09-18): the user accepted Windows, macOS and Linux
+as supported, based on their live Windows/macOS use and the recorded hosted CI.
+Linux-specific issues can be reported through GitHub Issues. This closes M1's
+platform acceptance gate without claiming native Linux Secret Service validation
+or runtime testing of every cross-compiled architecture. Candidate CI remains a
+separate release check; no newer hosted run is inferred from this decision.
+
 Exact-source acceptance includes a two-page fixture with identical pipeline/build
 names, successful builds of other commits and failed/successful runs of the selected
 commit. Only the exact SHA matches survive, retaining distinct build IDs and results.
