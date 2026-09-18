@@ -215,8 +215,13 @@ refusals retain exits 4/5/6. The response format is currently ZIP only.
 ## Build timeline
 
 `build timeline --build-id 18722` reads the default Build API timeline. Table output
-shows record type/name, state, result, log ID and error/warning counts. JSON also
-includes record/parent IDs and order. Records retain service order. Use the log ID
+shows order, type/name, parent name, attempt, previous-reference count, state, result,
+log ID and error/warning counts. Missing attempt metadata displays unknown; an absent
+parent record is labeled unavailable with its ID. JSON includes record/parent IDs,
+timelineId, detailsTimelineId, identifier (stable across attempts), attempt,
+previousAttempts (attempt/recordId/timelineId), startTime and finishTime. An omitted
+previousAttempts field remains null, distinct from an explicit empty array. Parent
+names are display context, not unique identities. Records retain service order. Use the log ID
 from a failed task with `build log get` to inspect its log.
 
 ```powershell
@@ -225,7 +230,14 @@ dotnet run --project src/Ado.Cli --configuration Release -- build timeline --con
 
 This is one bounded GET, with the existing JSON byte ceiling and local --limit/--all
 bounds. There is no continuation token. Referenced sub-timelines are not fetched;
-their presence makes completeness unknown. Item truncation marks results partial.
+their presence makes completeness unknown. Previous-attempt references, attempt > 1,
+or unavailable parent records also mark completeness unknown. JSON truncationReason
+reports item_limit first, then sub_timelines_not_loaded, previous_attempts_not_loaded,
+or parent_records_missing. Individual fields retain the other evidence. At most 100
+previous-attempt references per record are accepted. Referenced URLs are never followed.
+Item truncation marks results partial. No automatic causal classification or claim
+that an earlier failure was resolved is made. Attempt metadata additions are mock-tested;
+live verification is pending.
 --require-complete preserves results but returns exit 10 for either condition.
 Completeness describes this snapshot, not whether the build has finished. Issue
 messages, worker identities and service URLs are omitted. The user verified this command

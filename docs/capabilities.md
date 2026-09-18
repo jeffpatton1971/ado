@@ -41,6 +41,11 @@ agent has not accessed the live organization or submitted runs.
 
 Output schema starts at version 1. Azure DevOps Services only.
 
+Build timelines include attempt/identifier/time/reference metadata and parent/order
+context. Previous-attempt history and sub-timelines are not fetched. Missing parents
+or unloaded history mark completeness unknown. These additions are mock-tested;
+live verification of the new fields is pending.
+
 Build get/timeline/logs/log get and artifact list/get/download accept --run-url
 for locally validated Azure DevOps results links. Context conflicts fail before
 credential lookup. Mocked URL routing/rejection verified; the user verified a live

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Expose build timeline attempt numbers, stable identifiers, timestamps and safe
+  previous-attempt/sub-timeline references in JSON; show parent, order and attempt
+  context in tables. Unloaded retry history or missing parents report unknown completeness.
+
 - Record user-reported successful modern run-URL timeline read for build 18722;
   the failed golden-request task resolves to log 21 with one error.
 

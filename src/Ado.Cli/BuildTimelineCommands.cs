@@ -17,10 +17,15 @@ internal static class BuildTimelineCommands
         }
         else
         {
-            await output.WriteLineAsync("TYPE  NAME  STATE  RESULT  LOG ID  ERRORS  WARNINGS");
+            var records = result.Items.ToDictionary(item => item.Id);
+            await output.WriteLineAsync("ORDER  TYPE  NAME  PARENT  ATTEMPT  PREVIOUS  STATE  RESULT  LOG ID  ERRORS  WARNINGS");
             foreach (var item in result.Items)
-                await output.WriteLineAsync($"{OutputWriter.TerminalSafe(item.Type ?? "")}  {OutputWriter.TerminalSafe(item.Name ?? "")}  {OutputWriter.TerminalSafe(item.State ?? "")}  {OutputWriter.TerminalSafe(item.Result ?? "")}  {item.LogId}  {item.ErrorCount}  {item.WarningCount}");
-            if (incomplete) await error.WriteLineAsync("warning: Timeline results are limited or contain unloaded sub-timelines; inspect JSON metadata.");
+            {
+                string parent = item.ParentId is not { } parentId ? "" : records.TryGetValue(parentId, out var parentRecord)
+                    ? parentRecord.Name ?? parentId.ToString() : "unavailable:" + parentId;
+                await output.WriteLineAsync($"{item.Order}  {OutputWriter.TerminalSafe(item.Type ?? "")}  {OutputWriter.TerminalSafe(item.Name ?? "")}  {OutputWriter.TerminalSafe(parent)}  {item.Attempt?.ToString() ?? "unknown"}  {item.PreviousAttempts?.Count.ToString() ?? "unknown"}  {OutputWriter.TerminalSafe(item.State ?? "")}  {OutputWriter.TerminalSafe(item.Result ?? "")}  {item.LogId}  {item.ErrorCount}  {item.WarningCount}");
+            }
+            if (incomplete) await error.WriteLineAsync("warning: Timeline results are limited or have unloaded hierarchy/attempt context; inspect JSON metadata.");
         }
         return options.RequireComplete && incomplete ? (int)ExitCode.Partial : 0;
     }

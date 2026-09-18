@@ -37,7 +37,9 @@ evidence. Proposed work below is not currently supported command syntax.
 Available: pipeline/run and build details, timeline records with parent IDs, log
 index, individual bounded logs and service line ranges. User smoke tests located
 a failed build task and read its error. Build commands also accept supported run URLs.
-Missing: richer attempt context, sub-timeline traversal and a consolidated diagnostic workflow.
+Attempt numbers, stable identifiers, timestamps and safe previous-attempt/sub-timeline
+references are now preserved in JSON; tables show order, parent and attempt context.
+Missing: referenced timeline traversal and a consolidated diagnostic workflow.
 
 - [x] Accept supported Azure DevOps run URLs directly, including a run link obtained
   from a GitHub check; parse locally, validate host/path/IDs and reject conflicts
@@ -48,6 +50,7 @@ Missing: richer attempt context, sub-timeline traversal and a consolidated diagn
   for build 18722. Other URL-command combinations remain mock-tested. See [syntax](builds.md).
 - [ ] Preserve stage/job/task hierarchy, ordering, attempts and available timeline
   references with bounded traversal and explicit missing/incomplete metadata.
+  Metadata and table context implemented; referenced-history traversal remains open.
 - [ ] Identify failed tasks and their targeted logs; distinguish failures from
   skipped/cancelled downstream work and earlier retry attempts. Label causal
   interpretation as inference when service evidence cannot establish it.
