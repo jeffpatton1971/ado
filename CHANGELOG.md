@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Record user-reported live deployment inspection for release 1492: step 3615,
+  deployment 1506, environment 1499, attempt 1, failed/PhaseFailed and started.
 - Add release deployments for bounded deployment-attempt summaries with status,
   operation status and started state; no deployment actions or task payloads.
 - Record user-reported live approval inspection for release 1492: approval 3614

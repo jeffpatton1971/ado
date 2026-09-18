@@ -102,8 +102,10 @@ missing/null arrays make completeness unknown. --require-complete keeps results 
 returns exit 10 for unknown or truncated output. There is no continuation token,
 and the 4 MiB response ceiling applies. Completeness concerns the embedded arrays,
 not an independent audit of all historic deployment attempts. Mock tests cover routes,
-bounds, invalid identities/payloads, redaction and CLI completeness. Live verification
-is pending.
+bounds, invalid identities/payloads, redaction and CLI completeness. The user verified
+release 1492 returned step 3615, deployment 1506, environment 1499 (ib-tasks),
+attempt 1, status failed, operationStatus PhaseFailed and hasStarted true. This
+identifies a deployment-phase failure but does not identify the failed task or cause.
 
 References:
 
