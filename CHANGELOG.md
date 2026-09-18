@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add --run-url to build inspection and artifact commands, with local Azure DevOps
+  results-link parsing, canonical endpoint construction and pre-credential context
+  conflict rejection. Supports modern and organization.visualstudio.com links.
+
 - Align milestones with the BAT requirements: authentication and read-only diagnostics,
   selected build evidence, exact source provenance and package inspection form the MVP.
   Add a ranked backlog with current gaps, acceptance criteria and platform release gates;

@@ -28,7 +28,7 @@ classic-release expansion and mutation work follow the priority order below.
 
 ## M1: authentication and ranks 1–4
 
-The next implementation slice is M1.1: run-URL input and retry-aware diagnostics.
+The active slice is M1.1. Run-URL input is implemented; retry-aware diagnostics are next.
 Deliver each slice in small tested commits, then update this checklist and capability
 evidence. Proposed work below is not currently supported command syntax.
 
@@ -36,13 +36,15 @@ evidence. Proposed work below is not currently supported command syntax.
 
 Available: pipeline/run and build details, timeline records with parent IDs, log
 index, individual bounded logs and service line ranges. User smoke tests located
-a failed build task and read its error. Missing: direct URL input, richer attempt
-context, sub-timeline traversal and a consolidated diagnostic workflow.
+a failed build task and read its error. Build commands also accept supported run URLs.
+Missing: richer attempt context, sub-timeline traversal and a consolidated diagnostic workflow.
 
-- [ ] Accept supported Azure DevOps run URLs directly, including a run link obtained
+- [x] Accept supported Azure DevOps run URLs directly, including a run link obtained
   from a GitHub check; parse locally, validate host/path/IDs and reject conflicts
   with explicit organization/project context before credential lookup. Do not
-  fetch arbitrary links or imply GitHub check discovery is implemented.
+  fetch arbitrary links or imply GitHub check discovery is implemented. Implemented
+  as --run-url on build inspection/artifact commands; mocked canonical-route and
+  no-dispatch rejection coverage, live URL smoke test pending. See [syntax](builds.md).
 - [ ] Preserve stage/job/task hierarchy, ordering, attempts and available timeline
   references with bounded traversal and explicit missing/incomplete metadata.
 - [ ] Identify failed tasks and their targeted logs; distinguish failures from
@@ -106,7 +108,7 @@ No feed/package CLI commands are implemented yet.
 | Requirement | Current evidence | Remaining acceptance work |
 |---|---|---|
 | Cross-platform .NET; PowerShell-friendly | SDK pinned to 10.0.400; Windows x64 tests; three-OS CI authored | Execute target-OS checks, native-store checks and installation smoke tests; distinguish cross-compilation from runtime coverage |
-| Named org/project profiles and run URLs | Profiles implemented; URL input absent | Complete URL handling in M1.1 and context-conflict tests |
+| Named org/project profiles and run URLs | Profiles and build --run-url implemented; conflict tests pass | Live URL smoke test; unsupported URL forms remain explicit |
 | Authentication diagnostics | Credential providers and HTTP error categories; auth check probes projects | Add service-specific read probes for build/artifact/feed access; retain ambiguity for masked not-found/public access; distinguish network, credential, permission and resource failures where possible |
 | OS PAT stores and Entra | Native adapters and externally supplied Entra tokens; Windows synthetic store test | Validate macOS/Linux stores; document token acquisition/refresh limitations; do not claim automatic Entra login |
 | Never print/persist tokens | Selected credential redaction, safe config output, no CLI credential persistence; plaintext config rejected | Preserve rejection of plaintext credentials; verify secret handling across new commands and exports; unknown secrets in service logs are not automatically sanitized |

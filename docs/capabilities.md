@@ -41,6 +41,10 @@ agent has not accessed the live organization or submitted runs.
 
 Output schema starts at version 1. Azure DevOps Services only.
 
+Build get/timeline/logs/log get and artifact list/get/download accept --run-url
+for locally validated Azure DevOps results links. Context conflicts fail before
+credential lookup. Mocked URL routing/rejection verified; live URL smoke test pending.
+
 Run start supports local previews, exact confirmation, single-attempt POST and uncertain-write
 reporting. Server-side YAML preview is separate from local dry-run and requires explicit
 --show-yaml to include expanded content. Scope labels above are endpoint documentation identifiers, not Entra

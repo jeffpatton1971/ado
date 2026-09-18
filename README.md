@@ -28,7 +28,8 @@ succeeded. macOS/Linux native keyring execution and live run submission remain p
 User-run server YAML preview, build list/get and log index/content reads also succeeded.
 Build-output metadata list/get and a PipelineArtifact ZIP download passed user-run
 live checks; Container download live verification remains pending. Classic-release
-inspection through task logs also passed user-run checks. Run-URL input, richer
+inspection through task logs also passed user-run checks. Build inspection accepts
+--run-url (mock-tested; live verification pending). Richer
 diagnostics, exact provenance, archive inspection and feed/package access remain
 MVP gaps. The initial release is not complete; see the backlog for acceptance criteria.
 

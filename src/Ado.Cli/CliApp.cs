@@ -3,6 +3,7 @@ using System.Reflection;
 using Ado.Application;
 using Ado.Domain;
 using Ado.Infrastructure.Configuration;
+using Ado.Infrastructure.Http;
 
 namespace Ado.Cli;
 
@@ -133,6 +134,9 @@ public static class CliApp
         buildArtifact.Subcommands.Add(buildArtifactList);
         buildArtifact.Subcommands.Add(buildArtifactGet);
         buildArtifact.Subcommands.Add(buildArtifactDownload);
+        var runUrl = new Option<string>("--run-url") { Description = "Azure DevOps build results URL; must match selected context and any --build-id." };
+        foreach (var command in new[] { buildGet, buildTimeline, buildLogs, buildLogGet, buildArtifactList, buildArtifactGet, buildArtifactDownload })
+            command.Options.Add(runUrl);
         build.Subcommands.Add(buildArtifact);
         root.Subcommands.Add(build);
         var release = new Command("release", "Inspect classic releases; separate from YAML pipeline runs.");
@@ -229,13 +233,25 @@ public static class CliApp
             string? profileName = parsed.GetValue(profile) ?? environment("ADO_PROFILE") ?? loaded.File.DefaultProfile;
             var configuredAuth = profileName is not null && loaded.File.Profiles.TryGetValue(profileName, out var selectedProfile)
                 ? selectedProfile.Authentication : new CredentialReference();
+            string? targetOrganization = parsed.GetValue(organization), targetProject = parsed.GetValue(project);
+            int? targetBuildId = parsed.GetValue(buildId);
+            if (parsed.GetValue(runUrl) is { } urlValue)
+            {
+                var target = BuildRunUrl.Parse(urlValue);
+                var contextProfile = profileName is not null && loaded.File.Profiles.TryGetValue(profileName, out var foundProfile) ? foundProfile : new Profile();
+                target.ValidateContext(targetOrganization ?? environment("ADO_ORGANIZATION") ?? contextProfile.Organization,
+                    targetProject ?? environment("ADO_PROJECT") ?? contextProfile.Project, targetBuildId);
+                targetOrganization = target.Organization;
+                targetProject = target.Project;
+                targetBuildId = target.BuildId;
+            }
             CredentialSelection? selection = null;
             if (serviceCommand is not null && serviceCommand != "doctor" && !(serviceCommand is "pipeline run start" or "pipeline run preview" or "build artifact download" && parsed.GetValue(dryRun)))
                 selection = CredentialSelection.Resolve(configuredAuth, parsed.GetValue(authType), parsed.GetValue(token) is not null,
                     parsed.GetValue(tokenStdin), parsed.GetValue(tokenPrompt), parsed.GetValue(credentialProvider),
                     parsed.GetValue(credentialService), parsed.GetValue(credentialAccount), environment);
             var resolved = ConfigurationResolver.Resolve(loaded.File,
-                new(parsed.GetValue(profile), parsed.GetValue(organization), parsed.GetValue(project),
+                new(parsed.GetValue(profile), targetOrganization, targetProject,
                     parsed.GetValue(json) ? "json" : parsed.GetValue(format), parsed.GetValue(limit), parsed.GetValue(timeout), selection?.OverridesProfile ?? false), environment);
             jsonOutput = resolved.Settings.Output == "json";
             if (serviceCommand is not null)
@@ -247,7 +263,7 @@ public static class CliApp
                     new(serviceCommand, jsonOutput, parsed.GetValue(nonInteractive), parsed.GetValue(readOnly), parsed.GetValue(dryRun),
                         parsed.GetValue(top), parsed.GetValue(all), parsed.GetValue(continuation), parsed.GetValue(requireComplete), parsed.GetValue(searchName), parsed.GetValue(pipelineId), parsed.GetValue(runId),
                         parsed.GetValue(confirm), parsed.GetValue(refName), parsed.GetValue(parametersFile), parsed.GetValue(variablesFile), parsed.GetValue(showYaml),
-                        parsed.GetValue(buildId), new(parsed.GetValue(definitionId), parsed.GetValue(buildStatus), parsed.GetValue(buildResult), parsed.GetValue(branch)),
+                        targetBuildId, new(parsed.GetValue(definitionId), parsed.GetValue(buildStatus), parsed.GetValue(buildResult), parsed.GetValue(branch)),
                         parsed.GetValue(logId), parsed.GetValue(startLine), parsed.GetValue(endLine), parsed.GetValue(artifactName),
                         parsed.GetValue(destination), parsed.GetValue(maxBytes), parsed.GetValue(downloadTimeout), parsed.GetValue(releaseId), parsed.GetValue(releaseDefinitionId),
                         parsed.GetValue(environmentId), parsed.GetValue(deploymentId), parsed.GetValue(taskId)),

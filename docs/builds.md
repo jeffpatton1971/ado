@@ -268,3 +268,28 @@ Official endpoint references, checked before implementation:
 - [List Build Artifacts](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/artifacts/list?view=azure-devops-rest-7.1)
 - [Get Build Artifact](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/artifacts/get-artifact?view=azure-devops-rest-7.1)
 - [Azure DevOps allowed domains](https://learn.microsoft.com/en-us/azure/devops/organizations/security/allow-list-ip-url?view=azure-devops)
+## Run URL input
+
+Build get, timeline, logs, log get and artifact list/get/download accept --run-url
+in place of --build-id and missing organization/project context. Quote URLs in
+PowerShell so query separators remain part of the argument:
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- build timeline --run-url "https://dev.azure.com/rseng/impldevmpc/_build/results?buildId=18722" --config ./config.json --token-prompt --output table --read-only --limit 100
+```
+
+Supported forms are HTTPS dev.azure.com/ORG/PROJECT/_build/results?buildId=ID and
+ORG.visualstudio.com/PROJECT/_build/results?buildId=ID. UI query parameters and
+fragments do not select a log/task; use --log-id explicitly. A single positive
+int32 buildId is required. The link is parsed locally and never fetched; normal
+authenticated API endpoints are constructed from validated identity fields.
+
+The effective context (flags, then environment, then selected profile) must match
+the URL wherever configured. A conflicting --build-id also fails before credential
+lookup. Project names and GUIDs are not resolved as aliases during this local check;
+select matching context explicitly. Existing credential organization binding still
+applies. Unsupported links, user info and non-HTTPS/nonstandard-port URLs are rejected
+without echoing the URL. GitHub check URLs themselves, legacy /DefaultCollection
+routes and Pipelines API command URL input are not supported. Copy the Azure DevOps
+run link from the check. Automated tests cover modern/legacy hosts and rejection
+paths; live URL-based verification is pending.
