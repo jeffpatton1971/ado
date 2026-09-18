@@ -31,7 +31,7 @@ classic-release expansion and mutation work follow the priority order below.
 Current focus: M1 acceptance and source-query hardening. M1.1 run diagnostics, M1.2 selected
 artifact workflows and M1.3 bounded discovery/source context are implemented in
 usable slices with live verification of their primary paths. Outstanding acceptance
-work includes live JSON/retry-history checks, Container artifact and platform
+work includes remaining live JSON/retry-history checks and platform
 coverage and package acceptance. Structured nuspec inspection and package download
 are user-verified. M1 is not complete.
 Deliver each slice in small tested commits, then update this checklist and capability
@@ -99,7 +99,7 @@ Available: artifact list/get and download of one named artifact to a new ZIP fil
 PipelineArtifact download was user-verified. Container metadata listing is now
 user-verified for build 7826, artifact drop (5163), as are its 654-byte ZIP download,
 two-entry inventory/archive hash and external extraction. Selected-member hashing
-and Container service-backed evidence remain pending.
+and Container service-backed evidence also passed, with both digests matching.
 The user extracted a ZIP externally. ado now inspects local ZIP inventories and
 hashes exact selected members; single-member extraction to an explicit new file
 is implemented with shared validation and no-overwrite publication.
@@ -139,12 +139,16 @@ is implemented with shared validation and no-overwrite publication.
   for plugin.json from build 18522 with matching hashes and no origin labels.
   build artifact evidence records service-observed build and artifact identities
   alongside downloaded hashes, without claiming transactional or publisher provenance.
-  PipelineArtifact export is user-verified for build 18522; Container live coverage
-  remains open. Names/labels are not claimed secret-free.
-- [ ] Validate both supported artifact types and failure/cleanup cases, recording
+  PipelineArtifact export is user-verified for build 18522; Container export is
+  user-verified for build 7826/drop, selecting drop/20210113.1.json. Names/labels
+  are not claimed secret-free.
+- [x] Validate both supported artifact types and failure/cleanup cases, recording
   live versus mocked coverage separately.
   The preceding implementation items have synthetic tests and primary live-path
-  evidence; their checked status does not close Container or platform release checks.
+  evidence: downloads, inventories and service-backed evidence passed for both
+  PipelineArtifact and Container. Failure/cleanup cases use synthetic tests, with
+  hosted Windows/Linux/macOS execution. Remaining live negative cases and broader
+  platform limits are documented separately; no live failure injection is claimed.
 
 ### M1.3 — Run discovery and exact source provenance (rank 3)
 

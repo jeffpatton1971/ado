@@ -182,10 +182,17 @@ read-only download succeeded: 654-byte ZIP, inspected locally with two entries
 (drop/ and drop/20210113.1.json). The file member reports 1,960 expanded bytes and
 414 compressed bytes. Archive SHA-256:
 `3d692ddfe117f08bf9bdf3517bc4055509b977aafbcd82bf3ac07d33e8c3e830`.
-The inventory did not hash individual members. PowerShell extraction succeeded;
-the user listed the selected file and removed the extracted directory. Selected
-member hashing and service-backed evidence export remain pending. Raw member
-contents have not been retained in the repository.
+PowerShell extraction succeeded; the user listed the selected file and removed
+the extracted directory. A subsequent exact-member inspection hashed
+`drop/20210113.1.json` as
+`8c39e99a0b7af428c10dcf152970fb74bbea1821892234298ef0a22388a6f488`.
+The user then successfully exported service-backed evidence for the same build,
+artifact and member. Both archive and member digests matched the local inspection;
+the export reported `authenticated_metadata_and_download` and
+`complete_for_selected_member`. This completes live positive-path coverage for
+both supported artifact types. It does not establish publisher authenticity or
+whole-package verification. Raw member contents have not been retained in the
+repository.
 The download symlink test skipped in the current Windows session because creating a
 synthetic symlink requires unavailable privileges; the Linux/macOS CI suites passed
 this coverage (their only skipped test was the Windows native credential test).

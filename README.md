@@ -18,7 +18,7 @@ The development version is **0.1.0**. M1 remains in progress; no tagged release 
 | Classic releases | `release list`, `get`, `environments`, `approvals`, `deployments`, `tasks`, `task log` |
 | Explicit pipeline actions | `pipeline run start`, `pipeline run preview`, each with local dry-run and exact confirmation |
 
-[Hosted CI](https://github.com/jeffpatton1971/ado/actions/runs/35360735378) passed tests and packaged-tool installation on Windows x64, Linux x64 and macOS Arm64, plus cross-compilation for six OS/architecture targets. Compilation is not runtime verification. The user also verified macOS installation and Keychain authentication, including non-interactive and repeated checks. Linux native credential-store checks and live retry-history/Container-artifact coverage remain open. See [verification](docs/testing.md).
+[Hosted CI](https://github.com/jeffpatton1971/ado/actions/runs/35360735378) passed tests and packaged-tool installation on Windows x64, Linux x64 and macOS Arm64, plus cross-compilation for six OS/architecture targets. Compilation is not runtime verification. The user also verified macOS installation and Keychain authentication, including non-interactive and repeated checks, plus downloads and selected-member evidence for both supported build artifact types. Linux native credential-store checks and live retry-history coverage remain open. See [verification](docs/testing.md).
 
 ## Workstation setup
 

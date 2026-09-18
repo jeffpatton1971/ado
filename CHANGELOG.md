@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record successful classic Container selected-member hashing and service-backed
+  evidence export with matching digests; close the both-artifact-types acceptance item.
+
 - Record successful live Container download, ZIP inventory/archive digest and
   external extraction for build 7826/drop; selected-member evidence remains pending.
 

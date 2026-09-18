@@ -2,7 +2,8 @@
 
 User-verified classic Container metadata fixture: build 7826, artifact drop (5163).
 Listing, 654-byte ZIP download, local two-entry inventory/hash and external extraction
-succeeded. Container selected-member hashing and service-backed evidence remain pending.
+succeeded. Selected-member hashing and service-backed evidence export also succeeded,
+with matching archive/member digests. Both supported artifact types have live positive-path coverage.
 
 The user verified macOS installation and macos-keychain-backed auth check, including
 non-interactive and repeated access. This covers successful native credential reads;
@@ -69,7 +70,7 @@ agent has not accessed the live organization or submitted runs.
 | build log get | dev.azure.com | Build Logs 7.1 | Read | Optional service line range; no continuation | N/A | None | vso.build | Mock HTTP verified; user verified table and JSON/non-interactive/stdin-token reads of 18722/log 21; JSON reports complete, untruncated output |
 | build artifact list | dev.azure.com | Build Artifacts 7.1 | Read metadata | None; local output bound | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
 | build artifact get | dev.azure.com | Build Artifacts 7.1 | Read metadata | None | N/A | None | vso.build | Mock HTTP verified; user-reported live success |
-| build artifact evidence | dev.azure.com plus validated storage | Build / Pipelines Artifacts 7.1 | Remote reads; explicit local JSON write | One member; bounded full ZIP download | Local plan; no credentials/HTTP/writes | Explicit destination; no overwrite | vso.build; storage credentials isolated | Mock verified for both types; user reported PipelineArtifact success (18522/17112); Container live pending |
+| build artifact evidence | dev.azure.com plus validated storage | Build / Pipelines Artifacts 7.1 | Remote reads; explicit local JSON write | One member; bounded full ZIP download | Local plan; no credentials/HTTP/writes | Explicit destination; no overwrite | vso.build; storage credentials isolated | Mock verified for both types; user verified PipelineArtifact (18522/17112) and Container (7826/5163) exports; Container archive/member hashes matched local inspection |
 | build artifact download | dev.azure.com plus validated storage redirects | Build / Pipelines Artifacts 7.1 (signedContent for PipelineArtifact) | Remote read, explicit local file write | None; bounded ZIP stream | Local plan, no writes/network | Explicit destination; no overwrite | vso.build; content credentials isolated | Mock verified; user verified downloads and external extraction for PipelineArtifact (18522) and Container (7826/drop) |
 | release list | vsrm.dev.azure.com | Release 7.1 | Read | Numeric header continuation | N/A | None | vso.release | Mock HTTP verified; user-reported live listing success; resume pending |
 | release get | vsrm.dev.azure.com | Release 7.1 | Read | None | N/A | None | vso.release | Mock HTTP verified; user-reported live success (1492) |
