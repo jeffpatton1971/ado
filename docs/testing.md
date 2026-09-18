@@ -78,7 +78,18 @@ Run repository provenance tests cover multiple reported revisions, missing and e
 resources, missing versions, duplicate aliases, malformed values, credential redaction,
 omission of sensitive payload fields, JSON/table output and terminal escaping.
 The single mocked run GET is the only request; no current repository/definition read
-is used to manufacture historical provenance. Live verification remains pending.
+is used to manufacture historical provenance.
+On 2026-09-18 the user verified `pipeline run get` for pipeline 1128, run 18722
+in rseng/impldevmpc. The completed/failed run reported `reported_versions` with:
+
+- `self` (gitHub), ref `refs/heads/feature/mpcsupeng-9171-json-runtime`, version
+  `a357ab0a6900e27bcaa318497ed11ff845fcfa16`, matching the previously reported build source.
+- `buildAutomationTool` (gitHub), ref `refs/heads/main`, version
+  `3a968467954c6f99bf6d6b18e106914702fc92be`.
+
+This verifies table rendering of service-reported repository resources; it does not
+independently verify commit contents, all checkouts or shared-template usage.
+Live JSON output, missing-resource states and other repository types remain unverified.
 
 Build discovery tests cover repository query encoding, full-SHA validation before
 credential lookup, exact case-insensitive source matching, nonmatching scan limits,

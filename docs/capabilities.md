@@ -80,7 +80,10 @@ are fetched or exposed. This does not prove every template revision or checkout,
 nor map PR head commits to merge commits. Run listings retain their compact projection.
 Repository maps are bounded to 1,000 entries and the existing 4 MiB response bound;
 malformed or oversized maps fail rather than silently dropping resources.
-Mock HTTP and CLI output tests cover this addition; live verification is pending.
+Mock HTTP and CLI output tests cover this addition. The user verified run 18722
+of pipeline 1128 with `reported_versions`: two gitHub resources (`self` and
+`buildAutomationTool`) with refs and exact revisions. Missing-resource states and
+other repository types remain mock-tested only; template usage is not established.
 
 Build list supports server-side `--repository-id` and `--repository-type` filters
 (for example `TfsGit`). `--source-sha` accepts a full 40-character Git SHA and matches
