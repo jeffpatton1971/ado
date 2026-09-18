@@ -77,7 +77,13 @@ non-interactive mode.
 Build discovery tests cover repository query encoding, full-SHA validation before
 credential lookup, exact case-insensitive source matching, nonmatching scan limits,
 continuation resumption, retained partial JSON and missing-source completeness.
-Repository/SHA discovery has not yet been verified against a live service.
+On 2026-09-18 the user verified a live exact-SHA search in rseng/impldevmpc for
+definition 1126 and source c965c728a906498c4ce8439fcf4092a388a4c630 with limit 100.
+The command reported 71 scanned builds, one match and complete coverage of the
+filtered service listing. The match was build 18522 (20260825.4), completed/succeeded,
+on refs/heads/feature/mpcsupeng-9381-escape-terraform-template-interpolation.
+Repository filters, partial-search resumption and missing-source handling remain
+mock-tested only; this does not verify PR or shared-template provenance.
 
 Live read-only tests require an explicitly authorized organization/project. Remote
 mutation tests require separate approval of exact disposable target, effect/cost,

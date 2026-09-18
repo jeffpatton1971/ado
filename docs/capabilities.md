@@ -74,7 +74,9 @@ and continuation describe the searched segment; resume with every original filte
 A scan limit can yield zero matches with partial completeness. Missing source versions
 make completeness unknown. `--require-complete` returns exit 10 for incomplete searches.
 This does not match PR head commits against merge commits or discover template revisions.
-The repository/SHA additions are mock-tested; live verification is pending.
+The user verified exact-SHA discovery for definition 1126: 71 builds scanned,
+one match (18522), complete. Repository filters and partial-search resumption remain
+mock-tested only.
 See the [Build List API](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/list?view=azure-devops-rest-7.1).
 
 Run start supports local previews, exact confirmation, single-attempt POST and uncertain-write
