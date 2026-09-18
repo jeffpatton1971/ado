@@ -173,13 +173,19 @@ service but were blocked on its sign-in redirect. PipelineArtifact downloads now
 request signedContent; tests cover credential isolation, expiry and identity checks.
 On 2026-09-17 the user successfully downloaded CompiledOutputs from build 18522
 (4,455,202 bytes), then extracted and listed its contents with PowerShell. This verifies
-the signed PipelineArtifact path for that output; live Container download remains unverified.
+the signed PipelineArtifact path for that output; Container validation is recorded below.
 The user rechecked build 18522: CompiledOutputs (17112) and NuGetPackages (17115)
 both report PipelineArtifact. Neither is a classic Container live-test fixture.
 The user subsequently found a classic Container fixture with build artifact list:
-build 7826, artifact ID 5163, name drop, resourceType Container. This verifies live
-Container metadata listing only; download, ZIP inspection and evidence export for
-this fixture remain pending. No content from it has been retained in the repository.
+build 7826, artifact ID 5163, name drop, resourceType Container. The subsequent
+read-only download succeeded: 654-byte ZIP, inspected locally with two entries
+(drop/ and drop/20210113.1.json). The file member reports 1,960 expanded bytes and
+414 compressed bytes. Archive SHA-256:
+`3d692ddfe117f08bf9bdf3517bc4055509b977aafbcd82bf3ac07d33e8c3e830`.
+The inventory did not hash individual members. PowerShell extraction succeeded;
+the user listed the selected file and removed the extracted directory. Selected
+member hashing and service-backed evidence export remain pending. Raw member
+contents have not been retained in the repository.
 The download symlink test skipped in the current Windows session because creating a
 synthetic symlink requires unavailable privileges; the Linux/macOS CI suites passed
 this coverage (their only skipped test was the Windows native credential test).

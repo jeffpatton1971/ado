@@ -97,8 +97,9 @@ URL-to-diagnosis-to-targeted-log tests now exercise both, including failure path
 
 Available: artifact list/get and download of one named artifact to a new ZIP file.
 PipelineArtifact download was user-verified. Container metadata listing is now
-user-verified for build 7826, artifact drop (5163); its download/evidence validation
-remains pending.
+user-verified for build 7826, artifact drop (5163), as are its 654-byte ZIP download,
+two-entry inventory/archive hash and external extraction. Selected-member hashing
+and Container service-backed evidence remain pending.
 The user extracted a ZIP externally. ado now inspects local ZIP inventories and
 hashes exact selected members; single-member extraction to an explicit new file
 is implemented with shared validation and no-overwrite publication.

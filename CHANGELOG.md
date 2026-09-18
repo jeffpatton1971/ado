@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record successful live Container download, ZIP inventory/archive digest and
+  external extraction for build 7826/drop; selected-member evidence remains pending.
+
 - Record live classic Container artifact listing for build 7826, drop (5163);
   content transfer and evidence validation remain pending.
 
