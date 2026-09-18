@@ -48,6 +48,12 @@ when selecting one member. `--dry-run` still performs this local read.
 
 Tests generate temporary ZIPs and cover digests, exact selection, unsafe names,
 collisions, links, file/entry ceilings, invalid ZIPs, cancellation and partial JSON.
-Live inspection of a downloaded build artifact remains pending. File names may
+The user verified inventory of CompiledOutputs from build 18522 on 2026-09-18:
+4,455,202 bytes, 270 entries, archive SHA-256
+8e901a95c4fcbe67672bba1b63c47d5eac99c65344041a0feefb41c96b30c9e2.
+With --limit 100, 100 entries were displayed and the truncation warning appeared.
+This verifies inventory and archive hashing; exact-member hashing, expected-hash
+comparison and JSON output remain mock-verified only. The recorded digest is an
+observation, not independent evidence of authenticity. File names may
 themselves contain sensitive information; inspection output is not a sanitized
 evidence export. No raw archive content is retained by the command.

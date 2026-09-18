@@ -13,7 +13,7 @@ agent has not accessed the live organization or submitted runs.
 | config paths | Local | None | Read | None | N/A | None | None | Implemented |
 | config show [--effective] | Local | None | Read | None | N/A | None | None | Implemented |
 | doctor | Local | None | Read | None | N/A | None | None | Implemented; no token retrieval/network |
-| artifact inspect | Local | None | Read | Local entry limit; exact member selection | Local read | None | None | Synthetic ZIP verified; live artifact pending; no extraction |
+| artifact inspect | Local | None | Read | Local entry limit; exact member selection | Local read | None | None | Synthetic ZIP verified; user verified downloaded artifact inventory/hash (18522); member hashing live pending; no extraction |
 | project list | dev.azure.com | Core Projects 7.1 | Read | Numeric continuation header | N/A | None | vso.project; endpoint also documents vso.profile | Mock HTTP verified |
 | project get | dev.azure.com | Core Projects 7.1 | Read | None | N/A | None | Same as list | Mock HTTP verified |
 | project search | dev.azure.com | Core Projects 7.1 | Read | Bounded list plus client name filter | N/A | None | Same as list | Mock HTTP verified |

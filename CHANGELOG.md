@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record successful user inspection of the downloaded CompiledOutputs ZIP from
+  build 18522: 4,455,202 bytes, 270 entries, archive digest and expected limit warning.
+
 - Add local artifact inspect for bounded ZIP inventories, exact member selection,
   archive/member SHA-256 and expected archive digest comparison. Validate entry
   paths/collisions and links without credentials, network calls or extraction.
