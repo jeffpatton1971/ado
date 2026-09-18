@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record successful exact-member inspection of CompiledOutputs/src/plugin.json
+  from build 18522: 527 expanded bytes, 302 compressed bytes and member SHA-256.
+
 - Record successful user inspection of the downloaded CompiledOutputs ZIP from
   build 18522: 4,455,202 bytes, 270 entries, archive digest and expected limit warning.
 

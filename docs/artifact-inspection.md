@@ -52,8 +52,12 @@ The user verified inventory of CompiledOutputs from build 18522 on 2026-09-18:
 4,455,202 bytes, 270 entries, archive SHA-256
 8e901a95c4fcbe67672bba1b63c47d5eac99c65344041a0feefb41c96b30c9e2.
 With --limit 100, 100 entries were displayed and the truncation warning appeared.
-This verifies inventory and archive hashing; exact-member hashing, expected-hash
-comparison and JSON output remain mock-verified only. The recorded digest is an
+The user also verified exact selection of CompiledOutputs/src/plugin.json:
+527 expanded bytes, 302 compressed bytes, SHA-256
+12d40f511ca9bcb1a1e3b30db29c78f1e196c307bed9c2253b67da36399a2f48.
+The archive digest remained unchanged. This verifies inventory, archive hashing
+and selected-member hashing; expected-hash comparison and JSON output remain
+mock-verified only. The recorded digest is an
 observation, not independent evidence of authenticity. File names may
 themselves contain sensitive information; inspection output is not a sanitized
 evidence export. No raw archive content is retained by the command.
