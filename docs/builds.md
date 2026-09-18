@@ -212,6 +212,25 @@ uses exit 10; unsafe destination/type/redirect uses exit 7; transfer failure/dea
 uses exit 9; user cancellation uses exit 130. Service authentication/access/not-found
 refusals retain exits 4/5/6. The response format is currently ZIP only.
 
+## Build timeline
+
+`build timeline --build-id 18722` reads the default Build API timeline. Table output
+shows record type/name, state, result, log ID and error/warning counts. JSON also
+includes record/parent IDs and order. Records retain service order. Use the log ID
+from a failed task with `build log get` to inspect its log.
+
+```powershell
+dotnet run --project src/Ado.Cli --configuration Release -- build timeline --config ./config.json --build-id 18722 --token-prompt --output table --read-only --limit 100
+```
+
+This is one bounded GET, with the existing JSON byte ceiling and local --limit/--all
+bounds. There is no continuation token. Referenced sub-timelines are not fetched;
+their presence makes completeness unknown. Item truncation marks results partial.
+--require-complete preserves results but returns exit 10 for either condition.
+Completeness describes this snapshot, not whether the build has finished. Issue
+messages, worker identities and service URLs are omitted. Live verification is pending.
+The endpoint and read scope are documented in [Timeline Get](https://learn.microsoft.com/en-us/rest/api/azure/devops/build/timeline/get?view=azure-devops-rest-7.1).
+
 ## Verification
 
 Mocked tests cover routes, encoding, filters, opaque pagination, page/item bounds,

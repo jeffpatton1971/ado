@@ -95,6 +95,7 @@ public static class CliApp
         var buildList = new Command("list", "List builds newest queued first with bounded pagination.");
         var buildGet = new Command("get", "Get a Build API record by build ID.");
         var buildLogs = new Command("logs", "List log IDs and line counts for a build; no server pagination.");
+        var buildTimeline = new Command("timeline", "Inspect jobs/tasks, their results and log IDs in the default build timeline.");
         var buildLog = new Command("log", "Read individual build logs.");
         var buildLogGet = new Command("get", "Read bounded log content; terminal controls are escaped.");
         var logId = new Option<int?>("--log-id") { Description = "Positive log ID returned by build logs." };
@@ -107,13 +108,14 @@ public static class CliApp
         var branch = new Option<string>("--branch") { Description = "Exact source branch, typically refs/heads/main." };
         foreach (var option in new Option[] { top, all, continuation, requireComplete, definitionId, buildStatus, buildResult, branch }) buildList.Options.Add(option);
         buildGet.Options.Add(buildId);
-        foreach (var command in new[] { buildLogs, buildLogGet })
+        foreach (var command in new[] { buildLogs, buildLogGet, buildTimeline })
             foreach (var option in new Option[] { buildId, all, requireComplete }) command.Options.Add(option);
         foreach (var option in new Option[] { logId, startLine, endLine }) buildLogGet.Options.Add(option);
         buildLog.Subcommands.Add(buildLogGet);
         build.Subcommands.Add(buildList);
         build.Subcommands.Add(buildGet);
         build.Subcommands.Add(buildLogs);
+        build.Subcommands.Add(buildTimeline);
         build.Subcommands.Add(buildLog);
         var buildArtifact = new Command("artifact", "Inspect outputs produced by a build, not Azure Artifacts feed packages.");
         var buildArtifactList = new Command("list", "List bounded build-output metadata; no downloads.");
@@ -157,7 +159,7 @@ public static class CliApp
             if (args.Length == 0 || parsed.Action is System.CommandLine.Help.HelpAction)
             {
                 if (jsonOutput)
-                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download" } }, true);
+                    await OutputWriter.SuccessAsync(output, new { version = Version, commands = new[] { "config paths", "config show", "project list", "project get", "project search", "auth check", "doctor", "pipeline list", "pipeline get", "pipeline runs", "pipeline run get", "pipeline run start", "pipeline run preview", "build list", "build get", "build timeline", "build logs", "build log get", "build artifact list", "build artifact get", "build artifact download" } }, true);
                 else
                 {
                     var helpArgs = args.Length == 0 ? new[] { "--help" } : args;
@@ -180,6 +182,7 @@ public static class CliApp
                 : selectedCommand == pipelineRunStart ? "pipeline run start" : selectedCommand == pipelineRunPreview ? "pipeline run preview"
                 : selectedCommand == buildList ? "build list" : selectedCommand == buildGet ? "build get"
                 : selectedCommand == buildLogs ? "build logs" : selectedCommand == buildLogGet ? "build log get"
+                : selectedCommand == buildTimeline ? "build timeline"
                 : selectedCommand == buildArtifactList ? "build artifact list" : selectedCommand == buildArtifactGet ? "build artifact get"
                 : selectedCommand == buildArtifactDownload ? "build artifact download" : null;
             if (selectedCommand != show && serviceCommand is null)

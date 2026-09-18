@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add build timeline with bounded job/task results, parent IDs, error/warning counts
+  and log IDs, credential redaction, terminal escaping and strict completeness.
 - Record user-reported successful signed PipelineArtifact download for build 18522,
   CompiledOutputs (4,455,202 bytes), and subsequent PowerShell archive extraction.
 - Resolve PipelineArtifact downloads through the Pipelines signedContent API, using

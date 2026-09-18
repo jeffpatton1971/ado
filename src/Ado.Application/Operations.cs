@@ -38,6 +38,11 @@ public static class Operations
         Command = "build logs",
         Documentation = "https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get-build-logs?view=azure-devops-rest-7.1"
     };
+    public static readonly OperationDescriptor BuildTimeline = BuildGet with
+    {
+        Command = "build timeline",
+        Documentation = "https://learn.microsoft.com/en-us/rest/api/azure/devops/build/timeline/get?view=azure-devops-rest-7.1"
+    };
     public static readonly OperationDescriptor BuildLogGet = BuildGet with
     {
         Command = "build log get",
@@ -55,7 +60,7 @@ public static class Operations
     };
     public static readonly OperationDescriptor BuildArtifactDownload = BuildArtifactGet with { Command = "build artifact download", SupportsDryRun = true };
     public static readonly OperationDescriptor PipelineArtifactSignedContent = Pipeline("build artifact download", "artifacts/get", "none");
-    public static IReadOnlyList<OperationDescriptor> All { get; } = [ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet, PipelineRunStart, PipelineRunPreview, BuildList, BuildGet, BuildLogs, BuildLogGet, BuildArtifactList, BuildArtifactGet, BuildArtifactDownload];
+    public static IReadOnlyList<OperationDescriptor> All { get; } = [ProjectList, ProjectGet, PipelineList, PipelineGet, PipelineRuns, PipelineRunGet, PipelineRunStart, PipelineRunPreview, BuildList, BuildGet, BuildTimeline, BuildLogs, BuildLogGet, BuildArtifactList, BuildArtifactGet, BuildArtifactDownload];
 
     private static OperationDescriptor Pipeline(string command, string endpoint, string pagination) => new(command,
         ServiceHost.Core, "7.1", false, true, "none", false, pagination, "vso.build",
