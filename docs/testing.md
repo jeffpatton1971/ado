@@ -144,9 +144,10 @@ HTTP 401/403/404 errors, mismatched feed/project rejection, credential redaction
 and terminal escaping. On 2026-09-18 the user verified project-scoped feed list
 in rseng/impldevmpc with limit 100: `testing-upstream`, ID
 `ad52ea46-c29f-4c9c-9b36-600181eb40da`, scope project, project impldevmpc.
-The user identified `automation` as an organization-level feed; its API retrieval
-has not yet been verified. Organization listing, feed get and live JSON remain
-pending. See [feed syntax](feeds.md).
+The user also verified `feed get --scope organization --feed automation` in rseng:
+ID `09093787-fb1b-4624-be02-8b4a92580114`, name automation, organization scope,
+and no project association. Organization listing, project-scoped get and live JSON
+remain pending. See [feed syntax](feeds.md).
 
 Live read-only tests require an explicitly authorized organization/project. Remote
 mutation tests require separate approval of exact disposable target, effect/cost,

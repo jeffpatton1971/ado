@@ -34,8 +34,9 @@ missing access from a missing feed. The documented read scope is `vso.packaging`
 Native credentials, external Entra tokens, cancellation and JSON/non-interactive behavior
 use the existing transport and authentication path. The user verified project list
 for rseng/impldevmpc (`testing-upstream`). The user's `automation` feed is organization
-scoped, so select `--scope organization` to retrieve it. Organization listing and
-feed get remain pending live verification.
+scoped, so select `--scope organization` to retrieve it. The user verified that get
+returns ID `09093787-fb1b-4624-be02-8b4a92580114` with no project association.
+Organization listing, project-scoped get and live JSON remain pending verification.
 
 References: [list feeds](https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/feed-management/get-feeds?view=azure-devops-rest-7.1),
 [get feed](https://learn.microsoft.com/en-us/rest/api/azure/devops/artifacts/feed-management/get-feed?view=azure-devops-rest-7.1).

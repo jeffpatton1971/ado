@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Record live organization-scoped retrieval of the automation feed in rseng.
+
 - Record live project feed discovery for testing-upstream in rseng/impldevmpc;
   automation was identified by the user as an organization-scoped feed.
 

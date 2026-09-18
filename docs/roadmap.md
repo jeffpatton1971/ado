@@ -164,7 +164,8 @@ with explicit unavailable states; it does not infer template usage or fetch curr
 
 Feed list/get is implemented for explicit project or organization scope, with bounded
 output and allowlisted identity fields. Project feed list is verified live for
-rseng/impldevmpc (`testing-upstream`); organization scope and feed get remain pending.
+rseng/impldevmpc (`testing-upstream`); organization-scoped get is verified for
+rseng's `automation` feed. Organization listing, project get and live JSON remain pending.
 Package/version
 lookup, exact NuGet download and structured package inspection are not implemented yet.
 
