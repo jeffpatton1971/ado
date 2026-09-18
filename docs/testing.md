@@ -67,11 +67,16 @@ Range and local-line limits retain data with strict exit 10; absent/forbidden lo
 and unauthorized/forbidden timeline reads return their error exit codes without
 echoing service bodies. Existing diagnosis tests cover truncated timeline evidence.
 
-All service responses in this workflow are mocked. User-run live table diagnosis
-and separate targeted log reads for build 18722 succeeded. Live JSON/non-interactive
-and actual previous-attempt traversal remain outstanding; the same-build table
-smoke tests do not establish those paths. M1.1 implementation/automated acceptance
-is complete, not a claim of full platform or live-service release readiness.
+All service responses in the automated tests are mocked. User-run live table
+diagnosis and separate targeted log reads for build 18722 succeeded. The user also
+verified the stdin-token, JSON/non-interactive/read-only diagnosis command above
+with --include-history and --require-complete. It returned ok:true, schemaVersion:1,
+loadedRecords/scannedCount:30, truncated:false and completeness:complete. Nine
+findings comprise one failed task (log 21), three failed containers and five skips.
+The reported source SHA matches the earlier table result. All findings have attempt
+1 and no previous-attempt references; this does not verify history traversal.
+Live JSON targeted-log chaining remains pending. M1.1 automated acceptance is
+complete, not a claim of full platform or live-service release readiness.
 
 ## Test execution
 

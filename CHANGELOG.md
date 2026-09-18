@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Record successful live JSON/non-interactive build diagnosis using stdin credentials:
+  build 18722, 30 records, complete schema-v1 envelope and failed-task log reference 21.
+
 - Verify JSON/non-interactive package download-to-inspection-to-evidence workflows,
   including matching hashes, local credential-free reads and hash-mismatch refusal.
 

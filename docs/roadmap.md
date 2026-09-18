@@ -52,7 +52,9 @@ references are now preserved in JSON; tables show order, parent and attempt cont
 Optional --include-history traverses referenced timelines within shared bounds.
 build diagnose combines build details with categorized outcomes and exact prior-attempt
 references. Targeted log content still uses an explicit build log get command.
-Missing live coverage: retry-history and JSON/non-interactive operation. Automated
+User verified JSON/non-interactive diagnosis with stdin credentials for build 18722:
+30 records, complete schema-v1 envelope and failed-task log reference 21.
+Missing live coverage: retry-history traversal and JSON targeted-log chaining. Automated
 URL-to-diagnosis-to-targeted-log tests now exercise both, including failure paths.
 
 - [x] Accept supported Azure DevOps run URLs directly, including a run link obtained
@@ -82,7 +84,8 @@ URL-to-diagnosis-to-targeted-log tests now exercise both, including failure path
   selects a log ID from JSON and retrieves bounded content. Synthetic stdin tokens,
   exact GET routes, error/partial envelopes and no prompts are verified. 401/403
   timeline failures and 403/404 log failures remain errors. These are mock tests;
-  live automation coverage remains a release verification gap.
+  live JSON/non-interactive diagnosis by build ID is now user-verified for 18722.
+  Live URL-to-JSON-targeted-log chaining and retry traversal remain verification gaps.
 
 ### M1.2 — Build artifacts and selected evidence (rank 2)
 
