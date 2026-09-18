@@ -77,7 +77,13 @@ non-interactive mode.
 Build repository identity tests cover list/get projection, string IDs (including
 GitHub owner/repository identifiers), missing identities, malformed field types,
 credential redaction, omission of URLs/properties and JSON/table terminal escaping.
-Live verification of these added identity fields is pending.
+On 2026-09-18 the user verified build get table output for build 18722 in
+rseng/impldevmpc: definition 1128, completed/failed, source version
+`a357ab0a6900e27bcaa318497ed11ff845fcfa16`, repository ID
+`global-build/rackspace-bat-api`, type `GitHub`, and name displayed as `unknown`.
+The source version matches the previously observed build and pipeline run resource.
+This verifies reported identity rendering, not repository contents or current HEAD.
+Live list/JSON identity output and embedded evidence remain unverified.
 
 Run repository provenance tests cover multiple reported revisions, missing and empty
 resources, missing versions, duplicate aliases, malformed values, credential redaction,

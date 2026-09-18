@@ -73,8 +73,10 @@ or current definitions. Repository URLs, properties and checkout settings are om
 Commands embedding BuildInfo, including diagnosis JSON and service-backed artifact
 evidence, inherit this additive projection. Reported identity does not verify commit
 contents or identify all secondary repositories; repository types retain Build API
-spelling and need not match the Pipelines API spelling. Mock-tested; live verification
-of the identity projection is pending.
+spelling and need not match the Pipelines API spelling. The user verified build get
+table output for build 18722: repository ID `global-build/rackspace-bat-api`, type
+`GitHub`, name unavailable (`unknown`), and the previously observed source SHA.
+Live list/JSON identity output and embedded evidence remain unverified.
 
 Pipeline run get includes `repositoryProvenance` in JSON and a repository table.
 It allowlists run resource alias, repository type, ref and version from the
